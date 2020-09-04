@@ -1,0 +1,107 @@
+Map building
+Pick up and place traps
+Jetpacks
+Grapple
+Bounce pads
+Flamethrower weapon
+Spike blocks could be placed above bounce pads to bounce players up into spikes
+Melee attacks - could be needed to coerce players into running down corridors after each other giving the front player the opportunity to drop a trap
+Parallax scrolling backgrounds?
+Chain weapon
+Player should have a primary weapon (e.g. Shotgun), throwable grenades and a special ability. The special ability should charge up by killing other players (Indicated by a second bar under the healthbar). Once full, the player is then able to use the special ability.
+
+Player needs a period of invincibility after dying to prevent griefing. Player should flash to show what's happening.
+
+Escalating gameplay - players should play through premade level set to unlock more game modes.
+
+Ragdoll corpses
+Physics object interaction - crush other players with boxes
+
+Option to play a type of game that really lets you screw the other players
+Temporarily remap controller buttons
+Temporarily swap the control sticks
+Reverse the shoot direction
+Make only that player have reversed gravity
+Bullet drop off becomes hilariously high - drops off way too fast. Kinda like the floppy lightsabre in family guy
+Massively reduce the friction so that the other player slips and slides all over the place for a while
+Players could get a trap that looks just like a powerup but is actually the opposite of a powerup and instead causes one of the above effects instead.
+Having to physically swap the controller with another player: Hot potato
+
+Game mode:
+Shooting another player does no damage but scrambles their buttons around. The effect is not temporary. Getting shot again scrambles them again. The only way to kill another player is to kill them with a grenade.
+
+Classes:
+Fast moving, lower health
+Slower moving, higher health
+
+
+Game Modes:
+King of the hill mode
+
+Class mode. Players choose a class before playing.
+
+Play for 5 minutes and then winner has least deaths
+
+Play 5 rounds with the winner being the one with the most rounds won and each round continuinng until only one person stands
+Capture the flag
+
+Level creator - each player has a chance to create a level which the group then plays through and the winner is the one at the end with the most kills overall
+
+Jet pack mode
+
+Allow players to purchase upgrades/items etc. over the course of a play session with everything resetting after exiting the game. e.g. During the first level players drop coins when killed or coins can be picked up by other means. Then after that level is finished being played, the players have a little time to purchase upgrades with the coins they have earned.
+
+
+Unlocks:
+	Level 1 - No unlocking necessary. Available upon starting the game:
+		
+	Level 2:
+
+	Level 3:
+
+
+
+Level editor settings:
+The player should be able to just generate a quick layout of a map and then add the interesting bits like bounce pads, teleporters, flag blocks, moving platforms etc. That way they get the interesting part and placing regular blocks is left up to an algorithm (But could also be added to if the player wants).
+Map looping on/off - Can walk out the left side and appear on the right etc.
+One-shot-one-kill
+Scrolling map
+Rising water level
+Ambient light level
+Enable/disable specific weapons
+Slipperiness of the movement
+
+
+Level blocks:
+Bounce pad
+Flashing light
+Moving block - bounces back and forth or loops around depending on placement of solid blocks
+Auto-turret
+
+
+Items:
+Jet pack
+
+
+Weapons:
+Rocket launcher
+Beam gun
+Flamethrower
+Grenade launcher
+Shotgun
+
+
+Traps:
+Glue
+Spikes
+Fire
+Mine
+Catapult
+Gas - could be ignited
+Black hole trap (Watch Kurzgesagt video: Black hole bomb. The thumbnail is important. Black dot with glowing pink outline)
+
+
+
+Powerups:
+Shield
+
