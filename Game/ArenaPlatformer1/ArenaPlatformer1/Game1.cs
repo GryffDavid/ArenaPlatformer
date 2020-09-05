@@ -20,9 +20,7 @@ namespace ArenaPlatformer1
         GameState GameState;
 
         Player Player;
-
-        List<Tile> TileList = new List<Tile>();
-
+        
         RenderTarget2D UIRenderTarget, GameRenderTarget, MenuRenderTarget;
         BasicEffect BasicEffect;
 
@@ -30,6 +28,8 @@ namespace ArenaPlatformer1
 
         KeyboardState CurrentKeyboardState, PreviousKeyboardState;
         SpriteFont Font1;
+
+        Map CurrentMap;
 
         public Game1()
         {
@@ -42,75 +42,8 @@ namespace ArenaPlatformer1
         protected override void Initialize()
         {
             GameState = GameState.MainMenu;
-
-            //Bottom
-            for (int i = 0; i < 60; i++)
-            {
-                Tile tile = new Tile()
-                {
-                    Position = new Vector2(i * 32, 1048)
-                };
-
-                TileList.Add(tile);
-            }
-
-            //Top
-            for (int i = 0; i < 60; i++)
-            {
-                Tile tile = new Tile()
-                {
-                    Position = new Vector2(i * 32, 0)
-                };
-
-                TileList.Add(tile);
-            }
-
-            //Left
-            for (int i = 0; i < 34; i++)
-            {
-                Tile tile = new Tile()
-                {
-                    Position = new Vector2(0, 32 * i)
-                };
-
-                TileList.Add(tile);
-            }
-
-            //Right
-            for (int i = 0; i < 34; i++)
-            {
-                Tile tile = new Tile()
-                {
-                    Position = new Vector2(1888, 32 * i)
-                };
-
-                TileList.Add(tile);
-            }
             
-
-            //Platform
-            for (int i = 16; i < 28; i++)
-            {
-                Tile tile = new Tile()
-                {
-                    Position = new Vector2(32 * i, 800)
-                };
-
-                TileList.Add(tile);
-            }
-
-            //Platform
-            for (int i = 6; i < 21; i++)
-            {
-                Tile tile = new Tile()
-                {
-                    Position = new Vector2(32 * i, 900)
-                };
-
-                TileList.Add(tile);
-            }
-
-            Player = new Player(PlayerIndex.One, TileList);
+            Player = new Player(PlayerIndex.One);
 
 
             base.Initialize();
@@ -135,12 +68,11 @@ namespace ArenaPlatformer1
 
             Font1 = Content.Load<SpriteFont>("Font1");
 
-            Player.LoadContent(Content);
+            CurrentMap = new Map();
+            CurrentMap.LoadContent(Content);
 
-            foreach (Tile tile in TileList)
-            {
-                tile.LoadContent(Content);
-            }
+            Player.LoadContent(Content);
+            Player.Map = CurrentMap;
         }
         
         protected override void UnloadContent()
@@ -201,13 +133,11 @@ namespace ArenaPlatformer1
                     {
                         GraphicsDevice.SetRenderTarget(GameRenderTarget);
                         GraphicsDevice.Clear(Color.CornflowerBlue);
-                        spriteBatch.Begin();
-                        Player.Draw(spriteBatch);
 
-                        foreach (Tile tile in TileList)
-                        {
-                            tile.Draw(spriteBatch);
-                        }
+                        spriteBatch.Begin();
+
+                        Player.Draw(spriteBatch);
+                        CurrentMap.Draw(spriteBatch);
 
                         spriteBatch.End();
                     }

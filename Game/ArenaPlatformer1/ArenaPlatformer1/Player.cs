@@ -33,17 +33,15 @@ namespace ArenaPlatformer1
 
         Pose CurrentPose = Pose.Standing;
         Pose PreviousPos = Pose.Standing;
+        
+        public static Map Map;
 
-        List<Tile> TileList = new List<Tile>();
-
-        public Player(PlayerIndex playerIndex, List<Tile> tileList)
+        public Player(PlayerIndex playerIndex)
         {
             PlayerIndex = playerIndex;
             Position = new Vector2(500, 500);
             MaxSpeed = new Vector2(2.5f, 6);
             Gravity = 0.6f;
-
-            TileList = tileList;
         }
 
         public void Initialize()
@@ -231,7 +229,7 @@ namespace ArenaPlatformer1
 
         public bool CheckDownCollisions()
         {
-            foreach (Tile tile in TileList.Where(Tile => Vector2.Distance(Tile.Position, Position) < 80))
+            foreach (Tile tile in Map.TileList.Where(Tile => Vector2.Distance(Tile.Position, Position) < 80))
             {
                 for (int i = 0; i < CollisionRectangle.Width; i++)
                 {
@@ -251,7 +249,7 @@ namespace ArenaPlatformer1
 
         public bool CheckRightCollisions()
         {
-            foreach (Tile tile in TileList.Where(Tile => Vector2.Distance(Tile.Position, Position) < 80))
+            foreach(Tile tile in Map.TileList.Where(Tile => Vector2.Distance(Tile.Position, Position) < 80))
             {
                 for (int i = 0; i < CollisionRectangle.Height; i++)
                 {
@@ -272,7 +270,7 @@ namespace ArenaPlatformer1
 
         public bool CheckLeftCollisions()
         {
-            foreach (Tile tile in TileList.Where(Tile => Vector2.Distance(Tile.Position, Position) < 80))
+            foreach (Tile tile in Map.TileList.Where(Tile => Vector2.Distance(Tile.Position, Position) < 80))
             {
                 for (int i = 0; i < CollisionRectangle.Height; i++)
                 {
@@ -293,7 +291,7 @@ namespace ArenaPlatformer1
 
         public bool CheckUpCollisions()
         {
-            foreach (Tile tile in TileList.Where(Tile => Vector2.Distance(Tile.Position, Position) < 80))
+            foreach (Tile tile in Map.TileList.Where(Tile => Vector2.Distance(Tile.Position, Position) < 80))
             {
                 for (int i = 0; i < CollisionRectangle.Width; i++)
                 {
