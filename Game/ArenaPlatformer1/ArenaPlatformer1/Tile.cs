@@ -8,11 +8,14 @@ using Microsoft.Xna.Framework.Content;
 
 namespace ArenaPlatformer1
 {
+    enum TileType { Solid, Death, Slow, BouncePad };
+
     class Tile
     {
+        TileType TileType;
         Texture2D Texture;
         public Vector2 Position, Size;
-        Rectangle DestinationRectangle, CollisionRectangle;
+        public Rectangle DestinationRectangle, CollisionRectangle;
 
         public Tile()
         {
@@ -23,6 +26,7 @@ namespace ArenaPlatformer1
         {
             Texture = content.Load<Texture2D>("Blank");
             DestinationRectangle = new Rectangle((int)Position.X, (int)Position.Y, 32, 32);
+            CollisionRectangle = new Rectangle((int)Position.X, (int)Position.Y, 32, 32);
         }
 
         public void Update(GameTime gameTime)

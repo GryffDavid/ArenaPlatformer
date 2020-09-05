@@ -31,17 +31,64 @@ namespace ArenaPlatformer1
         
         protected override void Initialize()
         {
-            Player = new Player(PlayerIndex.One);
-
+            //Bottom
             for (int i = 0; i < 60; i++)
             {
                 Tile tile = new Tile()
                 {
-                    Position = new Vector2(i * 32, 800)
+                    Position = new Vector2(i * 32, 1048)
                 };
 
                 TileList.Add(tile);
             }
+
+            //Top
+            for (int i = 0; i < 60; i++)
+            {
+                Tile tile = new Tile()
+                {
+                    Position = new Vector2(i * 32, 0)
+                };
+
+                TileList.Add(tile);
+            }
+
+            //Left
+            for (int i = 0; i < 34; i++)
+            {
+                Tile tile = new Tile()
+                {
+                    Position = new Vector2(0, 32 * i)
+                };
+
+                TileList.Add(tile);
+            }
+
+            //Right
+            for (int i = 0; i < 34; i++)
+            {
+                Tile tile = new Tile()
+                {
+                    Position = new Vector2(1888, 32 * i)
+                };
+
+                TileList.Add(tile);
+            }
+
+            //Platform
+            for (int i = 16; i < 28; i++)
+            {
+                Tile tile = new Tile()
+                {
+                    Position = new Vector2(32 * i, 800)
+                };
+
+                TileList.Add(tile);
+            }
+
+
+            Player = new Player(PlayerIndex.One, TileList);
+
 
             base.Initialize();
         }

@@ -33,13 +33,17 @@ namespace ArenaPlatformer1
 
         Pose CurrentPose = Pose.Standing;
         Pose PreviousPos = Pose.Standing;
-        
-        public Player(PlayerIndex playerIndex)
+
+        List<Tile> TileList = new List<Tile>();
+
+        public Player(PlayerIndex playerIndex, List<Tile> tileList)
         {
             PlayerIndex = playerIndex;
             Position = new Vector2(500, 500);
             MaxSpeed = new Vector2(2.5f, 6);
             Gravity = 0.6f;
+
+            TileList = tileList;
         }
 
         public void Initialize()
@@ -90,14 +94,16 @@ namespace ArenaPlatformer1
                 #endregion
 
                 #region Move right
-                if (CurrentGamePadState.ThumbSticks.Left.X > 0)
+                if (CurrentGamePadState.ThumbSticks.Left.X > 0 && 
+                    CheckRightCollisions() == false)
                 {
                     Position.X += (Velocity.X * CurrentFriction.X) * ((float)gameTime.ElapsedGameTime.TotalSeconds * 60f);
                 }
                 #endregion
 
                 #region Moving left
-                if (CurrentGamePadState.ThumbSticks.Left.X < 0)
+                if (CurrentGamePadState.ThumbSticks.Left.X < 0 && 
+                    CheckLeftCollisions() == false)
                 {
                     Position.X += (Velocity.X * CurrentFriction.X) * ((float)gameTime.ElapsedGameTime.TotalSeconds * 60f);
                 }
@@ -111,6 +117,22 @@ namespace ArenaPlatformer1
                 }
                 #endregion
 
+                if (CheckUpCollisions() == true)
+                {
+                    Velocity.Y = 0;
+                }
+
+                if (CheckDownCollisions() == false)
+                {
+                    Velocity.Y += Gravity;
+                    Position.Y += (Velocity.Y * CurrentFriction.Y) * ((float)gameTime.ElapsedGameTime.TotalSeconds * 60f);
+                    //InAir = true;
+                }
+                else
+                {
+                    Velocity.Y = 0f;
+                }
+
                 #region Limit Speed
                 if (Velocity.X > MaxSpeed.X)
                 {
@@ -122,20 +144,10 @@ namespace ArenaPlatformer1
                     Velocity.X = -MaxSpeed.X;
                 }
                 #endregion
-                
-                if (Position.Y < 800)
-                {
-                    Velocity.Y += Gravity;
-                    Position.Y += (Velocity.Y * CurrentFriction.Y) * ((float)gameTime.ElapsedGameTime.TotalSeconds * 60f);
-                    //InAir = true;
-                }
-                else
-                {
-                    Velocity.Y = 0f;
-                }
             }
 
-            DestinationRectangle = new Rectangle((int)Position.X, (int)Position.Y, 32, 32);
+            DestinationRectangle = new Rectangle((int)Position.X, (int)Position.Y, Texture.Width, Texture.Height);
+            CollisionRectangle = new Rectangle((int)(Position.X - Texture.Width/2), (int)(Position.Y - Texture.Height), Texture.Width, Texture.Height);
 
             PreviousGamePadState = CurrentGamePadState;
             PreviousKeyboardState = CurrentKeyboardState;
@@ -148,11 +160,104 @@ namespace ArenaPlatformer1
             spriteBatch.Draw(Texture, new Rectangle((int)Position.X-2, (int)Position.Y-2, 4, 4), Color.Red);
         }
 
+        /// <summary>
+        /// Draw the collision box and other useful debug info
+        /// </summary>
+        /// <param name="graphics"></param>
+        /// <param name="basicEffect"></param>
+        public void DrawInfo(GraphicsDevice graphics, BasicEffect basicEffect)
+        {
+
+        }
+
         //public void MakeRumble(float time, Vector2 value)
         //{
         //    GamePad.SetVibration(PlayerIndex, value.X, value.Y);
         //    RumbleTime = 0;
         //    MaxRumbleTime = time;
         //}
+
+        public bool CheckDownCollisions()
+        {
+            foreach (Tile tile in TileList)
+            {
+                for (int i = 0; i < CollisionRectangle.Width; i++)
+                {
+                    if (tile.CollisionRectangle.Contains(
+                        new Point(
+                        (int)(CollisionRectangle.Left + i), 
+                        (int)(CollisionRectangle.Bottom + Velocity.Y + 1))))
+                    {
+                        Position.Y += (tile.CollisionRectangle.Top - CollisionRectangle.Bottom);
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        public bool CheckRightCollisions()
+        {
+            foreach (Tile tile in TileList)
+            {
+                for (int i = 0; i < CollisionRectangle.Height; i++)
+                {
+                    if (tile.CollisionRectangle.Contains(
+                        new Point(
+                            (int)(CollisionRectangle.Right + Velocity.X),
+                            (int)(CollisionRectangle.Top + i))))
+                    {
+                        Position.X -= (CollisionRectangle.Right - tile.CollisionRectangle.Left);
+                        Velocity.X = 0;
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        public bool CheckLeftCollisions()
+        {
+            foreach (Tile tile in TileList)
+            {
+                for (int i = 0; i < CollisionRectangle.Height; i++)
+                {
+                    if (tile.CollisionRectangle.Contains(
+                        new Point(
+                            (int)(CollisionRectangle.Left + Velocity.X - 1),
+                            (int)(CollisionRectangle.Top + i))))
+                    {
+                        Position.X += (tile.CollisionRectangle.Right - CollisionRectangle.Left);
+                        Velocity.X = 0;
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        public bool CheckUpCollisions()
+        {
+            foreach (Tile tile in TileList)
+            {
+                for (int i = 0; i < CollisionRectangle.Width; i++)
+                {
+                    if (Velocity.Y < 0)
+                    if (tile.CollisionRectangle.Contains(
+                        new Point(
+                        (int)(CollisionRectangle.Left + i),
+                        (int)(CollisionRectangle.Top + Velocity.Y - 1))))
+                    {
+                            Position.Y += (tile.CollisionRectangle.Bottom - CollisionRectangle.Top);
+                            Velocity.Y = 0;
+                            return true;
+                    }
+                }
+            }
+            return false;
+        }
     }
 }
