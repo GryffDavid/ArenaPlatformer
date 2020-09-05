@@ -22,8 +22,8 @@ namespace ArenaPlatformer1
         public GamePadState CurrentGamePadState, PreviousGamePadState;
         public KeyboardState CurrentKeyboardState, PreviousKeyboardState;
         public MouseState CurrentMouseState, PreviousMouseState;
-        public Rectangle DestinationRectangle, CollisionRectangle;        
-        float Gravity;
+        public Rectangle DestinationRectangle, CollisionRectangle;
+        public float Gravity;
         public PlayerIndex PlayerIndex;
 
         GamePadThumbSticks Sticks;
@@ -231,7 +231,7 @@ namespace ArenaPlatformer1
 
         public bool CheckDownCollisions()
         {
-            foreach (Tile tile in TileList)
+            foreach (Tile tile in TileList.Where(Tile => Vector2.Distance(Tile.Position, Position) < 80))
             {
                 for (int i = 0; i < CollisionRectangle.Width; i++)
                 {
@@ -251,7 +251,7 @@ namespace ArenaPlatformer1
 
         public bool CheckRightCollisions()
         {
-            foreach (Tile tile in TileList)
+            foreach (Tile tile in TileList.Where(Tile => Vector2.Distance(Tile.Position, Position) < 80))
             {
                 for (int i = 0; i < CollisionRectangle.Height; i++)
                 {
@@ -272,7 +272,7 @@ namespace ArenaPlatformer1
 
         public bool CheckLeftCollisions()
         {
-            foreach (Tile tile in TileList)
+            foreach (Tile tile in TileList.Where(Tile => Vector2.Distance(Tile.Position, Position) < 80))
             {
                 for (int i = 0; i < CollisionRectangle.Height; i++)
                 {
@@ -293,7 +293,7 @@ namespace ArenaPlatformer1
 
         public bool CheckUpCollisions()
         {
-            foreach (Tile tile in TileList)
+            foreach (Tile tile in TileList.Where(Tile => Vector2.Distance(Tile.Position, Position) < 80))
             {
                 for (int i = 0; i < CollisionRectangle.Width; i++)
                 {

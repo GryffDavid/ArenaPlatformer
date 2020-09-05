@@ -10,23 +10,26 @@ using Microsoft.Xna.Framework.Input;
 using Microsoft.Xna.Framework.Media;
 
 namespace ArenaPlatformer1
-{    
+{
+    enum GameState { MainMenu, Playing, LevelCreator };
+
     public class Game1 : Microsoft.Xna.Framework.Game
     {
         GraphicsDeviceManager graphics;
         SpriteBatch spriteBatch;
-        enum GameState { MainMenu, Playing };
+        GameState GameState;
 
         Player Player;
 
         List<Tile> TileList = new List<Tile>();
 
-        RenderTarget2D UIRenderTarget, GameRenderTarget;
+        RenderTarget2D UIRenderTarget, GameRenderTarget, MenuRenderTarget;
         BasicEffect BasicEffect;
 
         bool DrawDiagnostics = false;
 
         KeyboardState CurrentKeyboardState, PreviousKeyboardState;
+        SpriteFont Font1;
 
         public Game1()
         {
@@ -38,6 +41,8 @@ namespace ArenaPlatformer1
         
         protected override void Initialize()
         {
+            GameState = GameState.MainMenu;
+
             //Bottom
             for (int i = 0; i < 60; i++)
             {
@@ -81,8 +86,7 @@ namespace ArenaPlatformer1
 
                 TileList.Add(tile);
             }
-
-
+            
 
             //Platform
             for (int i = 16; i < 28; i++)
@@ -111,7 +115,12 @@ namespace ArenaPlatformer1
 
             base.Initialize();
         }
-        
+
+        protected void LoadGameContent()
+        {
+
+        }
+
         protected override void LoadContent()
         {
             spriteBatch = new SpriteBatch(GraphicsDevice);
@@ -122,6 +131,9 @@ namespace ArenaPlatformer1
 
             UIRenderTarget = new RenderTarget2D(GraphicsDevice, 1920, 1080);
             GameRenderTarget = new RenderTarget2D(GraphicsDevice, 1920, 1080);
+            MenuRenderTarget = new RenderTarget2D(GraphicsDevice, 1920, 1080);
+
+            Font1 = Content.Load<SpriteFont>("Font1");
 
             Player.LoadContent(Content);
 
@@ -140,17 +152,32 @@ namespace ArenaPlatformer1
         {
             CurrentKeyboardState = Keyboard.GetState();
 
-
-            #region Turn on diagnostics with F3
-            if (CurrentKeyboardState.IsKeyUp(Keys.F3) &&
-                    PreviousKeyboardState.IsKeyDown(Keys.F3))
+            switch (GameState)
             {
-                DrawDiagnostics = !DrawDiagnostics;
-            }
-            #endregion
+                case GameState.MainMenu:
+                    {
+                        if (CurrentKeyboardState.IsKeyUp(Keys.Enter) &&
+                            PreviousKeyboardState.IsKeyDown(Keys.Enter))
+                        {
+                            GameState = GameState.Playing;
+                        }
+                    }
+                    break;
 
-            
-            Player.Update(gameTime);
+                case GameState.Playing:
+                    {
+                        #region Turn on diagnostics with F3
+                        if (CurrentKeyboardState.IsKeyUp(Keys.F3) &&
+                            PreviousKeyboardState.IsKeyDown(Keys.F3))
+                        {
+                            DrawDiagnostics = !DrawDiagnostics;
+                        }
+                        #endregion
+
+                        Player.Update(gameTime);
+                    }
+                    break;
+            }
 
             PreviousKeyboardState = CurrentKeyboardState;
             base.Update(gameTime);
@@ -158,17 +185,40 @@ namespace ArenaPlatformer1
         
         protected override void Draw(GameTime gameTime)
         {
-            GraphicsDevice.SetRenderTarget(GameRenderTarget);
-            GraphicsDevice.Clear(Color.CornflowerBlue);
-            spriteBatch.Begin();
-            Player.Draw(spriteBatch);
-
-            foreach (Tile tile in TileList)
+            switch (GameState)
             {
-                tile.Draw(spriteBatch);
-            }
+                case GameState.MainMenu:
+                    {
+                        GraphicsDevice.SetRenderTarget(MenuRenderTarget);
+                        GraphicsDevice.Clear(Color.CornflowerBlue);
+                        spriteBatch.Begin();
+                        spriteBatch.DrawString(Font1, "Main Menu", new Vector2(32, 32), Color.White);
+                        spriteBatch.End();
+                    }
+                    break;
 
-            spriteBatch.End();
+                case GameState.Playing:
+                    {
+                        GraphicsDevice.SetRenderTarget(GameRenderTarget);
+                        GraphicsDevice.Clear(Color.CornflowerBlue);
+                        spriteBatch.Begin();
+                        Player.Draw(spriteBatch);
+
+                        foreach (Tile tile in TileList)
+                        {
+                            tile.Draw(spriteBatch);
+                        }
+
+                        spriteBatch.End();
+                    }
+                    break;
+
+                case GameState.LevelCreator:
+                    {
+
+                    }
+                    break;
+            }
 
             GraphicsDevice.SetRenderTarget(UIRenderTarget);
             GraphicsDevice.Clear(Color.Transparent);
@@ -184,8 +234,15 @@ namespace ArenaPlatformer1
             GraphicsDevice.Clear(Color.Black);
             spriteBatch.Begin();
 
-            spriteBatch.Draw(GameRenderTarget, GameRenderTarget.Bounds, Color.White);
-            spriteBatch.Draw(UIRenderTarget, UIRenderTarget.Bounds, Color.White);
+            if (GameState != GameState.Playing)
+            {
+                spriteBatch.Draw(MenuRenderTarget, MenuRenderTarget.Bounds, Color.White);
+            }
+            else
+            {
+                spriteBatch.Draw(GameRenderTarget, GameRenderTarget.Bounds, Color.White);
+                spriteBatch.Draw(UIRenderTarget, UIRenderTarget.Bounds, Color.White);
+            }
 
             spriteBatch.End();
 

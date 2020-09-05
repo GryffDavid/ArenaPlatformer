@@ -71,9 +71,13 @@
     <Reference Include="System.Net" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Animation.cs" />
+    <Compile Include="Guns\Gun.cs" />
+    <Compile Include="Guns\RocketLauncher.cs" />
     <Compile Include="Level.cs" />
     <Compile Include="Map.cs" />
     <Compile Include="Player.cs" />
+    <Compile Include="PlayerAnimation.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="aOtherStuff\Program.cs" />
     <Compile Include="Game1.cs" />
@@ -92,9 +96,9 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Guns\" />
     <Folder Include="Items\" />
     <Folder Include="MapEditor\" />
+    <Folder Include="ParticleSystem\" />
     <Folder Include="Trap\" />
   </ItemGroup>
   <ItemGroup>
