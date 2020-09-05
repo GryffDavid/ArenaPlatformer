@@ -19,6 +19,7 @@ namespace ArenaPlatformer1
 
         Player Player;
 
+        List<Tile> TileList = new List<Tile>();
 
         public Game1()
         {
@@ -31,6 +32,17 @@ namespace ArenaPlatformer1
         protected override void Initialize()
         {
             Player = new Player(PlayerIndex.One);
+
+            for (int i = 0; i < 60; i++)
+            {
+                Tile tile = new Tile()
+                {
+                    Position = new Vector2(i * 32, 800)
+                };
+
+                TileList.Add(tile);
+            }
+
             base.Initialize();
         }
         
@@ -38,6 +50,11 @@ namespace ArenaPlatformer1
         {
             spriteBatch = new SpriteBatch(GraphicsDevice);
             Player.LoadContent(Content);
+
+            foreach (Tile tile in TileList)
+            {
+                tile.LoadContent(Content);
+            }
         }
         
         protected override void UnloadContent()
@@ -56,6 +73,12 @@ namespace ArenaPlatformer1
             GraphicsDevice.Clear(Color.CornflowerBlue);
             spriteBatch.Begin();
             Player.Draw(spriteBatch);
+
+            foreach (Tile tile in TileList)
+            {
+                tile.Draw(spriteBatch);
+            }
+
             spriteBatch.End();
             base.Draw(gameTime);
         }
