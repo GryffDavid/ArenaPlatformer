@@ -22,7 +22,7 @@ namespace ArenaPlatformer1
         public GamePadState CurrentGamePadState, PreviousGamePadState;
         public KeyboardState CurrentKeyboardState, PreviousKeyboardState;
         public MouseState CurrentMouseState, PreviousMouseState;
-        public Rectangle DestinationRectangle, CollisionRectangle;
+        public Rectangle DestinationRectangle, CollisionRectangle;        
         float Gravity;
         public PlayerIndex PlayerIndex;
 
@@ -157,7 +157,8 @@ namespace ArenaPlatformer1
         public void Draw(SpriteBatch spriteBatch)
         {
             spriteBatch.Draw(Texture, DestinationRectangle, null, Color.White, 0, new Vector2(Texture.Width / 2, Texture.Height), SpriteEffects.None, 0);
-            spriteBatch.Draw(Texture, new Rectangle((int)Position.X-2, (int)Position.Y-2, 4, 4), Color.Red);
+
+            
         }
 
         /// <summary>
@@ -165,9 +166,60 @@ namespace ArenaPlatformer1
         /// </summary>
         /// <param name="graphics"></param>
         /// <param name="basicEffect"></param>
-        public void DrawInfo(GraphicsDevice graphics, BasicEffect basicEffect)
+        public void DrawInfo(SpriteBatch spriteBatch, GraphicsDevice graphics, BasicEffect basicEffect)
         {
+            //Mark the Position of the player
+            spriteBatch.Draw(Texture, new Rectangle((int)Position.X - 1, (int)Position.Y - 4, 2, 8), Color.Red);
 
+            #region Draw the collision box for debugging
+            VertexPositionColorTexture[] Vertices = new VertexPositionColorTexture[4];
+            int[] Indices = new int[8];
+
+            Vertices[0] = new VertexPositionColorTexture()
+            {
+                Color = Color.Red,
+                Position = new Vector3(CollisionRectangle.Left, CollisionRectangle.Top, 0),
+                TextureCoordinate = new Vector2(0, 0)
+            };
+
+            Vertices[1] = new VertexPositionColorTexture()
+            {
+                Color = Color.Red,
+                Position = new Vector3(CollisionRectangle.Right - 1, CollisionRectangle.Top, 0),
+                TextureCoordinate = new Vector2(1, 0)
+            };
+
+            Vertices[2] = new VertexPositionColorTexture()
+            {
+                Color = Color.Red,
+                Position = new Vector3(CollisionRectangle.Right - 1, CollisionRectangle.Bottom - 1, 0),
+                TextureCoordinate = new Vector2(1, 1)
+            };
+
+            Vertices[3] = new VertexPositionColorTexture()
+            {
+                Color = Color.Red,
+                Position = new Vector3(CollisionRectangle.Left, CollisionRectangle.Bottom - 1, 0),
+                TextureCoordinate = new Vector2(0, 1)
+            };
+
+            Indices[0] = 0;
+            Indices[1] = 1;
+
+            Indices[2] = 2;
+            Indices[3] = 3;
+
+            Indices[4] = 0;
+
+            Indices[5] = 2;
+            Indices[6] = 0;
+
+            foreach (EffectPass pass in basicEffect.CurrentTechnique.Passes)
+            {
+                pass.Apply();
+                graphics.DrawUserIndexedPrimitives(PrimitiveType.LineStrip, Vertices, 0, 4, Indices, 0, 6, VertexPositionColorTexture.VertexDeclaration);
+            } 
+            #endregion
         }
 
         //public void MakeRumble(float time, Vector2 value)
