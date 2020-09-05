@@ -8,7 +8,7 @@ using Microsoft.Xna.Framework.Content;
 
 namespace ArenaPlatformer1
 {
-    class Map
+    public class Map
     {
         public List<Tile> TileList = new List<Tile>();
 

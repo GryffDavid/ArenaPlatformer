@@ -13,13 +13,17 @@ namespace ArenaPlatformer1
 {
     enum GameState { MainMenu, ModeSelect, Playing, LevelCreator };
 
+    public delegate void PlayerShootHappenedEventHandler(object source, PlayerShootEventArgs e);
+    public class PlayerShootEventArgs : EventArgs
+    {
+        public Player Player { get; set; }
+    }
+
     public class Game1 : Microsoft.Xna.Framework.Game
     {
         GraphicsDeviceManager graphics;
         SpriteBatch spriteBatch;
         GameState GameState;
-
-        //Player Player;
         
         RenderTarget2D UIRenderTarget, GameRenderTarget, MenuRenderTarget;
         BasicEffect BasicEffect;
@@ -38,6 +42,22 @@ namespace ArenaPlatformer1
         GamePadState[] CurrentGamePadStates = new GamePadState[4];
         GamePadState[] PreviousGamePadStates = new GamePadState[4];
 
+        List<Projectile> ProjectileList = new List<Projectile>();
+
+        public void OnPlayerShoot(object source, PlayerShootEventArgs e)
+        {
+            ProjectileList.Add(new Rocket()
+            {
+                Position = e.Player.Position,
+                PlayerIndex = e.Player.PlayerIndex
+            });
+
+            //Create projectile
+            //Play sound
+            //Rumble?
+        }
+
+
         public Game1()
         {
             graphics = new GraphicsDeviceManager(this)
@@ -47,24 +67,14 @@ namespace ArenaPlatformer1
             };
 
             Content.RootDirectory = "Content";
+
+            graphics.SynchronizeWithVerticalRetrace = true;
+            this.IsFixedTimeStep = false;
         }
         
         protected override void Initialize()
         {
             GameState = GameState.MainMenu;
-
-            //GamePadState[] gamePad = new GamePadState[4];
-
-            //for (int i = 0; i < 4; i++)
-            //{
-            //    gamePad[i] = GamePad.GetState((PlayerIndex)i);
-
-            //    if (gamePad[i].IsConnected == true)
-            //    {
-            //        Players[i] = new Player((PlayerIndex)i);
-            //        Players[i].LoadContent(Content);
-            //    }
-            //}
 
             base.Initialize();
         }
@@ -100,8 +110,12 @@ namespace ArenaPlatformer1
                 PlayerJoinButtons[i] = new PlayerJoin(ButtonTexture, new Vector2(106 + (451 * i), 278), new Vector2(356, 524)); 
             }
 
-
             Player.Map = CurrentMap;
+            Projectile.Map = CurrentMap;
+
+            Rocket.Texture = Content.Load<Texture2D>("RocketTexture");
+
+            ProjectileList.Add(new Rocket() { Position = new Vector2(80, 80), Velocity = new Vector2(1, 0) });
         }
         
         protected override void UnloadContent()
@@ -120,6 +134,7 @@ namespace ArenaPlatformer1
 
             switch (GameState)
             {
+                #region MainMenu
                 case GameState.MainMenu:
                     {
                         for (int i = 0; i < 4; i++)
@@ -130,17 +145,24 @@ namespace ArenaPlatformer1
                             if (CurrentGamePadStates[i].IsButtonUp(Buttons.A) &&
                                 PreviousGamePadStates[i].IsButtonDown(Buttons.A))
                             {
-                                if (PlayerJoinButtons[i].Occupied == true &&
-                                    PlayerJoinButtons.Count(Button => Button.Occupied) > 1)
+                                //if (PlayerJoinButtons[i].Occupied == true &&
+                                //    PlayerJoinButtons.Count(Button => Button.Occupied) > 1)
+                                //{
+                                //    GameState = GameState.ModeSelect;
+                                //}
+
+                                if (PlayerJoinButtons[i].Occupied == true)
                                 {
-                                    GameState = GameState.ModeSelect;
+                                    GameState = GameState.Playing;
                                 }
 
                                 PlayerJoinButtons[i].Occupied = true;
 
                                 Players[i] = new Player((PlayerIndex)i);
                                 Players[i].LoadContent(Content);
-                            } 
+                                
+                                Players[i].PlayerShootHappened += OnPlayerShoot;
+                            }
                             #endregion
 
                             #region Player backed out
@@ -149,7 +171,7 @@ namespace ArenaPlatformer1
                             {
                                 PlayerJoinButtons[i].Occupied = false;
                                 Players[i] = null;
-                            } 
+                            }
                             #endregion
                         }
 
@@ -160,12 +182,14 @@ namespace ArenaPlatformer1
                             GameState = GameState.ModeSelect;
                         }
                     }
-                    break;
+                    break; 
+                #endregion
 
+                #region ModeSelect
                 case GameState.ModeSelect:
                     {
                         for (int i = 0; i < 4; i++)
-                        {                            
+                        {
                             if (CurrentGamePadStates[i].IsButtonUp(Buttons.B) &&
                                 PreviousGamePadStates[i].IsButtonDown(Buttons.B))
                             {
@@ -180,7 +204,17 @@ namespace ArenaPlatformer1
                         }
                     }
                     break;
+                #endregion
 
+                #region LevelCreator
+                case GameState.LevelCreator:
+                    {
+
+                    }
+                    break; 
+                #endregion
+
+                #region Playing
                 case GameState.Playing:
                     {
                         #region Turn on diagnostics with F3
@@ -193,18 +227,24 @@ namespace ArenaPlatformer1
 
                         foreach (Player player in Players.Where(Player => Player != null))
                         {
-                            player.Update(gameTime);                            
+                            player.Update(gameTime);
+                        }
+
+                        foreach (Projectile projectile in ProjectileList)
+                        {
+                            projectile.Update(gameTime);
                         }
                     }
-                    break;
+                    break; 
+                    #endregion
             }
-
-            PreviousKeyboardState = CurrentKeyboardState;
 
             for (int i = 0; i < 4; i++)
             {
                 PreviousGamePadStates[i] = CurrentGamePadStates[i];
             }
+
+            PreviousKeyboardState = CurrentKeyboardState;
 
             base.Update(gameTime);
         }
@@ -245,6 +285,11 @@ namespace ArenaPlatformer1
                         GraphicsDevice.Clear(Color.CornflowerBlue);
 
                         spriteBatch.Begin();
+
+                        foreach (Projectile projectile in ProjectileList)
+                        {
+                            projectile.Draw(spriteBatch);
+                        }
 
                         foreach (Player player in Players.Where(Player => Player != null))
                         {

@@ -12,8 +12,19 @@ namespace ArenaPlatformer1
     enum Facing { Left, Right };
     enum Pose { Standing, Crouching };
 
-    class Player
-    {        
+    public class Player
+    {
+        public event PlayerShootHappenedEventHandler PlayerShootHappened;
+        public void CreatePlayerShoot()
+        {
+            OnPlayerShootHappened();
+        }
+        protected virtual void OnPlayerShootHappened()
+        {
+            if (PlayerShootHappened != null)
+                PlayerShootHappened(this, new PlayerShootEventArgs() { Player = this });
+        }
+
         bool Active = true;
         public Texture2D Texture;
         public Vector2 Position, Velocity, MoveStick, AimStick, RumbleValues, AimDirection;
@@ -27,6 +38,7 @@ namespace ArenaPlatformer1
         public PlayerIndex PlayerIndex;
 
         GamePadThumbSticks Sticks;
+        Buttons JumpButton, ShootButton, GrenadeButton;
 
         Facing CurrentFacing = Facing.Right;
         Facing PreviousFacing = Facing.Right;
@@ -54,6 +66,10 @@ namespace ArenaPlatformer1
         public void LoadContent(ContentManager content)
         {
             Texture = content.Load<Texture2D>("Blank");
+
+            JumpButton = Buttons.A;
+            ShootButton = Buttons.B;
+            GrenadeButton = Buttons.X;
         }
 
         public void Update(GameTime gameTime)
@@ -68,11 +84,16 @@ namespace ArenaPlatformer1
                 MoveStick = Sticks.Left;
                 AimStick = Sticks.Right;
 
+                Velocity.X += MoveStick.X * 3f;
+
                 #region Move stick left
                 if (MoveStick.X < 0f)
                 {
                     AimDirection.X = -1f;
                     CurrentFacing = Facing.Left;
+
+                    if (CheckLeftCollisions() == false)
+                        Position.X += (Velocity.X * CurrentFriction.X) * ((float)gameTime.ElapsedGameTime.TotalSeconds * 60f);
                 }
                 #endregion
 
@@ -81,10 +102,11 @@ namespace ArenaPlatformer1
                 {
                     AimDirection.X = 1f;
                     CurrentFacing = Facing.Right;
+
+                    if (CheckRightCollisions() == false)
+                        Position.X += (Velocity.X * CurrentFriction.X) * ((float)gameTime.ElapsedGameTime.TotalSeconds * 60f);
                 }
                 #endregion
-
-                Velocity.X += MoveStick.X * 3f;
 
                 #region Stop Moving
                 if (MoveStick.X == 0)
@@ -92,32 +114,22 @@ namespace ArenaPlatformer1
                     Velocity.X = 0;
                 }
                 #endregion
-
-                #region Move right
-                if (CurrentGamePadState.ThumbSticks.Left.X > 0 && 
-                    CheckRightCollisions() == false)
-                {
-                    Position.X += (Velocity.X * CurrentFriction.X) * ((float)gameTime.ElapsedGameTime.TotalSeconds * 60f);
-                }
-                #endregion
-
-                #region Moving left
-                if (CurrentGamePadState.ThumbSticks.Left.X < 0 && 
-                    CheckLeftCollisions() == false)
-                {
-                    Position.X += (Velocity.X * CurrentFriction.X) * ((float)gameTime.ElapsedGameTime.TotalSeconds * 60f);
-                }
-                #endregion
-
-                #region Press A - Jump
-                if (CurrentGamePadState.Buttons.A == ButtonState.Pressed &&
-                    PreviousGamePadState.Buttons.A == ButtonState.Released &&
+                
+                #region Jump
+                if (CurrentGamePadState.IsButtonDown(JumpButton) &&
+                    PreviousGamePadState.IsButtonUp(JumpButton) &&
                     Velocity.Y > -20 &&
                     CheckUpCollisions() == false)
                 {
                     Velocity.Y -= 12;
                 }
                 #endregion
+
+                if (CurrentGamePadState.IsButtonDown(ShootButton) &&
+                    PreviousGamePadState.IsButtonUp(ShootButton))
+                {
+                    CreatePlayerShoot();
+                }
 
                 #region Handle Rumble
                 if (RumbleTime <= MaxRumbleTime)

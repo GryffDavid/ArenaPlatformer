@@ -8,9 +8,9 @@ using Microsoft.Xna.Framework.Content;
 
 namespace ArenaPlatformer1
 {
-    enum TileType { Solid, Death, Slow, BouncePad };
+    public enum TileType { Solid, Death, Slow, BouncePad };
 
-    class Tile
+    public class Tile
     {
         public TileType TileType;
         Texture2D Texture;
