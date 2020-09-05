@@ -1,0 +1,29 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.27004.2005
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ArenaPlatformer1", "ArenaPlatformer1\ArenaPlatformer1\ArenaPlatformer1.csproj", "{7E1816EC-1D87-4E9A-860E-FE9FB142D6C8}"
+EndProject
+Project("{96E2B04D-8817-42C6-938A-82C39BA4D311}") = "ArenaPlatformer1Content", "ArenaPlatformer1\ArenaPlatformer1Content\ArenaPlatformer1Content.contentproj", "{F2963FB0-C55D-403F-B94B-BCFE7F6832FC}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x86 = Debug|x86
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{7E1816EC-1D87-4E9A-860E-FE9FB142D6C8}.Debug|x86.ActiveCfg = Debug|x86
+		{7E1816EC-1D87-4E9A-860E-FE9FB142D6C8}.Debug|x86.Build.0 = Debug|x86
+		{7E1816EC-1D87-4E9A-860E-FE9FB142D6C8}.Release|x86.ActiveCfg = Release|x86
+		{7E1816EC-1D87-4E9A-860E-FE9FB142D6C8}.Release|x86.Build.0 = Release|x86
+		{F2963FB0-C55D-403F-B94B-BCFE7F6832FC}.Debug|x86.ActiveCfg = Debug|x86
+		{F2963FB0-C55D-403F-B94B-BCFE7F6832FC}.Release|x86.ActiveCfg = Release|x86
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {FBD32ED5-2322-4240-9411-F38C5657FA3E}
+	EndGlobalSection
+EndGlobal
