@@ -11,7 +11,7 @@ using Microsoft.Xna.Framework.Media;
 
 namespace ArenaPlatformer1
 {
-    enum GameState { MainMenu, Playing, LevelCreator };
+    enum GameState { MainMenu, ModeSelect, Playing, LevelCreator };
 
     public class Game1 : Microsoft.Xna.Framework.Game
     {
@@ -19,7 +19,7 @@ namespace ArenaPlatformer1
         SpriteBatch spriteBatch;
         GameState GameState;
 
-        Player Player;
+        //Player Player;
         
         RenderTarget2D UIRenderTarget, GameRenderTarget, MenuRenderTarget;
         BasicEffect BasicEffect;
@@ -31,20 +31,40 @@ namespace ArenaPlatformer1
 
         Map CurrentMap;
 
+        Player[] Players = new Player[4];
+        PlayerJoin[] PlayerJoinButtons = new PlayerJoin[4];
+
+        //Specifically for menu interactions before the Player objects have been created
+        GamePadState[] CurrentGamePadStates = new GamePadState[4];
+        GamePadState[] PreviousGamePadStates = new GamePadState[4];
+
         public Game1()
         {
-            graphics = new GraphicsDeviceManager(this);
-            graphics.PreferredBackBufferWidth = 1920;
-            graphics.PreferredBackBufferHeight = 1080;
+            graphics = new GraphicsDeviceManager(this)
+            {
+                PreferredBackBufferWidth = 1920,
+                PreferredBackBufferHeight = 1080
+            };
+
             Content.RootDirectory = "Content";
         }
         
         protected override void Initialize()
         {
             GameState = GameState.MainMenu;
-            
-            Player = new Player(PlayerIndex.One);
 
+            //GamePadState[] gamePad = new GamePadState[4];
+
+            //for (int i = 0; i < 4; i++)
+            //{
+            //    gamePad[i] = GamePad.GetState((PlayerIndex)i);
+
+            //    if (gamePad[i].IsConnected == true)
+            //    {
+            //        Players[i] = new Player((PlayerIndex)i);
+            //        Players[i].LoadContent(Content);
+            //    }
+            //}
 
             base.Initialize();
         }
@@ -58,9 +78,11 @@ namespace ArenaPlatformer1
         {
             spriteBatch = new SpriteBatch(GraphicsDevice);
 
-            BasicEffect = new BasicEffect(GraphicsDevice);
-            BasicEffect.VertexColorEnabled = true;
-            BasicEffect.Projection = Matrix.CreateOrthographicOffCenter(0, 1920, 1080, 0, 0, 1);
+            BasicEffect = new BasicEffect(GraphicsDevice)
+            {
+                VertexColorEnabled = true,
+                Projection = Matrix.CreateOrthographicOffCenter(0, 1920, 1080, 0, 0, 1)
+            };
 
             UIRenderTarget = new RenderTarget2D(GraphicsDevice, 1920, 1080);
             GameRenderTarget = new RenderTarget2D(GraphicsDevice, 1920, 1080);
@@ -71,7 +93,14 @@ namespace ArenaPlatformer1
             CurrentMap = new Map();
             CurrentMap.LoadContent(Content);
 
-            Player.LoadContent(Content);
+            Texture2D ButtonTexture = Content.Load<Texture2D>("Blank");
+
+            for (int i = 0; i < 4; i++)
+            {
+                PlayerJoinButtons[i] = new PlayerJoin(ButtonTexture, new Vector2(106 + (451 * i), 278), new Vector2(356, 524)); 
+            }
+
+
             Player.Map = CurrentMap;
         }
         
@@ -84,14 +113,70 @@ namespace ArenaPlatformer1
         {
             CurrentKeyboardState = Keyboard.GetState();
 
+            for (int i = 0; i < 4; i++)
+            {
+                CurrentGamePadStates[i] = GamePad.GetState((PlayerIndex)i);
+            }
+
             switch (GameState)
             {
                 case GameState.MainMenu:
                     {
-                        if (CurrentKeyboardState.IsKeyUp(Keys.Enter) &&
-                            PreviousKeyboardState.IsKeyDown(Keys.Enter))
+                        for (int i = 0; i < 4; i++)
                         {
-                            GameState = GameState.Playing;
+                            PlayerJoinButtons[i].Update(gameTime);
+
+                            #region Player joined
+                            if (CurrentGamePadStates[i].IsButtonUp(Buttons.A) &&
+                                PreviousGamePadStates[i].IsButtonDown(Buttons.A))
+                            {
+                                if (PlayerJoinButtons[i].Occupied == true &&
+                                    PlayerJoinButtons.Count(Button => Button.Occupied) > 1)
+                                {
+                                    GameState = GameState.ModeSelect;
+                                }
+
+                                PlayerJoinButtons[i].Occupied = true;
+
+                                Players[i] = new Player((PlayerIndex)i);
+                                Players[i].LoadContent(Content);
+                            } 
+                            #endregion
+
+                            #region Player backed out
+                            if (CurrentGamePadStates[i].IsButtonUp(Buttons.B) &&
+                                PreviousGamePadStates[i].IsButtonDown(Buttons.B))
+                            {
+                                PlayerJoinButtons[i].Occupied = false;
+                                Players[i] = null;
+                            } 
+                            #endregion
+                        }
+
+                        //If all 4 players have joined, move to the next menu without waiting for a button press
+                        //No need to wait because all slots are full
+                        if (PlayerJoinButtons.All(Button => Button.Occupied == true))
+                        {
+                            GameState = GameState.ModeSelect;
+                        }
+                    }
+                    break;
+
+                case GameState.ModeSelect:
+                    {
+                        for (int i = 0; i < 4; i++)
+                        {                            
+                            if (CurrentGamePadStates[i].IsButtonUp(Buttons.B) &&
+                                PreviousGamePadStates[i].IsButtonDown(Buttons.B))
+                            {
+                                GameState = GameState.MainMenu;
+                            }
+
+                            if (CurrentGamePadStates[i].IsButtonUp(Buttons.Start) &&
+                                PreviousGamePadStates[i].IsButtonDown(Buttons.Start))
+                            {
+                                GameState = GameState.Playing;
+                            }
                         }
                     }
                     break;
@@ -106,12 +191,21 @@ namespace ArenaPlatformer1
                         }
                         #endregion
 
-                        Player.Update(gameTime);
+                        foreach (Player player in Players.Where(Player => Player != null))
+                        {
+                            player.Update(gameTime);                            
+                        }
                     }
                     break;
             }
 
             PreviousKeyboardState = CurrentKeyboardState;
+
+            for (int i = 0; i < 4; i++)
+            {
+                PreviousGamePadStates[i] = CurrentGamePadStates[i];
+            }
+
             base.Update(gameTime);
         }
         
@@ -125,6 +219,22 @@ namespace ArenaPlatformer1
                         GraphicsDevice.Clear(Color.CornflowerBlue);
                         spriteBatch.Begin();
                         spriteBatch.DrawString(Font1, "Main Menu", new Vector2(32, 32), Color.White);
+
+                        foreach (PlayerJoin joinButton in PlayerJoinButtons)
+                        {
+                            joinButton.Draw(spriteBatch);
+                        }
+                        spriteBatch.End();
+                    }
+                    break;
+
+                case GameState.ModeSelect:
+                    {
+                        GraphicsDevice.SetRenderTarget(MenuRenderTarget);
+                        GraphicsDevice.Clear(Color.Black);
+                        spriteBatch.Begin();
+                        spriteBatch.DrawString(Font1, "Mode Select", new Vector2(32, 32), Color.White);
+
                         spriteBatch.End();
                     }
                     break;
@@ -136,7 +246,11 @@ namespace ArenaPlatformer1
 
                         spriteBatch.Begin();
 
-                        Player.Draw(spriteBatch);
+                        foreach (Player player in Players.Where(Player => Player != null))
+                        {
+                            player.Draw(spriteBatch);
+                        }
+
                         CurrentMap.Draw(spriteBatch);
 
                         spriteBatch.End();
@@ -155,7 +269,12 @@ namespace ArenaPlatformer1
             spriteBatch.Begin();
 
             if (DrawDiagnostics == true)
-                Player.DrawInfo(spriteBatch, GraphicsDevice, BasicEffect);
+            {
+                foreach (Player player in Players.Where(Player => Player != null))
+                {
+                    player.DrawInfo(spriteBatch, GraphicsDevice, BasicEffect);
+                }
+            }
 
             spriteBatch.End();
 
@@ -178,6 +297,6 @@ namespace ArenaPlatformer1
 
             
             base.Draw(gameTime);
-        }
+        }        
     }
 }

@@ -12,10 +12,11 @@ namespace ArenaPlatformer1
 
     class Tile
     {
-        TileType TileType;
+        public TileType TileType;
         Texture2D Texture;
         public Vector2 Position, Size;
         public Rectangle DestinationRectangle, CollisionRectangle;
+        public Color Color = Color.Black;
 
         public Tile()
         {
@@ -36,7 +37,7 @@ namespace ArenaPlatformer1
 
         public void Draw(SpriteBatch spriteBatch)
         {
-            spriteBatch.Draw(Texture, DestinationRectangle, Color.Black);
+            spriteBatch.Draw(Texture, DestinationRectangle, Color);
         }
     }
 }

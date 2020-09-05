@@ -33,6 +33,8 @@ namespace ArenaPlatformer1
 
         Pose CurrentPose = Pose.Standing;
         Pose PreviousPos = Pose.Standing;
+
+        float RumbleTime, MaxRumbleTime;
         
         public static Map Map;
 
@@ -109,9 +111,21 @@ namespace ArenaPlatformer1
 
                 #region Press A - Jump
                 if (CurrentGamePadState.Buttons.A == ButtonState.Pressed &&
-                    PreviousGamePadState.Buttons.A == ButtonState.Released)
+                    PreviousGamePadState.Buttons.A == ButtonState.Released &&
+                    Velocity.Y > -20 &&
+                    CheckUpCollisions() == false)
                 {
                     Velocity.Y -= 12;
+                }
+                #endregion
+
+                #region Handle Rumble
+                if (RumbleTime <= MaxRumbleTime)
+                    RumbleTime += (float)gameTime.ElapsedGameTime.TotalMilliseconds;
+
+                if (RumbleTime >= MaxRumbleTime)
+                {
+                    GamePad.SetVibration(PlayerIndex, 0, 0);
                 }
                 #endregion
 
@@ -141,6 +155,16 @@ namespace ArenaPlatformer1
                 {
                     Velocity.X = -MaxSpeed.X;
                 }
+
+                if (Velocity.Y < -25)
+                {
+                    Velocity.Y = -25;
+                }
+
+                if (Velocity.Y > 25)
+                {
+                    Velocity.Y = 25;
+                }
                 #endregion
             }
 
@@ -155,8 +179,6 @@ namespace ArenaPlatformer1
         public void Draw(SpriteBatch spriteBatch)
         {
             spriteBatch.Draw(Texture, DestinationRectangle, null, Color.White, 0, new Vector2(Texture.Width / 2, Texture.Height), SpriteEffects.None, 0);
-
-            
         }
 
         /// <summary>
@@ -220,12 +242,12 @@ namespace ArenaPlatformer1
             #endregion
         }
 
-        //public void MakeRumble(float time, Vector2 value)
-        //{
-        //    GamePad.SetVibration(PlayerIndex, value.X, value.Y);
-        //    RumbleTime = 0;
-        //    MaxRumbleTime = time;
-        //}
+        public void MakeRumble(float time, Vector2 value)
+        {
+            GamePad.SetVibration(PlayerIndex, value.X, value.Y);            
+            RumbleTime = 0;
+            MaxRumbleTime = time;
+        }
 
         public bool CheckDownCollisions()
         {
@@ -238,8 +260,16 @@ namespace ArenaPlatformer1
                         (int)(CollisionRectangle.Left + i), 
                         (int)(CollisionRectangle.Bottom + Velocity.Y + 1))))
                     {
-                        Position.Y += (tile.CollisionRectangle.Top - CollisionRectangle.Bottom);
-                        return true;
+                        if (tile.TileType == TileType.BouncePad)
+                        {                            
+                            Velocity.Y = -25f;
+                            return false;
+                        }
+                        else
+                        {
+                            Position.Y += (tile.CollisionRectangle.Top - CollisionRectangle.Bottom);
+                            return true;
+                        }
                     }
                 }
             }

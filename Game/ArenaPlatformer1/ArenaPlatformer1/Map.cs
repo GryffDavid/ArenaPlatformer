@@ -15,7 +15,7 @@ namespace ArenaPlatformer1
         public Map()
         {
             //Bottom
-            for (int i = 0; i < 60; i++)
+            for (int i = 2; i < 60; i++)
             {
                 Tile tile = new Tile()
                 {
@@ -80,6 +80,13 @@ namespace ArenaPlatformer1
 
                 TileList.Add(tile);
             }
+
+            TileList.Add(new Tile()
+            {
+                Position = new Vector2(32, 1048),
+                TileType = TileType.BouncePad,
+                Color = Color.Red
+            });
         }
 
         public void Initialize()
