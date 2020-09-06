@@ -33,7 +33,7 @@ namespace ArenaPlatformer1
         GameState GameState;
         
         RenderTarget2D UIRenderTarget, GameRenderTarget, MenuRenderTarget;
-        BasicEffect BasicEffect;
+        
 
         bool DrawDiagnostics = false;
 
@@ -55,14 +55,48 @@ namespace ArenaPlatformer1
 
         Texture2D Block;
 
+        static Random Random = new Random();
 
+        #region Particle System
         DoubleBuffer DoubleBuffer;
         RenderManager RenderManager;
         UpdateManager UpdateManager;
 
-        static Random Random = new Random();
-
         List<Emitter> EmitterList = new List<Emitter>();
+        #endregion
+
+        #region Lighting
+        RenderTarget2D EmissiveMap, BlurMap, ColorMap, NormalMap, LightMap, FinalMap, SpecMap, DepthMap, ShadowMap;
+        RenderTarget2D CrepLightMap, CrepColorMap, OcclusionMap;
+        RenderTarget2D Buffer1, Buffer2;
+
+        VertexPositionColorTexture[] LightVertices;
+        VertexPositionColorTexture[] EmissiveVertices;
+        VertexPositionColorTexture[] CrepVertices;
+
+        List<PolygonShadow> ShadowList = new List<PolygonShadow>();
+        List<MyRay> RayList = new List<MyRay>();
+
+        BasicEffect BasicEffect;
+
+        public static BlendState BlendBlack = new BlendState()
+        {
+            ColorBlendFunction = BlendFunction.Add,
+            ColorSourceBlend = Blend.One,
+            ColorDestinationBlend = Blend.One,
+
+            AlphaBlendFunction = BlendFunction.Add,
+            AlphaSourceBlend = Blend.SourceAlpha,
+            AlphaDestinationBlend = Blend.One
+        };
+
+        Matrix Projection = Matrix.CreateOrthographicOffCenter(0, 1920, 1080, 0, 0, 1);
+        #endregion
+
+        #region Effects
+        Effect BlurEffect, LightCombined, LightEffect;
+        Effect RaysEffect, DepthEffect;
+        #endregion
 
 
         public void OnPlayerShoot(object source, PlayerShootEventArgs e)
@@ -107,13 +141,58 @@ namespace ArenaPlatformer1
             spriteBatch = new SpriteBatch(GraphicsDevice);
 
 
+            #region Lighting
+            Buffer2 = new RenderTarget2D(GraphicsDevice, 1920, 1080, false, SurfaceFormat.Rgba64, DepthFormat.None, 1, RenderTargetUsage.PreserveContents);
+            Buffer1 = new RenderTarget2D(GraphicsDevice, 1920, 1080);
 
-     
+            OcclusionMap = new RenderTarget2D(GraphicsDevice, 1920, 1080);
+
+            EmissiveMap = new RenderTarget2D(GraphicsDevice, 1920, 1080);
+            BlurMap = new RenderTarget2D(GraphicsDevice, 1920, 1080);
+            ColorMap = new RenderTarget2D(GraphicsDevice, 1920, 1080);
+            NormalMap = new RenderTarget2D(GraphicsDevice, 1920, 1080);
+            LightMap = new RenderTarget2D(GraphicsDevice, 1920, 1080, false, SurfaceFormat.Rgba64, DepthFormat.None, 8, RenderTargetUsage.PreserveContents);
+            FinalMap = new RenderTarget2D(GraphicsDevice, 1920, 1080);
+            SpecMap = new RenderTarget2D(GraphicsDevice, 1920, 1080);
+            CrepLightMap = new RenderTarget2D(GraphicsDevice, 1920, 1080);
+            CrepColorMap = new RenderTarget2D(GraphicsDevice, 1920, 1080);
+            DepthMap = new RenderTarget2D(GraphicsDevice, 1920, 1080);
+            ShadowMap = new RenderTarget2D(GraphicsDevice, 1920, 1080);
+
+
+            BlurEffect = Content.Load<Effect>("Shaders/Blur");
+            LightCombined = Content.Load<Effect>("Shaders/LightCombined");
+            LightEffect = Content.Load<Effect>("Shaders/LightEffect");
+            RaysEffect = Content.Load<Effect>("Shaders/Crepuscular");
+
+            RaysEffect.Parameters["Projection"].SetValue(Projection);
+            BlurEffect.Parameters["Projection"].SetValue(Projection);
+
+            LightVertices = new VertexPositionColorTexture[4];
+            LightVertices[0] = new VertexPositionColorTexture(new Vector3(-1, 1, 0), Color.White, new Vector2(0, 0));
+            LightVertices[1] = new VertexPositionColorTexture(new Vector3(1, 1, 0), Color.White, new Vector2(1, 0));
+            LightVertices[2] = new VertexPositionColorTexture(new Vector3(-1, -1, 0), Color.White, new Vector2(0, 1));
+            LightVertices[3] = new VertexPositionColorTexture(new Vector3(1, -1, 0), Color.White, new Vector2(1, 1));
+
+            CrepVertices = new VertexPositionColorTexture[4];
+            CrepVertices[0] = new VertexPositionColorTexture(new Vector3(-1, 1, 0), Color.White, new Vector2(0, 0));
+            CrepVertices[1] = new VertexPositionColorTexture(new Vector3(1, 1, 0), Color.White, new Vector2(1, 0));
+            CrepVertices[2] = new VertexPositionColorTexture(new Vector3(-1, -1, 0), Color.White, new Vector2(0, 1));
+            CrepVertices[3] = new VertexPositionColorTexture(new Vector3(1, -1, 0), Color.White, new Vector2(1, 1));
+
+            EmissiveVertices = new VertexPositionColorTexture[6];
+            EmissiveVertices[0] = new VertexPositionColorTexture(new Vector3(0, 0, 0), Color.White, new Vector2(0, 0));
+            EmissiveVertices[1] = new VertexPositionColorTexture(new Vector3(1280, 0, 0), Color.White, new Vector2(1, 0));
+            EmissiveVertices[2] = new VertexPositionColorTexture(new Vector3(1280, 720, 0), Color.White, new Vector2(1, 1));
+            EmissiveVertices[3] = new VertexPositionColorTexture(new Vector3(1280, 720, 0), Color.White, new Vector2(1, 1));
+            EmissiveVertices[4] = new VertexPositionColorTexture(new Vector3(0, 720, 0), Color.White, new Vector2(0, 1));
+            EmissiveVertices[5] = new VertexPositionColorTexture(new Vector3(0, 0, 0), Color.White, new Vector2(0, 0));
+            #endregion
 
             BasicEffect = new BasicEffect(GraphicsDevice)
             {
                 VertexColorEnabled = true,
-                Projection = Matrix.CreateOrthographicOffCenter(0, 1920, 1080, 0, 0, 1)
+                Projection = Projection
             };
 
             UIRenderTarget = new RenderTarget2D(GraphicsDevice, 1920, 1080);
@@ -414,7 +493,50 @@ namespace ArenaPlatformer1
                     {
                         DoubleBuffer.GlobalStartFrame(gameTime);
                         GraphicsDevice.SetRenderTarget(GameRenderTarget);
-                        GraphicsDevice.Clear(Color.Black);
+                        GraphicsDevice.Clear(Color.DarkGray);
+
+
+                        #region Rmissive
+                        #region Draw to EmissiveMap
+
+                        #endregion
+
+                        #region Blur
+
+                        #endregion
+                        #endregion
+
+                        #region Draw to ColorMap
+
+                        #endregion
+
+                        #region Draw to NormalMap
+
+                        #endregion
+
+                        #region Draw to SpecMap
+
+                        #endregion
+
+                        #region Draw to DepthMap
+
+                        #endregion
+
+                        #region Draw to LightMap
+
+                        #endregion
+
+                        #region Combine Normals, Lighting and Color
+
+                        #endregion
+
+                        #region Occlusion Map
+
+                        #endregion
+
+                        #region Crepuscular ColorMap
+
+                        #endregion
 
                         spriteBatch.Begin();
 
@@ -433,8 +555,6 @@ namespace ArenaPlatformer1
 
                         CurrentMap.Draw(spriteBatch);
 
-                        
-
                         spriteBatch.End();
                     }
                     break;
@@ -451,8 +571,7 @@ namespace ArenaPlatformer1
                         CurrentMap.Draw(spriteBatch);
 
                         spriteBatch.Draw(Block, new Rectangle((int)PlaceTilePosition.X, (int)PlaceTilePosition.Y, 64, 64), Color.White * 0.5f);
-
-
+                        
                         spriteBatch.End();
                     }
                     break; 
@@ -497,6 +616,7 @@ namespace ArenaPlatformer1
         }
 
 
+
         protected override void EndDraw()
         {
             base.EndDraw();
@@ -505,7 +625,6 @@ namespace ArenaPlatformer1
                 DoubleBuffer.GlobalSynchronize();
         }
 
-
         protected override void OnExiting(object sender, EventArgs args)
         {
             if (UpdateManager.RunningThread != null)
@@ -513,6 +632,64 @@ namespace ArenaPlatformer1
 
             DoubleBuffer.CleanUp();
 
+        }
+
+
+
+        public static class PSBlendState
+        {
+            public static BlendState Multiply = new BlendState
+            {
+                ColorSourceBlend = Blend.DestinationColor,
+                ColorDestinationBlend = Blend.Zero,
+                ColorBlendFunction = BlendFunction.Add
+            };
+            public static BlendState Screen = new BlendState
+            {
+                ColorSourceBlend = Blend.InverseDestinationColor,
+                ColorDestinationBlend = Blend.One,
+                ColorBlendFunction = BlendFunction.Add
+            };
+            public static BlendState Darken = new BlendState
+            {
+                ColorSourceBlend = Blend.One,
+                ColorDestinationBlend = Blend.One,
+                ColorBlendFunction = BlendFunction.Min
+            };
+            public static BlendState Lighten = new BlendState
+            {
+                ColorSourceBlend = Blend.One,
+                ColorDestinationBlend = Blend.One,
+                ColorBlendFunction = BlendFunction.Max
+            };
+        }
+
+        protected Vector4 ColorToVector(Color color)
+        {
+            return new Vector4(color.R, color.G, color.B, color.A);
+        }
+
+        public class MyRay
+        {
+            public Vector3 position, direction;
+            public float length;
+        }
+
+        public static int Wrap(int index, int n)
+        {
+            return ((index % n) + n) % n;
+        }
+
+        private int GetEven(int num)
+        {
+            if (num % 2 == 0)
+            {
+                return num;
+            }
+            else
+            {
+                return num + 1;
+            }
         }
     }
 }

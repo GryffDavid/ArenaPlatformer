@@ -77,6 +77,7 @@
     <Compile Include="Guns\Gun.cs" />
     <Compile Include="Guns\RocketLauncher.cs" />
     <Compile Include="Level.cs" />
+    <Compile Include="Lighting\PolygonShadow.cs" />
     <Compile Include="Map.cs" />
     <Compile Include="ParticleSystem\Buffers\ChangeBuffer.cs" />
     <Compile Include="ParticleSystem\Buffers\ChangeMessage.cs" />

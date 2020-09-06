@@ -4,3 +4,8 @@ Content\BulletTexture.xnb
 Content\Gun.xnb
 Content\Particles\diamond.xnb
 Content\Font1.xnb
+Content\Shaders\Blur.xnb
+Content\Shaders\Crepuscular.xnb
+Content\Shaders\Depth.xnb
+Content\Shaders\LightCombined.xnb
+Content\Shaders\LightEffect.xnb
