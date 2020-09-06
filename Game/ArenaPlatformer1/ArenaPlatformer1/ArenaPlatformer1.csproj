@@ -78,6 +78,14 @@
     <Compile Include="Guns\RocketLauncher.cs" />
     <Compile Include="Level.cs" />
     <Compile Include="Map.cs" />
+    <Compile Include="ParticleSystem\Buffers\ChangeBuffer.cs" />
+    <Compile Include="ParticleSystem\Buffers\ChangeMessage.cs" />
+    <Compile Include="ParticleSystem\Buffers\DoubleBuffer.cs" />
+    <Compile Include="ParticleSystem\Data\ParticleData.cs" />
+    <Compile Include="ParticleSystem\Data\RenderData.cs" />
+    <Compile Include="ParticleSystem\Emitter.cs" />
+    <Compile Include="ParticleSystem\Managers\RenderManager.cs" />
+    <Compile Include="ParticleSystem\Managers\UpdateManager.cs" />
     <Compile Include="Player.cs" />
     <Compile Include="PlayerAnimation.cs" />
     <Compile Include="Projectile.cs" />

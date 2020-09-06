@@ -11,6 +11,12 @@ using Microsoft.Xna.Framework.Media;
 
 namespace ArenaPlatformer1
 {
+    public enum ChangeMessageType
+    {
+        UpdateParticle,
+        DeleteRenderData,
+    }
+
     enum GameState { MainMenu, ModeSelect, Playing, LevelCreator };
 
     public delegate void PlayerShootHappenedEventHandler(object source, PlayerShootEventArgs e);
@@ -48,6 +54,15 @@ namespace ArenaPlatformer1
         Vector2 PlaceTilePosition = new Vector2(64, 64);
 
         Texture2D Block;
+
+
+        DoubleBuffer DoubleBuffer;
+        RenderManager RenderManager;
+        UpdateManager UpdateManager;
+
+        static Random Random = new Random();
+
+        List<Emitter> EmitterList = new List<Emitter>();
 
 
         public void OnPlayerShoot(object source, PlayerShootEventArgs e)
@@ -90,6 +105,10 @@ namespace ArenaPlatformer1
         protected override void LoadContent()
         {
             spriteBatch = new SpriteBatch(GraphicsDevice);
+
+
+
+     
 
             BasicEffect = new BasicEffect(GraphicsDevice)
             {
@@ -159,14 +178,48 @@ namespace ArenaPlatformer1
 
                                 if (PlayerJoinButtons[i].Occupied == true)
                                 {
+                                    DoubleBuffer = new DoubleBuffer();
+                                    RenderManager = new RenderManager(DoubleBuffer);
+                                    RenderManager.LoadContent(Content);
+
+                                    UpdateManager = new UpdateManager(DoubleBuffer);
+
+                                    UpdateManager.StartOnNewThread();
+
+                                    Emitter.UpdateManager = UpdateManager;
+                                    Emitter.RenderManager = RenderManager;
+
+                                    Texture2D ParticleTexture = Content.Load<Texture2D>("Particles/diamond");
+
+                                    Emitter newEmitter4 = new Emitter(ParticleTexture, new Vector2(800, 200), new Vector2(-40, 40), new Vector2(6, 10),
+                                            new Vector2(1000, 1000), 0.99f, true, new Vector2(0, 360), new Vector2(-3, 3), new Vector2(0.25f, 0.5f),
+                                            new Color(Color.Orange.R, Color.Orange.G, Color.Orange.B, 100),
+                                            new Color(Color.OrangeRed.R, Color.OrangeRed.G, Color.OrangeRed.B, 20),
+                                            0.03f, -2f, 60, 1, false, new Vector2(1080, 1080), false,
+                                            null, true, true, new Vector2(0, 0), new Vector2(0, 0), 0, true, new Vector2(0, 0), true, true, 2000, null, null, false);
+
+                                    EmitterList.Add(newEmitter4);
+
+                                    Emitter newEmitter5 = new Emitter(ParticleTexture, new Vector2(800, 200), new Vector2(-40, 40), new Vector2(6, 10),
+                                            new Vector2(1000, 1000), 0.99f, true, new Vector2(0, 360), new Vector2(-3, 3), new Vector2(0.25f, 0.5f),
+                                            new Color(Color.Orange.R, Color.Orange.G, Color.Orange.B, 35),
+                                            new Color(Color.OrangeRed.R, Color.OrangeRed.G, Color.OrangeRed.B, 5),
+                                            -0.008f, -2f, 150, 2, false, new Vector2(1080, 1080), true,
+                                            null, true, true, new Vector2(0, 0), new Vector2(0, 0), 0, true, new Vector2(0, 0), true, true, 1500, null, null, false);
+
+                                    EmitterList.Add(newEmitter5);
+
+
                                     GameState = GameState.Playing;
+
+
                                 }
 
                                 PlayerJoinButtons[i].Occupied = true;
 
                                 Players[i] = new Player((PlayerIndex)i);
                                 Players[i].LoadContent(Content);
-                                
+
                                 Players[i].PlayerShootHappened += OnPlayerShoot;
                             }
                             #endregion
@@ -188,7 +241,7 @@ namespace ArenaPlatformer1
                             GameState = GameState.ModeSelect;
                         }
                     }
-                    break; 
+                    break;
                 #endregion
 
                 #region ModeSelect
@@ -254,7 +307,7 @@ namespace ArenaPlatformer1
                                 {
                                     Position = PlaceTilePosition,
                                     Color = Color.Purple,
-                                    Size = new Vector2(64,64),
+                                    Size = new Vector2(64, 64),
                                     TileType = TileType.Solid
                                 };
 
@@ -264,9 +317,9 @@ namespace ArenaPlatformer1
                             }
                         }
 
-                        
+
                     }
-                    break; 
+                    break;
                 #endregion
 
                 #region Playing
@@ -298,8 +351,16 @@ namespace ArenaPlatformer1
                         {
                             projectile.Update(gameTime);
                         }
+
+                        EmitterList[0].Position = new Vector2(Random.Next(-200, -50), Random.Next(1080 / 2, 1080));
+                        EmitterList[1].Position = new Vector2(Random.Next(-200, -50), Random.Next(1080 / 2, 1080));
+
+                        foreach (Emitter emitter in EmitterList)
+                        {
+                            emitter.Update(gameTime);
+                        }
                     }
-                    break; 
+                    break;
                     #endregion
             }
 
@@ -310,6 +371,7 @@ namespace ArenaPlatformer1
 
             PreviousKeyboardState = CurrentKeyboardState;
 
+
             base.Update(gameTime);
         }
         
@@ -317,6 +379,7 @@ namespace ArenaPlatformer1
         {
             switch (GameState)
             {
+                #region Main Menu
                 case GameState.MainMenu:
                     {
                         GraphicsDevice.SetRenderTarget(MenuRenderTarget);
@@ -331,7 +394,9 @@ namespace ArenaPlatformer1
                         spriteBatch.End();
                     }
                     break;
+                #endregion
 
+                #region Mode Select
                 case GameState.ModeSelect:
                     {
                         GraphicsDevice.SetRenderTarget(MenuRenderTarget);
@@ -342,13 +407,19 @@ namespace ArenaPlatformer1
                         spriteBatch.End();
                     }
                     break;
+                #endregion
 
+                #region Playing
                 case GameState.Playing:
                     {
+                        DoubleBuffer.GlobalStartFrame(gameTime);
                         GraphicsDevice.SetRenderTarget(GameRenderTarget);
-                        GraphicsDevice.Clear(Color.CornflowerBlue);
+                        GraphicsDevice.Clear(Color.Black);
 
                         spriteBatch.Begin();
+
+                        //Draw the particles
+                        RenderManager.DoFrame(spriteBatch);
 
                         foreach (Projectile projectile in ProjectileList)
                         {
@@ -362,10 +433,14 @@ namespace ArenaPlatformer1
 
                         CurrentMap.Draw(spriteBatch);
 
+                        
+
                         spriteBatch.End();
                     }
                     break;
+                #endregion
 
+                #region Level Creator
                 case GameState.LevelCreator:
                     {
                         GraphicsDevice.SetRenderTarget(GameRenderTarget);
@@ -380,9 +455,11 @@ namespace ArenaPlatformer1
 
                         spriteBatch.End();
                     }
-                    break;
+                    break; 
+                #endregion
             }
 
+            #region Draw UI
             GraphicsDevice.SetRenderTarget(UIRenderTarget);
             GraphicsDevice.Clear(Color.Transparent);
             spriteBatch.Begin();
@@ -396,8 +473,9 @@ namespace ArenaPlatformer1
             }
 
             spriteBatch.End();
-
-            //Draw to the backbuffer
+            #endregion
+            
+            #region Draw to the backbuffer
             GraphicsDevice.SetRenderTarget(null);
             GraphicsDevice.Clear(Color.Black);
             spriteBatch.Begin();
@@ -412,10 +490,29 @@ namespace ArenaPlatformer1
                 spriteBatch.Draw(UIRenderTarget, UIRenderTarget.Bounds, Color.White);
             }
 
-            spriteBatch.End();
+            spriteBatch.End(); 
+            #endregion
 
-            
             base.Draw(gameTime);
-        }        
+        }
+
+
+        protected override void EndDraw()
+        {
+            base.EndDraw();
+
+            if (GameState == GameState.Playing)
+                DoubleBuffer.GlobalSynchronize();
+        }
+
+
+        protected override void OnExiting(object sender, EventArgs args)
+        {
+            if (UpdateManager.RunningThread != null)
+                UpdateManager.RunningThread.Abort();
+
+            DoubleBuffer.CleanUp();
+
+        }
     }
 }
