@@ -26,6 +26,7 @@ namespace ArenaPlatformer1
 
         bool Active = true;
         bool InAir;
+        bool DoubleJumped = false;
         public Texture2D Texture;
         public Vector2 Position, Velocity, MoveStick, AimStick, RumbleValues, AimDirection;
         Vector2 MaxSpeed;
@@ -41,7 +42,7 @@ namespace ArenaPlatformer1
         Vector2 Health = new Vector2(100, 100);
 
         GamePadThumbSticks Sticks;
-        Buttons JumpButton, ShootButton, GrenadeButton;
+        Buttons JumpButton, ShootButton, GrenadeButton, TrapButton;
 
         Facing CurrentFacing = Facing.Right;
         Facing PreviousFacing = Facing.Right;
@@ -57,7 +58,7 @@ namespace ArenaPlatformer1
         {
             PlayerIndex = playerIndex;
             Position = new Vector2(500, 500);
-            MaxSpeed = new Vector2(2.5f, 6);
+            MaxSpeed = new Vector2(5f, 6);
             Gravity = 0.6f;
         }
 
@@ -73,6 +74,7 @@ namespace ArenaPlatformer1
             JumpButton = Buttons.A;
             ShootButton = Buttons.X;
             GrenadeButton = Buttons.B;
+            TrapButton = Buttons.Y;
         }
 
         public void Update(GameTime gameTime)
@@ -94,11 +96,8 @@ namespace ArenaPlatformer1
                 {
                     AimDirection.X = -1f;
                     CurrentFacing = Facing.Left;
-
-                    if (CheckLeftCollisions() == false)
-                        Velocity.X += MoveStick.X * 4f;
-                    else
-                        Velocity.X = 0;
+                    
+                    Velocity.X += (MoveStick.X * 3f);
                 }
                 #endregion
 
@@ -107,13 +106,16 @@ namespace ArenaPlatformer1
                 {
                     AimDirection.X = 1f;
                     CurrentFacing = Facing.Right;
-
-                    if (CheckRightCollisions() == false)
-                        Velocity.X += MoveStick.X * 4f;
-                    else
-                        Velocity.X = 0;
+                    
+                    Velocity.X += (MoveStick.X * 3f);
                 }
                 #endregion
+
+                if (Velocity.X < 0)
+                    CheckLeftCollisions();
+
+                if (Velocity.X > 0)
+                    CheckRightCollisions();
 
                 if (Velocity.X <= 0.5f &&
                     Velocity.X >= -0.5f)
@@ -126,18 +128,29 @@ namespace ArenaPlatformer1
                 #region Stop Moving
                 if (MoveStick.X == 0)
                 {
-                    Velocity.X *= 0.85f;
+                    if (InAir == false)
+                        Velocity.X *= 0.85f;
+                    else
+                        Velocity.X *= 0.95f;
                 }
                 #endregion
 
                 #region Jump
                 if (CurrentGamePadState.IsButtonDown(JumpButton) &&
                     PreviousGamePadState.IsButtonUp(JumpButton) &&
-                    Velocity.Y > -20 &&
                     CheckUpCollisions() == false &&
-                    InAir == false)
+                    DoubleJumped == false &&
+                    Velocity.Y >= 0)
                 {
-                    Velocity.Y -= 12;
+                    if (InAir == true)
+                    {
+                        Velocity.Y = -15f;
+                        DoubleJumped = true;
+                    }
+                    else
+                    {
+                        Velocity.Y -= 15f;
+                    }
                 }
                 #endregion
 
@@ -166,6 +179,14 @@ namespace ArenaPlatformer1
                 }
                 #endregion
 
+                #region Trap
+                if (CurrentGamePadState.IsButtonDown(TrapButton) &&
+                    PreviousGamePadState.IsButtonUp(TrapButton))
+                {
+                    //Create traps!
+                }
+                #endregion
+
                 #region Handle Rumble
                 if (RumbleTime <= MaxRumbleTime)
                     RumbleTime += (float)gameTime.ElapsedGameTime.TotalMilliseconds;
@@ -191,6 +212,7 @@ namespace ArenaPlatformer1
                 {
                     Velocity.Y = 0f;
                     InAir = false;
+                    DoubleJumped = false;
                 }
 
                 #region Limit Speed
