@@ -105,7 +105,6 @@
   <ItemGroup>
     <Folder Include="Items\" />
     <Folder Include="MapEditor\" />
-    <Folder Include="ParticleSystem\" />
     <Folder Include="Traps\" />
   </ItemGroup>
   <ItemGroup>
