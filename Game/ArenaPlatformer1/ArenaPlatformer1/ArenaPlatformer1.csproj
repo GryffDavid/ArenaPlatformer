@@ -81,6 +81,7 @@
     <Compile Include="Player.cs" />
     <Compile Include="PlayerAnimation.cs" />
     <Compile Include="Projectile.cs" />
+    <Compile Include="Projectiles\Bullet.cs" />
     <Compile Include="Projectiles\Rocket.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="aOtherStuff\Program.cs" />

@@ -15,27 +15,30 @@ namespace ArenaPlatformer1
     public class Player
     {
         public event PlayerShootHappenedEventHandler PlayerShootHappened;
-        public void CreatePlayerShoot()
+        public void CreatePlayerShoot(Vector2 velocity)
         {
-            OnPlayerShootHappened();
+            OnPlayerShootHappened(velocity);
         }
-        protected virtual void OnPlayerShootHappened()
+        protected virtual void OnPlayerShootHappened(Vector2 velocity)
         {
-            if (PlayerShootHappened != null)
-                PlayerShootHappened(this, new PlayerShootEventArgs() { Player = this });
+            PlayerShootHappened?.Invoke(this, new PlayerShootEventArgs() { Player = this, Velocity = velocity });
         }
 
         bool Active = true;
+        bool InAir;
         public Texture2D Texture;
         public Vector2 Position, Velocity, MoveStick, AimStick, RumbleValues, AimDirection;
         Vector2 MaxSpeed;
-        Vector2 CurrentFriction = new Vector2(1f, 1f);
+        Vector2 CurrentFriction = new Vector2(0.9999f, 1f);
         public GamePadState CurrentGamePadState, PreviousGamePadState;
         public KeyboardState CurrentKeyboardState, PreviousKeyboardState;
         public MouseState CurrentMouseState, PreviousMouseState;
         public Rectangle DestinationRectangle, CollisionRectangle;
         public float Gravity;
         public PlayerIndex PlayerIndex;
+
+        //Current health, Max health
+        Vector2 Health = new Vector2(100, 100);
 
         GamePadThumbSticks Sticks;
         Buttons JumpButton, ShootButton, GrenadeButton;
@@ -68,8 +71,8 @@ namespace ArenaPlatformer1
             Texture = content.Load<Texture2D>("Blank");
 
             JumpButton = Buttons.A;
-            ShootButton = Buttons.B;
-            GrenadeButton = Buttons.X;
+            ShootButton = Buttons.X;
+            GrenadeButton = Buttons.B;
         }
 
         public void Update(GameTime gameTime)
@@ -84,7 +87,7 @@ namespace ArenaPlatformer1
                 MoveStick = Sticks.Left;
                 AimStick = Sticks.Right;
 
-                Velocity.X += MoveStick.X * 3f;
+                
 
                 #region Move stick left
                 if (MoveStick.X < 0f)
@@ -93,7 +96,9 @@ namespace ArenaPlatformer1
                     CurrentFacing = Facing.Left;
 
                     if (CheckLeftCollisions() == false)
-                        Position.X += (Velocity.X * CurrentFriction.X) * ((float)gameTime.ElapsedGameTime.TotalSeconds * 60f);
+                        Velocity.X += MoveStick.X * 4f;
+                    else
+                        Velocity.X = 0;
                 }
                 #endregion
 
@@ -104,32 +109,62 @@ namespace ArenaPlatformer1
                     CurrentFacing = Facing.Right;
 
                     if (CheckRightCollisions() == false)
-                        Position.X += (Velocity.X * CurrentFriction.X) * ((float)gameTime.ElapsedGameTime.TotalSeconds * 60f);
+                        Velocity.X += MoveStick.X * 4f;
+                    else
+                        Velocity.X = 0;
                 }
                 #endregion
+
+                if (Velocity.X <= 0.5f &&
+                    Velocity.X >= -0.5f)
+                {
+                    Velocity.X = 0f;
+                }
+
+                Position.X += Velocity.X * ((float)gameTime.ElapsedGameTime.TotalSeconds * 60f);
 
                 #region Stop Moving
                 if (MoveStick.X == 0)
                 {
-                    Velocity.X = 0;
+                    Velocity.X *= 0.85f;
                 }
                 #endregion
-                
+
                 #region Jump
                 if (CurrentGamePadState.IsButtonDown(JumpButton) &&
                     PreviousGamePadState.IsButtonUp(JumpButton) &&
                     Velocity.Y > -20 &&
-                    CheckUpCollisions() == false)
+                    CheckUpCollisions() == false &&
+                    InAir == false)
                 {
                     Velocity.Y -= 12;
                 }
                 #endregion
 
+                #region Shoot
                 if (CurrentGamePadState.IsButtonDown(ShootButton) &&
-                    PreviousGamePadState.IsButtonUp(ShootButton))
+                           PreviousGamePadState.IsButtonUp(ShootButton))
                 {
-                    CreatePlayerShoot();
+                    switch (CurrentFacing)
+                    {
+                        case Facing.Left:
+                            CreatePlayerShoot(new Vector2(-30, 0));
+                            break;
+
+                        case Facing.Right:
+                            CreatePlayerShoot(new Vector2(30, 0));
+                            break;
+                    }
                 }
+                #endregion
+
+                #region Grenade
+                if (CurrentGamePadState.IsButtonDown(GrenadeButton) &&
+                            PreviousGamePadState.IsButtonUp(GrenadeButton))
+                {
+                    //Create grenades!
+                }
+                #endregion
 
                 #region Handle Rumble
                 if (RumbleTime <= MaxRumbleTime)
@@ -148,13 +183,14 @@ namespace ArenaPlatformer1
 
                 if (CheckDownCollisions() == false)
                 {
-                    Velocity.Y += Gravity;
-                    Position.Y += (Velocity.Y * CurrentFriction.Y) * ((float)gameTime.ElapsedGameTime.TotalSeconds * 60f);
-                    //InAir = true;
+                    Velocity.Y += Gravity * ((float)gameTime.ElapsedGameTime.TotalSeconds * 60f);
+                    Position.Y += Velocity.Y * ((float)gameTime.ElapsedGameTime.TotalSeconds * 60f);
+                    InAir = true;
                 }
                 else
                 {
                     Velocity.Y = 0f;
+                    InAir = false;
                 }
 
                 #region Limit Speed
@@ -183,6 +219,7 @@ namespace ArenaPlatformer1
             DestinationRectangle = new Rectangle((int)Position.X, (int)Position.Y, Texture.Width, Texture.Height);
             CollisionRectangle = new Rectangle((int)(Position.X - Texture.Width/2), (int)(Position.Y - Texture.Height), Texture.Width, Texture.Height);
 
+            PreviousFacing = CurrentFacing;
             PreviousGamePadState = CurrentGamePadState;
             PreviousKeyboardState = CurrentKeyboardState;
             PreviousMouseState = CurrentMouseState;
@@ -263,7 +300,7 @@ namespace ArenaPlatformer1
 
         public bool CheckDownCollisions()
         {
-            foreach (Tile tile in Map.TileList.Where(Tile => Vector2.Distance(Tile.Position, Position) < 80))
+            foreach (Tile tile in Map.TileList)
             {
                 for (int i = 0; i < CollisionRectangle.Width; i++)
                 {
@@ -273,7 +310,8 @@ namespace ArenaPlatformer1
                         (int)(CollisionRectangle.Bottom + Velocity.Y + 1))))
                     {
                         if (tile.TileType == TileType.BouncePad)
-                        {                            
+                        {
+                            Position.Y += (tile.CollisionRectangle.Top - CollisionRectangle.Bottom);
                             Velocity.Y = -25f;
                             return false;
                         }
@@ -291,7 +329,7 @@ namespace ArenaPlatformer1
 
         public bool CheckRightCollisions()
         {
-            foreach(Tile tile in Map.TileList.Where(Tile => Vector2.Distance(Tile.Position, Position) < 80))
+            foreach(Tile tile in Map.TileList)
             {
                 for (int i = 0; i < CollisionRectangle.Height; i++)
                 {
@@ -312,7 +350,7 @@ namespace ArenaPlatformer1
 
         public bool CheckLeftCollisions()
         {
-            foreach (Tile tile in Map.TileList.Where(Tile => Vector2.Distance(Tile.Position, Position) < 80))
+            foreach (Tile tile in Map.TileList)
             {
                 for (int i = 0; i < CollisionRectangle.Height; i++)
                 {
@@ -333,7 +371,7 @@ namespace ArenaPlatformer1
 
         public bool CheckUpCollisions()
         {
-            foreach (Tile tile in Map.TileList.Where(Tile => Vector2.Distance(Tile.Position, Position) < 80))
+            foreach (Tile tile in Map.TileList)
             {
                 for (int i = 0; i < CollisionRectangle.Width; i++)
                 {

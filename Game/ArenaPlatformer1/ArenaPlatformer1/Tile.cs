@@ -26,13 +26,13 @@ namespace ArenaPlatformer1
         public void LoadContent(ContentManager content)
         {
             Texture = content.Load<Texture2D>("Blank");
-            DestinationRectangle = new Rectangle((int)Position.X, (int)Position.Y, 32, 32);
-            CollisionRectangle = new Rectangle((int)Position.X, (int)Position.Y, 32, 32);
+            DestinationRectangle = new Rectangle((int)Position.X, (int)Position.Y, 64, 64);
+            CollisionRectangle = new Rectangle((int)Position.X, (int)Position.Y, 64, 64);
         }
 
         public void Update(GameTime gameTime)
         {
-            
+
         }
 
         public void Draw(SpriteBatch spriteBatch)

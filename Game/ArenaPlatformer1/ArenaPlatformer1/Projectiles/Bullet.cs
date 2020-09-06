@@ -8,9 +8,9 @@ using Microsoft.Xna.Framework.Content;
 
 namespace ArenaPlatformer1
 {
-    class Rocket : Projectile
+    class Bullet : Projectile
     {
-        public Rocket()
+        public Bullet()
         {
             Gravity = 0.05f;
             //Velocity = new Vector2(17, 0);

@@ -17,6 +17,7 @@ namespace ArenaPlatformer1
     public class PlayerShootEventArgs : EventArgs
     {
         public Player Player { get; set; }
+        public Vector2 Velocity;
     }
 
     public class Game1 : Microsoft.Xna.Framework.Game
@@ -44,17 +45,19 @@ namespace ArenaPlatformer1
 
         List<Projectile> ProjectileList = new List<Projectile>();
 
+        Vector2 PlaceTilePosition = new Vector2(64, 64);
+
+        Texture2D Block;
+
+
         public void OnPlayerShoot(object source, PlayerShootEventArgs e)
         {
-            ProjectileList.Add(new Rocket()
+            ProjectileList.Add(new Bullet()
             {
                 Position = e.Player.Position,
-                PlayerIndex = e.Player.PlayerIndex
+                PlayerIndex = e.Player.PlayerIndex,
+                Velocity = e.Velocity
             });
-
-            //Create projectile
-            //Play sound
-            //Rumble?
         }
 
 
@@ -114,6 +117,9 @@ namespace ArenaPlatformer1
             Projectile.Map = CurrentMap;
 
             Rocket.Texture = Content.Load<Texture2D>("RocketTexture");
+            Bullet.Texture = Content.Load<Texture2D>("BulletTexture");
+
+            Block = Content.Load<Texture2D>("Blank");
 
             ProjectileList.Add(new Rocket() { Position = new Vector2(80, 80), Velocity = new Vector2(1, 0) });
         }
@@ -209,7 +215,56 @@ namespace ArenaPlatformer1
                 #region LevelCreator
                 case GameState.LevelCreator:
                     {
+                        for (int i = 0; i < 4; i++)
+                        {
+                            if (CurrentGamePadStates[i].IsButtonUp(Buttons.Back) &&
+                                PreviousGamePadStates[i].IsButtonDown(Buttons.Back))
+                            {
+                                GameState = GameState.Playing;
+                            }
 
+                            if (CurrentGamePadStates[i].ThumbSticks.Left.Y > 0 &&
+                                PreviousGamePadStates[i].ThumbSticks.Left.Y <= 0)
+                            {
+                                PlaceTilePosition.Y -= 64;
+                            }
+
+                            if (CurrentGamePadStates[i].ThumbSticks.Left.Y < 0 &&
+                                PreviousGamePadStates[i].ThumbSticks.Left.Y >= 0)
+                            {
+                                PlaceTilePosition.Y += 64;
+                            }
+
+                            if (CurrentGamePadStates[i].ThumbSticks.Left.X > 0 &&
+                                PreviousGamePadStates[i].ThumbSticks.Left.X <= 0)
+                            {
+                                PlaceTilePosition.X += 64;
+                            }
+
+                            if (CurrentGamePadStates[i].ThumbSticks.Left.X < 0 &&
+                                PreviousGamePadStates[i].ThumbSticks.Left.X >= 0)
+                            {
+                                PlaceTilePosition.X -= 64;
+                            }
+
+                            if (CurrentGamePadStates[i].IsButtonUp(Buttons.A) &&
+                                PreviousGamePadStates[i].IsButtonDown(Buttons.A))
+                            {
+                                Tile tile = new Tile()
+                                {
+                                    Position = PlaceTilePosition,
+                                    Color = Color.Purple,
+                                    Size = new Vector2(64,64),
+                                    TileType = TileType.Solid
+                                };
+
+                                tile.LoadContent(Content);
+
+                                CurrentMap.TileList.Add(tile);
+                            }
+                        }
+
+                        
                     }
                     break; 
                 #endregion
@@ -217,6 +272,15 @@ namespace ArenaPlatformer1
                 #region Playing
                 case GameState.Playing:
                     {
+                        for (int i = 0; i < 4; i++)
+                        {
+                            if (CurrentGamePadStates[i].IsButtonUp(Buttons.Back) &&
+                                PreviousGamePadStates[i].IsButtonDown(Buttons.Back))
+                            {
+                                GameState = GameState.LevelCreator;
+                            }
+                        }
+
                         #region Turn on diagnostics with F3
                         if (CurrentKeyboardState.IsKeyUp(Keys.F3) &&
                             PreviousKeyboardState.IsKeyDown(Keys.F3))
@@ -304,7 +368,17 @@ namespace ArenaPlatformer1
 
                 case GameState.LevelCreator:
                     {
+                        GraphicsDevice.SetRenderTarget(GameRenderTarget);
+                        GraphicsDevice.Clear(Color.CornflowerBlue);
 
+                        spriteBatch.Begin();
+
+                        CurrentMap.Draw(spriteBatch);
+
+                        spriteBatch.Draw(Block, new Rectangle((int)PlaceTilePosition.X, (int)PlaceTilePosition.Y, 64, 64), Color.White * 0.5f);
+
+
+                        spriteBatch.End();
                     }
                     break;
             }
@@ -328,7 +402,7 @@ namespace ArenaPlatformer1
             GraphicsDevice.Clear(Color.Black);
             spriteBatch.Begin();
 
-            if (GameState != GameState.Playing)
+            if (GameState != GameState.Playing && GameState != GameState.LevelCreator)
             {
                 spriteBatch.Draw(MenuRenderTarget, MenuRenderTarget.Bounds, Color.White);
             }

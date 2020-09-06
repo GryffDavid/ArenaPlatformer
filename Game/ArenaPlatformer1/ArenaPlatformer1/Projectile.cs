@@ -7,6 +7,8 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace ArenaPlatformer1
 {
+    enum ProjectileType { Rocket, Bullet };
+
     abstract class Projectile
     {
         public static Texture2D Texture;

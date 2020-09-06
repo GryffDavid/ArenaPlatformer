@@ -15,44 +15,44 @@ namespace ArenaPlatformer1
         public Map()
         {
             //Bottom
-            for (int i = 2; i < 60; i++)
+            for (int i = 2; i < 30; i++)
             {
                 Tile tile = new Tile()
                 {
-                    Position = new Vector2(i * 32, 1048)
+                    Position = new Vector2(i * 64, 1016)
                 };
 
                 TileList.Add(tile);
             }
 
             //Top
-            for (int i = 0; i < 60; i++)
+            for (int i = 0; i < 30; i++)
             {
                 Tile tile = new Tile()
                 {
-                    Position = new Vector2(i * 32, 0)
+                    Position = new Vector2(i * 64, 0)
                 };
 
                 TileList.Add(tile);
             }
 
             //Left
-            for (int i = 0; i < 34; i++)
+            for (int i = 0; i < 17; i++)
             {
                 Tile tile = new Tile()
                 {
-                    Position = new Vector2(0, 32 * i)
+                    Position = new Vector2(0, 64 * i)
                 };
 
                 TileList.Add(tile);
             }
 
             //Right
-            for (int i = 0; i < 34; i++)
+            for (int i = 0; i < 17; i++)
             {
                 Tile tile = new Tile()
                 {
-                    Position = new Vector2(1888, 32 * i)
+                    Position = new Vector2(1856, 64 * i)
                 };
 
                 TileList.Add(tile);
@@ -60,22 +60,40 @@ namespace ArenaPlatformer1
 
 
             //Platform
-            for (int i = 16; i < 28; i++)
+            for (int i = 8; i < 14; i++)
             {
                 Tile tile = new Tile()
                 {
-                    Position = new Vector2(32 * i, 800)
+                    Position = new Vector2(64 * i, 800)
                 };
 
                 TileList.Add(tile);
             }
 
+            Tile tile3 = new Tile()
+            {
+                Position = new Vector2(7 * 64, 800),
+                TileType = TileType.BouncePad,
+                Color = Color.Red
+            };
+
+            TileList.Add(tile3);
+
+            Tile tile2 = new Tile()
+            {
+                Position = new Vector2(64 * 14, 800),
+                TileType = TileType.BouncePad,
+                Color = Color.Red
+            };
+
+            TileList.Add(tile2);
+
             //Platform
-            for (int i = 6; i < 21; i++)
+            for (int i = 3; i < 10; i++)
             {
                 Tile tile = new Tile()
                 {
-                    Position = new Vector2(32 * i, 900)
+                    Position = new Vector2(64 * i, 900)
                 };
 
                 TileList.Add(tile);
@@ -83,7 +101,7 @@ namespace ArenaPlatformer1
 
             TileList.Add(new Tile()
             {
-                Position = new Vector2(32, 1048),
+                Position = new Vector2(64, 1016),
                 TileType = TileType.BouncePad,
                 Color = Color.Red
             });
