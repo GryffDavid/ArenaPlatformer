@@ -182,10 +182,10 @@ namespace ArenaPlatformer1
 
             EmissiveVertices = new VertexPositionColorTexture[6];
             EmissiveVertices[0] = new VertexPositionColorTexture(new Vector3(0, 0, 0), Color.White, new Vector2(0, 0));
-            EmissiveVertices[1] = new VertexPositionColorTexture(new Vector3(1280, 0, 0), Color.White, new Vector2(1, 0));
-            EmissiveVertices[2] = new VertexPositionColorTexture(new Vector3(1280, 720, 0), Color.White, new Vector2(1, 1));
-            EmissiveVertices[3] = new VertexPositionColorTexture(new Vector3(1280, 720, 0), Color.White, new Vector2(1, 1));
-            EmissiveVertices[4] = new VertexPositionColorTexture(new Vector3(0, 720, 0), Color.White, new Vector2(0, 1));
+            EmissiveVertices[1] = new VertexPositionColorTexture(new Vector3(1920, 0, 0), Color.White, new Vector2(1, 0));
+            EmissiveVertices[2] = new VertexPositionColorTexture(new Vector3(1920, 1080, 0), Color.White, new Vector2(1, 1));
+            EmissiveVertices[3] = new VertexPositionColorTexture(new Vector3(1920, 1080, 0), Color.White, new Vector2(1, 1));
+            EmissiveVertices[4] = new VertexPositionColorTexture(new Vector3(0, 1080, 0), Color.White, new Vector2(0, 1));
             EmissiveVertices[5] = new VertexPositionColorTexture(new Vector3(0, 0, 0), Color.White, new Vector2(0, 0));
             #endregion
 
@@ -492,22 +492,51 @@ namespace ArenaPlatformer1
                 case GameState.Playing:
                     {
                         DoubleBuffer.GlobalStartFrame(gameTime);
-                        GraphicsDevice.SetRenderTarget(GameRenderTarget);
-                        GraphicsDevice.Clear(Color.DarkGray);
-
-
+                        
                         #region Rmissive
                         #region Draw to EmissiveMap
-
+                        GraphicsDevice.SetRenderTarget(EmissiveMap);
+                        GraphicsDevice.Clear(Color.Transparent);
+                        spriteBatch.Begin();
+                        RenderManager.DoFrame(spriteBatch);
+                        spriteBatch.End();
                         #endregion
 
                         #region Blur
+                        GraphicsDevice.SetRenderTarget(BlurMap);
+                        GraphicsDevice.Clear(Color.Transparent);
 
+                        BlurEffect.Parameters["InputTexture"].SetValue(EmissiveMap);
+                        BlurEffect.CurrentTechnique = BlurEffect.Techniques["Technique1"];
+
+                        foreach (EffectPass pass in BlurEffect.CurrentTechnique.Passes)
+                        {
+                            pass.Apply();
+                            GraphicsDevice.DrawUserPrimitives(PrimitiveType.TriangleList, EmissiveVertices, 0, 2);
+                        }
                         #endregion
                         #endregion
 
-                        #region Draw to ColorMap
+                        #region Draw to ColorMap                        
+                        GraphicsDevice.SetRenderTarget(ColorMap);
+                        GraphicsDevice.Clear(Color.Gray);
+                        spriteBatch.Begin();
 
+                        
+
+                        foreach (Projectile projectile in ProjectileList)
+                        {
+                            projectile.Draw(spriteBatch);
+                        }
+
+                        foreach (Player player in Players.Where(Player => Player != null))
+                        {
+                            player.Draw(spriteBatch);
+                        }
+
+                        CurrentMap.Draw(spriteBatch);
+                        spriteBatch.Draw(EmissiveMap, EmissiveMap.Bounds, Color.White);
+                        spriteBatch.End();
                         #endregion
 
                         #region Draw to NormalMap
@@ -538,24 +567,7 @@ namespace ArenaPlatformer1
 
                         #endregion
 
-                        spriteBatch.Begin();
 
-                        //Draw the particles
-                        RenderManager.DoFrame(spriteBatch);
-
-                        foreach (Projectile projectile in ProjectileList)
-                        {
-                            projectile.Draw(spriteBatch);
-                        }
-
-                        foreach (Player player in Players.Where(Player => Player != null))
-                        {
-                            player.Draw(spriteBatch);
-                        }
-
-                        CurrentMap.Draw(spriteBatch);
-
-                        spriteBatch.End();
                     }
                     break;
                 #endregion
@@ -605,8 +617,10 @@ namespace ArenaPlatformer1
             }
             else
             {
-                spriteBatch.Draw(GameRenderTarget, GameRenderTarget.Bounds, Color.White);
-                spriteBatch.Draw(UIRenderTarget, UIRenderTarget.Bounds, Color.White);
+                spriteBatch.Draw(ColorMap, ColorMap.Bounds, Color.White);
+                spriteBatch.Draw(BlurMap, BlurMap.Bounds, Color.White);
+
+                //spriteBatch.Draw(UIRenderTarget, UIRenderTarget.Bounds, Color.White);
             }
 
             spriteBatch.End(); 

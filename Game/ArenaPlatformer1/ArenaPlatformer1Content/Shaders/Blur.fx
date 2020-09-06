@@ -36,8 +36,8 @@ sampler inputSampler = sampler_state
             AddressV  = Clamp;
 };
 
-float2 renderTargetSize = float2(1280, 720);
-float2 texSize = float2(1280, 720);
+float2 renderTargetSize = float2(1920, 1080);
+float2 texSize = float2(1920, 1080);
 
 float Gaussian (float sigma, float x)
 {
@@ -52,7 +52,7 @@ float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
 	float4 color = tex2D(inputSampler, uv);
 	float4 c = float4(0, 0, 0, 0);
 
-	int offset = 12;
+	int offset = 6;
 
 		for (int x = -offset; x <= offset; x+=2)
 		{
@@ -60,7 +60,7 @@ float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
 			{
 				float fx = Gaussian(40.0f, x);
 				float fy = Gaussian(40.0f, y);
-				c += 0.6f*tex2D(inputSampler, uv + float2(OnePixel.x * x, OnePixel.y * y)).xyzw * fx * fy;
+				c += 0.8f*tex2D(inputSampler, uv + float2(OnePixel.x * x, OnePixel.y * y)).xyzw * fx * fy;
 			}
 		}
 	
