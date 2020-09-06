@@ -28,6 +28,8 @@ namespace ArenaPlatformer1
 
     public class Game1 : Microsoft.Xna.Framework.Game
     {
+        ContentManager GameContentManager;
+
         GraphicsDeviceManager graphics;
         SpriteBatch spriteBatch;
         GameState GameState;
@@ -65,6 +67,8 @@ namespace ArenaPlatformer1
         List<Emitter> EmitterList = new List<Emitter>();
         #endregion
 
+        Texture2D Texture, NormalTexture;
+
         #region Lighting
         RenderTarget2D EmissiveMap, BlurMap, ColorMap, NormalMap, LightMap, FinalMap, SpecMap, DepthMap, ShadowMap;
         RenderTarget2D CrepLightMap, CrepColorMap, OcclusionMap;
@@ -91,6 +95,11 @@ namespace ArenaPlatformer1
         };
 
         Matrix Projection = Matrix.CreateOrthographicOffCenter(0, 1920, 1080, 0, 0, 1);
+
+        List<Light> LightList = new List<Light>();
+        List<Solid> SolidList = new List<Solid>();
+
+        Color AmbientLight = new Color(0.2f, 0.2f, 0.2f, 1f);
         #endregion
 
         #region Effects
@@ -133,7 +142,52 @@ namespace ArenaPlatformer1
 
         protected void LoadGameContent()
         {
+            DoubleBuffer = new DoubleBuffer();
+            RenderManager = new RenderManager(DoubleBuffer);
+            RenderManager.LoadContent(Content);
 
+            UpdateManager = new UpdateManager(DoubleBuffer);
+
+            UpdateManager.StartOnNewThread();
+
+            Emitter.UpdateManager = UpdateManager;
+            Emitter.RenderManager = RenderManager;
+
+            Texture2D ParticleTexture = Content.Load<Texture2D>("Particles/diamond");
+
+            Emitter newEmitter4 = new Emitter(ParticleTexture, new Vector2(800, 200), new Vector2(-40, 40), new Vector2(6, 10),
+                    new Vector2(1000, 1000), 0.99f, true, new Vector2(0, 360), new Vector2(-3, 3), new Vector2(0.25f, 0.5f),
+                    new Color(Color.Orange.R, Color.Orange.G, Color.Orange.B, 100),
+                    new Color(Color.OrangeRed.R, Color.OrangeRed.G, Color.OrangeRed.B, 20),
+                    0.03f, -2f, 60, 1, false, new Vector2(1080, 1080), false,
+                    null, true, true, new Vector2(0, 0), new Vector2(0, 0), 0, true, new Vector2(0, 0), true, true, 2000, null, null, false);
+
+            EmitterList.Add(newEmitter4);
+
+            Emitter newEmitter5 = new Emitter(ParticleTexture, new Vector2(800, 200), new Vector2(-40, 40), new Vector2(6, 10),
+                    new Vector2(1000, 1000), 0.99f, true, new Vector2(0, 360), new Vector2(-3, 3), new Vector2(0.25f, 0.5f),
+                    new Color(Color.Orange.R, Color.Orange.G, Color.Orange.B, 35),
+                    new Color(Color.OrangeRed.R, Color.OrangeRed.G, Color.OrangeRed.B, 5),
+                    -0.008f, -2f, 150, 2, false, new Vector2(1080, 1080), true,
+                    null, true, true, new Vector2(0, 0), new Vector2(0, 0), 0, true, new Vector2(0, 0), true, true, 1500, null, null, false);
+
+            EmitterList.Add(newEmitter5);
+
+            LightList.Add(new Light()
+            {
+                //Color = new Color(141, 38, 10, 42),
+                //Color = new Color(10, 25, 70, 5),
+                //Color = Color.LightGreen,
+                Color = Color.Plum,
+                Active = true,
+                Power = 0.7f,
+                Position = new Vector3(100, 100, 100),
+                Size = 800
+            });
+
+
+            Texture = Content.Load<Texture2D>("Backgrounds/Texture");
+            NormalTexture = Content.Load<Texture2D>("Backgrounds/NormalTexture");
         }
 
         protected override void LoadContent()
@@ -257,36 +311,7 @@ namespace ArenaPlatformer1
 
                                 if (PlayerJoinButtons[i].Occupied == true)
                                 {
-                                    DoubleBuffer = new DoubleBuffer();
-                                    RenderManager = new RenderManager(DoubleBuffer);
-                                    RenderManager.LoadContent(Content);
-
-                                    UpdateManager = new UpdateManager(DoubleBuffer);
-
-                                    UpdateManager.StartOnNewThread();
-
-                                    Emitter.UpdateManager = UpdateManager;
-                                    Emitter.RenderManager = RenderManager;
-
-                                    Texture2D ParticleTexture = Content.Load<Texture2D>("Particles/diamond");
-
-                                    Emitter newEmitter4 = new Emitter(ParticleTexture, new Vector2(800, 200), new Vector2(-40, 40), new Vector2(6, 10),
-                                            new Vector2(1000, 1000), 0.99f, true, new Vector2(0, 360), new Vector2(-3, 3), new Vector2(0.25f, 0.5f),
-                                            new Color(Color.Orange.R, Color.Orange.G, Color.Orange.B, 100),
-                                            new Color(Color.OrangeRed.R, Color.OrangeRed.G, Color.OrangeRed.B, 20),
-                                            0.03f, -2f, 60, 1, false, new Vector2(1080, 1080), false,
-                                            null, true, true, new Vector2(0, 0), new Vector2(0, 0), 0, true, new Vector2(0, 0), true, true, 2000, null, null, false);
-
-                                    EmitterList.Add(newEmitter4);
-
-                                    Emitter newEmitter5 = new Emitter(ParticleTexture, new Vector2(800, 200), new Vector2(-40, 40), new Vector2(6, 10),
-                                            new Vector2(1000, 1000), 0.99f, true, new Vector2(0, 360), new Vector2(-3, 3), new Vector2(0.25f, 0.5f),
-                                            new Color(Color.Orange.R, Color.Orange.G, Color.Orange.B, 35),
-                                            new Color(Color.OrangeRed.R, Color.OrangeRed.G, Color.OrangeRed.B, 5),
-                                            -0.008f, -2f, 150, 2, false, new Vector2(1080, 1080), true,
-                                            null, true, true, new Vector2(0, 0), new Vector2(0, 0), 0, true, new Vector2(0, 0), true, true, 1500, null, null, false);
-
-                                    EmitterList.Add(newEmitter5);
+                                    LoadGameContent();
 
 
                                     GameState = GameState.Playing;
@@ -413,6 +438,8 @@ namespace ArenaPlatformer1
                             }
                         }
 
+                        LightList[0].Position = new Vector3(Mouse.GetState().X, Mouse.GetState().Y, 0);
+
                         #region Turn on diagnostics with F3
                         if (CurrentKeyboardState.IsKeyUp(Keys.F3) &&
                             PreviousKeyboardState.IsKeyDown(Keys.F3))
@@ -499,6 +526,10 @@ namespace ArenaPlatformer1
                         GraphicsDevice.Clear(Color.Transparent);
                         spriteBatch.Begin();
                         RenderManager.DoFrame(spriteBatch);
+                        foreach (Projectile projectile in ProjectileList)
+                        {
+                            projectile.Draw(spriteBatch);
+                        }
                         spriteBatch.End();
                         #endregion
 
@@ -522,7 +553,7 @@ namespace ArenaPlatformer1
                         GraphicsDevice.Clear(Color.Gray);
                         spriteBatch.Begin();
 
-                        
+                        spriteBatch.Draw(Texture, new Rectangle(0, 0, 1920, 1080), Color.White);
 
                         foreach (Projectile projectile in ProjectileList)
                         {
@@ -540,7 +571,12 @@ namespace ArenaPlatformer1
                         #endregion
 
                         #region Draw to NormalMap
-
+                        GraphicsDevice.SetRenderTarget(NormalMap);
+                        GraphicsDevice.Clear(Color.Transparent);
+                        spriteBatch.Begin();
+                        spriteBatch.Draw(NormalTexture, new Rectangle(0, 0, 1920, 1080), Color.White);
+                        CurrentMap.Draw(spriteBatch);
+                        spriteBatch.End();
                         #endregion
 
                         #region Draw to SpecMap
@@ -552,11 +588,74 @@ namespace ArenaPlatformer1
                         #endregion
 
                         #region Draw to LightMap
+                        GraphicsDevice.SetRenderTarget(LightMap);
+                        GraphicsDevice.Clear(Color.Transparent);
 
+                        foreach (Light light in LightList)
+                        {
+                            if (light.Active == true)
+                            {
+                                MyShadow(light);
+
+                                GraphicsDevice.SetRenderTarget(LightMap);
+
+                                LightEffect.Parameters["ShadowMap"].SetValue(ShadowMap);
+
+                                LightEffect.Parameters["LightPosition"].SetValue(light.Position);
+                                LightEffect.Parameters["LightColor"].SetValue(ColorToVector(light.Color));
+                                LightEffect.Parameters["LightPower"].SetValue(light.Power);
+                                LightEffect.Parameters["LightSize"].SetValue(light.Size);
+                                LightEffect.Parameters["NormalMap"].SetValue(NormalMap);
+                                LightEffect.Parameters["ColorMap"].SetValue(ColorMap);
+                                LightEffect.Parameters["DepthMap"].SetValue(DepthMap);
+                                LightEffect.Parameters["lightDepth"].SetValue(0.5f);
+
+                                LightEffect.CurrentTechnique = LightEffect.Techniques["DeferredPointLight"];
+                                LightEffect.CurrentTechnique.Passes[0].Apply();
+
+                                GraphicsDevice.BlendState = BlendBlack;
+                                GraphicsDevice.DrawUserPrimitives(PrimitiveType.TriangleStrip, LightVertices, 0, 2);
+
+                            }
+                        }
+
+                        //TODO: This is here to have the emissive sprites also "cast" light on the LightMap. 
+                        //Not sure if it looks as good as I'd like though
+                        //may need to be removed
+                        spriteBatch.Begin();
+                        spriteBatch.Draw(BlurMap, BlurMap.Bounds, Color.White);
+                        spriteBatch.End();
                         #endregion
 
                         #region Combine Normals, Lighting and Color
+                        GraphicsDevice.SetRenderTarget(FinalMap);
+                        GraphicsDevice.Clear(Color.DeepSkyBlue);
 
+                        spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, null, null, null, LightCombined);
+                        #region Draw the lightmap and color map combined
+                        LightCombined.CurrentTechnique = LightCombined.Techniques["DeferredCombined2"];
+                        LightCombined.Parameters["ambient"].SetValue(1f);
+                        LightCombined.Parameters["lightAmbient"].SetValue(4f);
+                        LightCombined.Parameters["ambientColor"].SetValue(AmbientLight.ToVector4());
+
+                        LightCombined.Parameters["ColorMap"].SetValue(ColorMap);
+                        LightCombined.Parameters["ShadingMap"].SetValue(LightMap);
+                        LightCombined.Parameters["NormalMap"].SetValue(NormalMap);
+
+                        LightCombined.CurrentTechnique.Passes[0].Apply();
+
+                        spriteBatch.Draw(ColorMap, Vector2.Zero, Color.White);
+                        #endregion
+                        spriteBatch.End();
+
+                        spriteBatch.Begin();
+                        spriteBatch.Draw(EmissiveMap, ColorMap.Bounds, Color.White);
+                        spriteBatch.Draw(BlurMap, BlurMap.Bounds, Color.White);
+                        foreach (Solid solid in SolidList)
+                        {
+                            solid.Draw(spriteBatch, Color.Black);
+                        }
+                        spriteBatch.End();
                         #endregion
 
                         #region Occlusion Map
@@ -566,8 +665,6 @@ namespace ArenaPlatformer1
                         #region Crepuscular ColorMap
 
                         #endregion
-
-
                     }
                     break;
                 #endregion
@@ -617,10 +714,11 @@ namespace ArenaPlatformer1
             }
             else
             {
-                spriteBatch.Draw(ColorMap, ColorMap.Bounds, Color.White);
-                spriteBatch.Draw(BlurMap, BlurMap.Bounds, Color.White);
+                spriteBatch.Draw(FinalMap, FinalMap.Bounds, Color.White);
+                //spriteBatch.Draw(ColorMap, ColorMap.Bounds, Color.White);
+                //spriteBatch.Draw(BlurMap, BlurMap.Bounds, Color.White);
 
-                //spriteBatch.Draw(UIRenderTarget, UIRenderTarget.Bounds, Color.White);
+                spriteBatch.Draw(UIRenderTarget, UIRenderTarget.Bounds, Color.White);
             }
 
             spriteBatch.End(); 
@@ -676,6 +774,111 @@ namespace ArenaPlatformer1
                 ColorDestinationBlend = Blend.One,
                 ColorBlendFunction = BlendFunction.Max
             };
+        }
+
+        public void DrawShadows(Light light)
+        {
+            Vector3 LightPos;
+
+            LightPos = new Vector3(Mouse.GetState().X, Mouse.GetState().Y, 250);
+            //LightList[0].Position = new Vector3(SpritePos.X, SpritePos.Y, 0) + new Vector3(16, 16, 0);
+            //LightList[0].Position = LightPos;
+
+            //LightList[LightList.Count - 1].Position = LightPos;
+
+            Vector2 SourcePosition = new Vector2(light.Position.X, light.Position.Y);
+
+            RayList.Clear();
+            ShadowList.Clear();
+
+            foreach (Solid solid in SolidList)
+            {
+                Vector3 lightVector, check1, check2, thing, thing2;
+
+                for (int i = 0; i < solid.vertices.Count(); i++)
+                {
+                    if (CurrentKeyboardState.IsKeyDown(Keys.P) &&
+                        PreviousKeyboardState.IsKeyUp(Keys.P))
+                    {
+                        int stop = 10;
+                    }
+
+                    lightVector = solid.vertices[i].Position - new Vector3(SourcePosition, 0);
+                    //lightVector.Normalize();
+
+                    //lightVector *= light.Size;
+
+                    int nextIndex, prevIndex;
+
+                    nextIndex = Wrap(i + 1, 4);
+                    prevIndex = Wrap(i - 1, 4);
+
+                    check1 = solid.vertices[nextIndex].Position - new Vector3(SourcePosition, 0);
+                    check2 = solid.vertices[prevIndex].Position - new Vector3(SourcePosition, 0);
+
+                    thing = Vector3.Cross(lightVector, check1);
+                    thing2 = Vector3.Cross(lightVector, check2);
+
+                    //NOTE: THIS LINE SEEMS TO FIX THE 0 VALUE CHECK VARIABLE RESULTING IN A DISAPPEARING SHADOW
+                    thing.Normalize();
+
+                    //SHADOWS DON'T SHOW UP IF THE Y OR X VALUES FOR THE THING AND CHECK ARE THE SAME.
+                    //i.e. check1.y = 158 AND thing1.y = 158. Then the next if evaluates to false and a ray isn't added.
+                    //meaning that there's a blank side for the polygon
+                    //The Check variables use the previous and next vertex positions to calculate a vector
+                    //This can end up with the vector having a 0 in it if the light lines up with a side
+                    //This makes the cross product values messed up
+
+                    if ((thing.Z <= 0 && thing2.Z <= 0) ||
+                        (thing.Z >= 0 && thing2.Z >= 0))
+                    {
+                        RayList.Add(new MyRay() { direction = lightVector, position = solid.vertices[i].Position, length = 10f });
+                    }
+                }
+
+                if (RayList.Count > 1)
+                {
+                    int p = RayList.Count() - 2;
+
+                    VertexPositionColor[] vertices = new VertexPositionColor[6];
+
+                    vertices[0].Position = RayList[p].position;
+                    vertices[1].Position = RayList[p].position + (RayList[p].direction * 100);
+                    vertices[2].Position = RayList[p + 1].position + (RayList[p + 1].direction * 100);
+
+                    vertices[3].Position = RayList[p + 1].position + (RayList[p + 1].direction * 100);
+                    vertices[4].Position = RayList[p + 1].position;
+                    vertices[5].Position = RayList[p].position;
+
+                    vertices[0].Color = Color.Black;
+                    vertices[1].Color = Color.Black;
+                    vertices[2].Color = Color.Black;
+                    vertices[3].Color = Color.Black;
+                    vertices[4].Color = Color.Black;
+                    vertices[5].Color = Color.Black;
+
+                    ShadowList.Add(new PolygonShadow() { Vertices = vertices });
+                }
+            }
+        }
+
+        public Texture2D MyShadow(Light light)
+        {
+            GraphicsDevice.SetRenderTarget(ShadowMap);
+            GraphicsDevice.Clear(Color.White);
+
+            DrawShadows(light);
+
+            GraphicsDevice.RasterizerState = RasterizerState.CullNone;
+            GraphicsDevice.BlendState = PSBlendState.Multiply;
+            BasicEffect.Techniques[0].Passes[0].Apply();
+
+            foreach (PolygonShadow shadow in ShadowList)
+            {
+                shadow.Draw(GraphicsDevice);
+            }
+
+            return ShadowMap;
         }
 
         protected Vector4 ColorToVector(Color color)

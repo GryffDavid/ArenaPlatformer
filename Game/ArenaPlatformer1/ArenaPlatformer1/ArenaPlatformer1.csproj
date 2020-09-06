@@ -81,6 +81,7 @@
     <Compile Include="Lighting\Light.cs" />
     <Compile Include="Lighting\Occluder.cs" />
     <Compile Include="Lighting\PolygonShadow.cs" />
+    <Compile Include="Lighting\Solid.cs" />
     <Compile Include="Map.cs" />
     <Compile Include="ParticleSystem\Buffers\ChangeBuffer.cs" />
     <Compile Include="ParticleSystem\Buffers\ChangeMessage.cs" />
@@ -91,7 +92,6 @@
     <Compile Include="ParticleSystem\Managers\RenderManager.cs" />
     <Compile Include="ParticleSystem\Managers\UpdateManager.cs" />
     <Compile Include="Player.cs" />
-    <Compile Include="PlayerAnimation.cs" />
     <Compile Include="Projectile.cs" />
     <Compile Include="Projectiles\Bullet.cs" />
     <Compile Include="Projectiles\Rocket.cs" />

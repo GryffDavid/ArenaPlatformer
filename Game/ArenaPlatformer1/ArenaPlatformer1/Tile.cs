@@ -16,7 +16,7 @@ namespace ArenaPlatformer1
         Texture2D Texture;
         public Vector2 Position, Size;
         public Rectangle DestinationRectangle, CollisionRectangle;
-        public Color Color = Color.Black;
+        public Color Color = new Color(1, 0, 0, 255);
 
         public Tile()
         {

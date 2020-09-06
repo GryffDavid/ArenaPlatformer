@@ -23,6 +23,25 @@ namespace ArenaPlatformer1
         {
             PlayerShootHappened?.Invoke(this, new PlayerShootEventArgs() { Player = this, Velocity = velocity });
         }
+        
+        public Animation RunRightAnimation, RunRightUpAnimation, RunRightDownAnimation,
+                         RunLeftAnimation, RunLeftUpAnimation, RunLeftDownAnimation,
+                         StandRightAnimation, StandRightUpAnimation, StandRightDownAnimation,
+                         StandLeftAnimation, StandLeftUpAnimation, StandLeftDownAnimation,
+                         JumpRightAnimation, JumpRightUpAnimation, JumpRightDownAnimation,
+                         JumpLeftAnimation, JumpLeftUpAnimation, JumpLeftDownAnimation,
+                         CrouchRightAnimation, CrouchLeftAnimation;
+
+        public Animation CurrentAnimation;
+
+        public Texture2D RunRightTexture, RunRightUpTexture, RunRightDownTexture,
+                         RunLeftTexture, RunLeftUpTexture, RunLeftDownTexture,
+                         StandRightTexture, StandRightUpTexture, StandRightDownTexture,
+                         StandLeftTexture, StandLeftUpTexture, StandLeftDownTexture,
+                         JumpRightTexture, JumpRightUpTexture, JumpRightDownTexture,
+                         JumpLeftTexture, JumpLeftUpTexture, JumpLeftDownTexture,
+                         CrouchRightTexture, CrouchLeftTexture,
+                         HeadTexture;
 
         bool Active = true;
         bool InAir;
@@ -75,6 +94,62 @@ namespace ArenaPlatformer1
             ShootButton = Buttons.X;
             GrenadeButton = Buttons.B;
             TrapButton = Buttons.Y;
+            
+            RunRightTexture = content.Load<Texture2D>("Player" + ((int)PlayerIndex + 1) + "/Running/RunRight");
+            RunRightUpTexture = content.Load<Texture2D>("Player" + ((int)PlayerIndex + 1) + "/Running/RunRightUp");
+            RunRightDownTexture = content.Load<Texture2D>("Player" + ((int)PlayerIndex + 1) + "/Running/RunRightDown");
+
+            RunLeftTexture = content.Load<Texture2D>("Player" + ((int)PlayerIndex + 1) + "/Running/RunLeft");
+            RunLeftUpTexture = content.Load<Texture2D>("Player" + ((int)PlayerIndex + 1) + "/Running/RunLeftUp");
+            RunLeftDownTexture = content.Load<Texture2D>("Player" + ((int)PlayerIndex + 1) + "/Running/RunLeftDown");
+
+            StandRightTexture = content.Load<Texture2D>("Player" + ((int)PlayerIndex + 1) + "/Standing/StandRight");
+            StandRightUpTexture = content.Load<Texture2D>("Player" + ((int)PlayerIndex + 1) + "/Standing/StandRightUp");
+            StandRightDownTexture = content.Load<Texture2D>("Player" + ((int)PlayerIndex + 1) + "/Standing/StandRightDown");
+
+            StandLeftTexture = content.Load<Texture2D>("Player" + ((int)PlayerIndex + 1) + "/Standing/StandLeft");
+            StandLeftUpTexture = content.Load<Texture2D>("Player" + ((int)PlayerIndex + 1) + "/Standing/StandLeftUp");
+            StandLeftDownTexture = content.Load<Texture2D>("Player" + ((int)PlayerIndex + 1) + "/Standing/StandLeftDown");
+
+            JumpRightTexture = content.Load<Texture2D>("Player" + ((int)PlayerIndex + 1) + "/Jumping/JumpRight");
+            JumpRightUpTexture = content.Load<Texture2D>("Player" + ((int)PlayerIndex + 1) + "/Jumping/JumpRightUp");
+            JumpRightDownTexture = content.Load<Texture2D>("Player" + ((int)PlayerIndex + 1) + "/Jumping/JumpRightDown");
+
+            JumpLeftTexture = content.Load<Texture2D>("Player" + ((int)PlayerIndex + 1) + "/Jumping/JumpLeft");
+            JumpLeftUpTexture = content.Load<Texture2D>("Player" + ((int)PlayerIndex + 1) + "/Jumping/JumpLeftUp");
+            JumpLeftDownTexture = content.Load<Texture2D>("Player" + ((int)PlayerIndex + 1) + "/Jumping/JumpLeftDown");
+
+            CrouchRightTexture = content.Load<Texture2D>("Player" + ((int)PlayerIndex + 1) + "/CrouchRight");
+            CrouchLeftTexture = content.Load<Texture2D>("Player" + ((int)PlayerIndex + 1) + "/CrouchLeft");
+
+            RunRightAnimation = new Animation(RunRightTexture, 8, 50);
+            RunRightUpAnimation = new Animation(RunRightUpTexture, 8, 50);
+            RunRightDownAnimation = new Animation(RunRightDownTexture, 8, 50);
+
+            RunLeftAnimation = new Animation(RunLeftTexture, 8, 50);
+            RunLeftUpAnimation = new Animation(RunLeftUpTexture, 8, 50);
+            RunLeftDownAnimation = new Animation(RunLeftDownTexture, 8, 50);
+
+            StandLeftAnimation = new Animation(StandLeftTexture, 1, 50);
+            StandLeftUpAnimation = new Animation(StandLeftUpTexture, 1, 50);
+            StandLeftDownAnimation = new Animation(StandLeftDownTexture, 1, 50);
+
+            StandRightAnimation = new Animation(StandRightTexture, 1, 50);
+            StandRightUpAnimation = new Animation(StandRightUpTexture, 1, 50);
+            StandRightDownAnimation = new Animation(StandRightDownTexture, 1, 50);
+
+            JumpLeftAnimation = new Animation(JumpLeftTexture, 1, 50);
+            JumpLeftUpAnimation = new Animation(JumpLeftUpTexture, 1, 50);
+            JumpLeftDownAnimation = new Animation(JumpLeftDownTexture, 1, 50);
+
+            JumpRightAnimation = new Animation(JumpRightTexture, 1, 50);
+            JumpRightUpAnimation = new Animation(JumpRightUpTexture, 1, 50);
+            JumpRightDownAnimation = new Animation(JumpRightDownTexture, 1, 50);
+
+            CrouchRightAnimation = new Animation(CrouchRightTexture, 1, 50);
+            CrouchLeftAnimation = new Animation(CrouchLeftTexture, 1, 50);
+
+            CurrentAnimation = RunRightAnimation;
         }
 
         public void Update(GameTime gameTime)
@@ -89,14 +164,14 @@ namespace ArenaPlatformer1
                 MoveStick = Sticks.Left;
                 AimStick = Sticks.Right;
 
-                
+
 
                 #region Move stick left
                 if (MoveStick.X < 0f)
                 {
                     AimDirection.X = -1f;
                     CurrentFacing = Facing.Left;
-                    
+
                     Velocity.X += (MoveStick.X * 3f);
                 }
                 #endregion
@@ -106,7 +181,7 @@ namespace ArenaPlatformer1
                 {
                     AimDirection.X = 1f;
                     CurrentFacing = Facing.Right;
-                    
+
                     Velocity.X += (MoveStick.X * 3f);
                 }
                 #endregion
@@ -236,10 +311,25 @@ namespace ArenaPlatformer1
                     Velocity.Y = 25;
                 }
                 #endregion
+
+                if (CurrentAnimation != null)
+                {
+                    CurrentAnimation.Position = Position;
+                    CurrentAnimation.Update(gameTime);
+                }
             }
 
             DestinationRectangle = new Rectangle((int)Position.X, (int)Position.Y, Texture.Width, Texture.Height);
-            CollisionRectangle = new Rectangle((int)(Position.X - Texture.Width/2), (int)(Position.Y - Texture.Height), Texture.Width, Texture.Height);
+
+            //Collision Rectangle same size as animation rectangle
+            //CollisionRectangle = new Rectangle(
+            //    (int)(CurrentAnimation.Position.X - CurrentAnimation.FrameSize.X/2), (int)(CurrentAnimation.Position.Y - CurrentAnimation.FrameSize.Y), 
+            //    (int)CurrentAnimation.FrameSize.X, (int)CurrentAnimation.FrameSize.Y);
+
+            //Collision rectangle standard size
+            CollisionRectangle = new Rectangle(
+                (int)(Position.X - 30), (int)(Position.Y - 80),
+                (int)60, 80);
 
             PreviousFacing = CurrentFacing;
             PreviousGamePadState = CurrentGamePadState;
@@ -249,7 +339,10 @@ namespace ArenaPlatformer1
 
         public void Draw(SpriteBatch spriteBatch)
         {
-            spriteBatch.Draw(Texture, DestinationRectangle, null, Color.White, 0, new Vector2(Texture.Width / 2, Texture.Height), SpriteEffects.None, 0);
+            //spriteBatch.Draw(Texture, DestinationRectangle, null, Color.White, 0, new Vector2(Texture.Width / 2, Texture.Height), SpriteEffects.None, 0);
+
+            if (CurrentAnimation != null)
+                CurrentAnimation.Draw(spriteBatch, Position);
         }
 
         /// <summary>

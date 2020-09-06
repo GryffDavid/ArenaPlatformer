@@ -67,7 +67,7 @@ VertexToPixel MyVertexShader(float4 inPos: POSITION0, float2 texCoord: TEXCOORD0
 //Variables to use//
 ///////////////////
 
-float2 iResolution = float2(1280, 720);
+float2 iResolution = float2(1920, 1080);
 float4 backColor = float4(0.25, 0.25, 0.25, 1.0);
 float4 shapeColor = float4(1.0, 0.4, 0.0, 1.0);
 
@@ -123,7 +123,7 @@ void setLuminance(inout float4 col, float lum)
 //float4 ambientLight = float4(0.05, 0.05, 0.05, 1);
 float3 halfVec = float3(0, 0, 1);
 
-float2 offset = float2(0.5/1280.0, 0.5/720.0);
+float2 offset = float2(0.5/1920.0, 0.5/1080.0);
 float specVal = 0.005;
 
 float lightDepth;

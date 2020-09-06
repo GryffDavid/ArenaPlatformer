@@ -37,7 +37,7 @@ float density=0.826;
 float weight=0.358767;
 const int NUM_SAMPLES = 48;
 
-float2 offset = float2(0.5/1280.0, 0.5/720.0);
+float2 offset = float2(0.5/1920.0, 0.5/1080.0);
 
 //THIS HAS BEEN COPY-PASTED AND THEN MODIFIED FROM VERSION 2.
 //NOT THE SAME AS VERSION 18 OR 17

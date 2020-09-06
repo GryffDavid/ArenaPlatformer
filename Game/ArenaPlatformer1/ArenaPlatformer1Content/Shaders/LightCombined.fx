@@ -36,9 +36,9 @@ sampler NormalMapSampler = sampler_state
 };
 
 
-float2 iResolution = float2(1280, 720);
+float2 iResolution = float2(1920, 1080);
 float3 halfVec = float3(0, 0, 1);
-float2 offset = float2(0.5/1280.0, 0.5/720.0);
+float2 offset = float2(0.5/1920.0, 0.5/1080.0);
 float specVal = 0.008;
 
 float4 CombinedPixelShader(float4 color : COLOR0, float2 texCoords : TEXCOORD0) : COLOR0
