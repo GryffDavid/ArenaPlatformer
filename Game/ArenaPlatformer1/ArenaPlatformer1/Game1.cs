@@ -134,6 +134,10 @@ namespace ArenaPlatformer1
 
         Texture2D Texture, NormalTexture, ParticleTexture;
 
+        #region Particle Textures
+        Texture2D ExplosionParticle2, BOOMParticle, SplodgeParticle, HitEffectParticle, ToonSmoke2, ToonSmoke3;
+        #endregion
+
         #region Lighting
         RenderTarget2D EmissiveMap, BlurMap, ColorMap, NormalMap, LightMap, FinalMap, SpecMap, DepthMap, ShadowMap;
         RenderTarget2D CrepLightMap, CrepColorMap, OcclusionMap;
@@ -224,6 +228,78 @@ namespace ArenaPlatformer1
         public void OnExplosionHappened(object source, ExplosionEventArgs e)
         {
             Explosion explosion = e.Explosion;
+
+            #region Explosion Effect
+            #region Regular ground
+
+            #region Smoke
+            Emitter Emitter2 = new Emitter(ToonSmoke2,
+                    new Vector2(explosion.Position.X, explosion.Position.Y), new Vector2(60, 120), new Vector2(1, 1),
+                    new Vector2(500, 1000), 1f, false, new Vector2(-10, 10), new Vector2(-1, 1), new Vector2(0.05f, 0.06f), new Color(255, 128, 0, 6), Color.Black,
+                    -0.005f, 0.4f, 50, 10, false, new Vector2(0, 720), true, (explosion.Position.Y - 4) / 1080f,
+                    null, null, null, null, null, false, null, null, null,
+                    null, null, null, true, null);
+
+            Emitter Emitter = new Emitter(ToonSmoke3,
+                    new Vector2(explosion.Position.X, explosion.Position.Y), new Vector2(60, 120), new Vector2(1, 1),
+                    new Vector2(500, 1000), 1f, false, new Vector2(-10, 10), new Vector2(-1, 1), new Vector2(0.05f, 0.06f), new Color(255, 128, 0, 6), Color.Black,
+                    -0.005f, 0.4f, 50, 10, false, new Vector2(0, 720), true, (explosion.Position.Y - 4) / 1080f,
+                    null, null, null, null, null, false, null, null, null,
+                    null, null, null, true, null);
+
+            //EmitterList.Add(Emitter);
+            //EmitterList.Add(Emitter2);
+            #endregion
+
+            //EMISSIVE
+            Emitter ExplosionEmitter = new Emitter(ExplosionParticle2,
+                    new Vector2(explosion.Position.X, explosion.Position.Y),
+                    new Vector2(20, 160), new Vector2(0.3f, 0.8f), new Vector2(500, 1000), 1f, true, new Vector2(-2, 2),
+                    new Vector2(-1, 1), new Vector2(0.15f, 0.25f), new Color(255, 128, 0, 6), new Color(0, 0, 0, 255), -0.2f, 0.1f, 10, 1, false,
+                    new Vector2(explosion.Position.Y, explosion.Position.Y + 8), false, explosion.Position.Y / 1080f,
+                    null, null, null, null, null, null, new Vector2(0.1f, 0.2f), true, true, null, null, null, true);
+            //EmitterList.Add(ExplosionEmitter);
+
+            //EMISSIVE
+            Emitter ExplosionEmitter3 = new Emitter(ExplosionParticle2,
+                    new Vector2(explosion.Position.X, explosion.Position.Y),
+                    new Vector2(85, 95), new Vector2(2, 4), new Vector2(400, 640), 1f, false, new Vector2(0, 0),
+                    new Vector2(0, 0), new Vector2(0.085f, 0.2f), new Color(255, 128, 0, 6), new Color(0, 0, 0, 255), -0.1f, 0.05f, 10, 1, false,
+                    new Vector2(explosion.Position.Y, explosion.Position.Y + 8), true, explosion.Position.Y / 1080f,
+                    null, null, null, null, null, null, new Vector2(0.0025f, 0.0025f), true, true, 50);
+
+            //EmitterList.Add(ExplosionEmitter3);
+
+            Emitter BOOMEmitter = new Emitter(BOOMParticle, 
+                    new Vector2(explosion.Position.X, explosion.Position.Y - 12),
+                    new Vector2(0, 0), new Vector2(0.001f, 0.001f), new Vector2(400, 400), 1f, false,
+                    new Vector2(-25, 25), new Vector2(0, 0), new Vector2(0.35f, 0.35f),
+                    Color.White, Color.White, 0f, 0.05f, 50, 1, false, new Vector2(0, 1080), true,
+                    explosion.Position.Y + 4 / 1080f, null, null, null, null, null, false, new Vector2(0.11f, 0.11f), false, false,
+                    null, false, false, true);
+            EmitterList.Add(BOOMEmitter);
+
+            //EMISSIVE
+            Emitter HitEffect1 = new Emitter(HitEffectParticle,
+                    new Vector2(explosion.Position.X, explosion.Position.Y), new Vector2(20f, 160f), new Vector2(5f, 8f),
+                    new Vector2(250f, 500f), 1f, false, new Vector2(0f, 360f), new Vector2(-2f, 2f),
+                    new Vector2(0.35f, 0.35f), new Color(255, 255, 191, 255),
+                    new Color(255, 255, 255, 255), 0f, 0.05f, 50f, 7, false, new Vector2(0f, 1080), true,
+                    (explosion.Position.Y + 8) / 1080f,
+                    false, false, null, null, 0f, true, new Vector2(0.11f, 0.11f), false, false, 0f,
+                    false, false, false, null);
+
+            //EmitterList.Add(HitEffect1);
+            #endregion
+
+            //ExplosionEffect explosionEffect = new ExplosionEffect(new Vector2(heavyProjectile.Position.X, heavyProjectile.BoundingBox.Max.Y))
+            //{
+            //    Texture = ExplosionRingSprite
+            //};
+            //ExplosionEffectList.Add(explosionEffect);
+
+            //Camera.Shake(15, 1.5f);
+            #endregion
 
         }
 
@@ -428,6 +504,12 @@ namespace ArenaPlatformer1
 
             Block = Content.Load<Texture2D>("Blank");
 
+            ExplosionParticle2 = Content.Load<Texture2D>("Particles/ExplosionParticle2");
+            BOOMParticle = Content.Load<Texture2D>("Particles/BOOM");
+            SplodgeParticle = Content.Load<Texture2D>("Particles/Splodge");
+            HitEffectParticle = Content.Load<Texture2D>("Particles/HitEffectParticle");
+            ToonSmoke2 = Content.Load<Texture2D>("Particles/ToonSmoke/ToonSmoke2");
+            ToonSmoke3 = Content.Load<Texture2D>("Particles/ToonSmoke/ToonSmoke3");
             //ProjectileList.Add(new Rocket() { Position = new Vector2(80, 80), Velocity = new Vector2(1, 0) });
         }
         
@@ -697,7 +779,6 @@ namespace ArenaPlatformer1
                                 }
 
                                 projectile.Active = false;
-                                CreateExplosion(new Explosion(), projectile);
                             }
                         }
 

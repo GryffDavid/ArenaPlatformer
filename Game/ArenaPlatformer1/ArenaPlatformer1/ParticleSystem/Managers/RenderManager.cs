@@ -91,5 +91,7 @@ namespace ArenaPlatformer1
 
             DoubleBuffer.SubmitRender();
         }
+
+
     }
 }
