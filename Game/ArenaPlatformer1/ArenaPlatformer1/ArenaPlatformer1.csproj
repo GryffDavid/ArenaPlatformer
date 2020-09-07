@@ -76,6 +76,8 @@
     <Compile Include="Grenade.cs" />
     <Compile Include="Guns\Gun.cs" />
     <Compile Include="Guns\RocketLauncher.cs" />
+    <Compile Include="Item.cs" />
+    <Compile Include="Items\TrapPickups\MinePickup.cs" />
     <Compile Include="Level.cs" />
     <Compile Include="Lighting\CrepuscularLight.cs" />
     <Compile Include="Lighting\Light.cs" />
@@ -83,6 +85,7 @@
     <Compile Include="Lighting\PolygonShadow.cs" />
     <Compile Include="Lighting\Solid.cs" />
     <Compile Include="Map.cs" />
+    <Compile Include="MovingPlatform.cs" />
     <Compile Include="ParticleSystem\Buffers\ChangeBuffer.cs" />
     <Compile Include="ParticleSystem\Buffers\ChangeMessage.cs" />
     <Compile Include="ParticleSystem\Buffers\DoubleBuffer.cs" />
@@ -100,6 +103,7 @@
     <Compile Include="Game1.cs" />
     <Compile Include="Tile.cs" />
     <Compile Include="Trap.cs" />
+    <Compile Include="TrapPickup.cs" />
     <Compile Include="Traps\Mine.cs" />
     <Compile Include="UI\PlayerJoin.cs" />
   </ItemGroup>
@@ -116,7 +120,6 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Items\" />
     <Folder Include="MapEditor\" />
   </ItemGroup>
   <ItemGroup>

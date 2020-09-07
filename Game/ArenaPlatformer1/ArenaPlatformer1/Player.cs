@@ -30,6 +30,20 @@ namespace ArenaPlatformer1
                 });
         }
 
+        public event PlayerGrenadeHappenedEventHandler PlayerGrenadeHappened;
+        public void CreatePlayerGrenade()
+        {
+            OnPlayerGrenadeHappened();
+        }
+        protected virtual void OnPlayerGrenadeHappened()
+        {
+            PlayerGrenadeHappened?.Invoke(this,
+                new PlayerGrenadeEventArgs()
+                {
+                    Player = this
+                });
+        }
+
         public event PlaceTrapHappenedEventHandler PlaceTrapHappened;
         public void CreatePlaceTrap(Vector2 position, TrapType trapType)
         {
@@ -95,7 +109,7 @@ namespace ArenaPlatformer1
         public PlayerIndex PlayerIndex;
 
         //Current health, Max health
-        Vector2 Health = new Vector2(100, 100);
+        public Vector2 Health = new Vector2(100, 100);
 
         GamePadThumbSticks Sticks;
         Buttons JumpButton, ShootButton, GrenadeButton, TrapButton;
@@ -111,9 +125,14 @@ namespace ArenaPlatformer1
 
         float RumbleTime, MaxRumbleTime;
 
-        int Deaths = 0;
+        public int Deaths = 0;
+        public int GunAmmo = 15;
+        public int TrapAmmo = 0;
+        public int GrenadeAmmo = 0;
         
         public static Map Map;
+        public static List<Item> ItemList;
+        public static List<Trap> TrapList;
 
         public Player(PlayerIndex playerIndex)
         {
@@ -338,15 +357,20 @@ namespace ArenaPlatformer1
                 if (CurrentGamePadState.IsButtonDown(ShootButton) &&
                     PreviousGamePadState.IsButtonUp(ShootButton))
                 {
-                    switch (CurrentFacing)
+                    if (GunAmmo > 0)
                     {
-                        case Facing.Left:
-                            CreatePlayerShoot(new Vector2(-25, 0));
-                            break;
+                        switch (CurrentFacing)
+                        {
+                            case Facing.Left:
+                                CreatePlayerShoot(new Vector2(-25, 0));
+                                break;
 
-                        case Facing.Right:
-                            CreatePlayerShoot(new Vector2(25, 0));
-                            break;
+                            case Facing.Right:
+                                CreatePlayerShoot(new Vector2(25, 0));
+                                break;
+                        }
+
+                        GunAmmo--;
                     }
                 }
                 #endregion
@@ -356,6 +380,7 @@ namespace ArenaPlatformer1
                             PreviousGamePadState.IsButtonUp(GrenadeButton))
                 {
                     //Create grenades!
+                    CreatePlayerGrenade();
                 }
                 #endregion
 
@@ -363,8 +388,12 @@ namespace ArenaPlatformer1
                 if (CurrentGamePadState.IsButtonDown(TrapButton) &&
                     PreviousGamePadState.IsButtonUp(TrapButton))
                 {
-                    //Create traps!
-                    CreatePlaceTrap(Position, TrapType.Mine);
+                    if (TrapAmmo > 0)
+                    {
+                        //Create traps!
+                        CreatePlaceTrap(Position, TrapType.Mine);
+                        TrapAmmo--;
+                    }
                 }
                 #endregion
 
@@ -377,6 +406,47 @@ namespace ArenaPlatformer1
                     GamePad.SetVibration(PlayerIndex, 0, 0);
                 }
                 #endregion
+                
+
+                if (ItemList != null)
+                ItemList.ForEach(Item =>
+                {
+                    if (Item.CollisionRectangle.Intersects(CollisionRectangle))
+                    {
+                        if (Item as TrapPickup != null)
+                        {
+                            if (TrapAmmo <= 0)
+                            {
+                                CurrentTrap = (Item as TrapPickup).TrapType;
+                            }
+
+                            if (Item as MinePickup != null)
+                            {
+                                TrapAmmo++;
+                            }
+                        }
+
+                        if (Item as Gun != null)
+                        {
+                            if (GunAmmo <= 0)
+                            {
+                                GunAmmo += 15;
+                            }
+                        }
+
+                        ItemList.Remove(Item);
+                    }
+                });
+
+                if (TrapList != null)
+                TrapList.ForEach(Trap =>
+                {
+                    if (Trap.Active == true && Trap.CollisionRectangle.Intersects(CollisionRectangle))
+                    {
+                        Health.X -= 20;
+                        Trap.Reset();
+                    }
+                });
 
                 if (CheckUpCollisions() == true)
                 {
@@ -426,8 +496,8 @@ namespace ArenaPlatformer1
 
                 if (Health.X <= 0)
                 {
-                    CreatePlayerDied();
                     Deaths++;
+                    CreatePlayerDied();                    
                 }
             }
 

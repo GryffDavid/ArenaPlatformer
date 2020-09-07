@@ -10,6 +10,8 @@ namespace ArenaPlatformer1
 {
     class Rocket : Projectile
     {
+        public static Texture2D Texture;
+
         public Rocket()
         {
             Gravity = 0.05f;

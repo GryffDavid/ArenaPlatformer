@@ -506,14 +506,14 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="RocketTexture.png">
+    <Compile Include="Projectiles\RocketTexture.png">
       <Name>RocketTexture</Name>
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="BulletTexture.png">
+    <Compile Include="Projectiles\BulletTexture.png">
       <Name>BulletTexture</Name>
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
@@ -568,6 +568,13 @@
     </Compile>
     <Compile Include="Backgrounds\Texture.png">
       <Name>Texture</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="GrenadeTexture.png">
+      <Name>GrenadeTexture</Name>
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
     </Compile>

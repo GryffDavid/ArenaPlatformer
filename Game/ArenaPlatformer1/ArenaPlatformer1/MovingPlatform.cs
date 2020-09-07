@@ -8,11 +8,10 @@ using Microsoft.Xna.Framework.Content;
 
 namespace ArenaPlatformer1
 {
-    /// <summary>
-    /// The class representing the physical object in the game which the player can pick up to get access to the weapon
-    /// </summary>
-    abstract class Gun : Item
+    class MovingPlatform
     {
-        public static GunType GunType;
+        Texture2D Texture;
+        Vector2 Position, Size, Speed;
+        
     }
 }

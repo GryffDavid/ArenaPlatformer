@@ -10,14 +10,17 @@ namespace ArenaPlatformer1
 {
     class RocketLauncher : Gun
     {
+        public static Texture2D Texture;
+
         public RocketLauncher()
         {
             GunType = GunType.RocketLauncher;
         }
 
         public void LoadContent(ContentManager content)
-        {
-
+        {            
+            DestinationRectangle = new Rectangle((int)Position.X, (int)Position.Y, Texture.Width, Texture.Height);
+            CollisionRectangle = new Rectangle((int)Position.X, (int)Position.Y, Texture.Width, Texture.Height);
         }
 
         public override void Update(GameTime gameTime)
@@ -27,7 +30,7 @@ namespace ArenaPlatformer1
 
         public override void Draw(SpriteBatch spriteBatch)
         {
-            
+            spriteBatch.Draw(Texture, DestinationRectangle, Color.White);
         }
     }
 }

@@ -42,7 +42,8 @@ namespace ArenaPlatformer1
         Playing,
         LevelCreator
     };
-
+    
+    #region Events
     //A player is shooting
     public delegate void PlayerShootHappenedEventHandler(object source, PlayerShootEventArgs e);
     public class PlayerShootEventArgs : EventArgs
@@ -52,6 +53,12 @@ namespace ArenaPlatformer1
     }
 
 
+    public delegate void PlayerGrenadeHappenedEventHandler(object source, PlayerGrenadeEventArgs e);
+    public class PlayerGrenadeEventArgs : EventArgs
+    {
+        public Player Player { get; set; }
+    }
+
     //A player wants to place a trap
     public delegate void PlaceTrapHappenedEventHandler(object source, PlaceTrapEventArgs e);
     public class PlaceTrapEventArgs : EventArgs
@@ -60,8 +67,7 @@ namespace ArenaPlatformer1
         public Vector2 Position;
         public TrapType TrapType;
     }
-
-
+    
     //A player wants to place a trap
     public delegate void PlayerDiedHappenedEventHandler(object source, PlayerDiedEventArgs e);
     public class PlayerDiedEventArgs : EventArgs
@@ -69,8 +75,22 @@ namespace ArenaPlatformer1
         public Player Player { get; set; }
     }
 
+
+    #endregion
+
     public class Game1 : Microsoft.Xna.Framework.Game
     {
+        public EventHandler<ExplosionEventArgs> ExplosionHappenedEvent;
+        public class ExplosionEventArgs : EventArgs
+        {
+            public Explosion Explosion { get; set; }
+        }
+        protected virtual void CreateExplosion(Explosion explosion, object source)
+        {
+            if (ExplosionHappenedEvent != null)
+                OnExplosionHappened(source, new ExplosionEventArgs() { Explosion = explosion });
+        }
+
         ContentManager GameContentManager;
 
         GraphicsDeviceManager graphics;
@@ -80,6 +100,8 @@ namespace ArenaPlatformer1
         RenderTarget2D UIRenderTarget, GameRenderTarget, MenuRenderTarget;        
 
         bool DrawDiagnostics = false;
+        bool DebugBoxes = false;
+        bool TileBoxes = false;
 
         KeyboardState CurrentKeyboardState, PreviousKeyboardState;
         SpriteFont Font1;
@@ -95,7 +117,7 @@ namespace ArenaPlatformer1
         GamePadState[] CurrentGamePadStates = new GamePadState[4];
         GamePadState[] PreviousGamePadStates = new GamePadState[4];
 
-        List<Projectile> ProjectileList = new List<Projectile>();
+        
 
         Vector2 PlaceTilePosition = new Vector2(64, 64);
 
@@ -154,9 +176,12 @@ namespace ArenaPlatformer1
         #endregion
 
         List<Trap> TrapList;
+        List<Item> ItemList;
+        List<Grenade> GrenadeList;
+        List<Projectile> ProjectileList;
 
         Rectangle ScreenRectangle = new Rectangle(0, 0, 1920, 1080);
-
+        
         public void OnPlayerShoot(object source, PlayerShootEventArgs e)
         {
             ProjectileList.Add(new Bullet()
@@ -180,7 +205,7 @@ namespace ArenaPlatformer1
                             Texture = Block,
                             Position = e.Position                            
                         };
-
+                        
                         TrapList.Add(trap);
                     }
                     break; 
@@ -190,8 +215,24 @@ namespace ArenaPlatformer1
 
         public void OnPlayerDied(object source, PlayerDiedEventArgs e)
         {
+            e.Player.Position = new Vector2(100, 100 + 64);
+            e.Player.Health.X = 100;
+            e.Player.GunAmmo = 50;
+            e.Player.Velocity = new Vector2(0, 0);
+        }
+
+        public void OnExplosionHappened(object source, ExplosionEventArgs e)
+        {
+            Explosion explosion = e.Explosion;
 
         }
+
+        public void OnPlayerGrenade(object source, PlayerGrenadeEventArgs e)
+        {
+            Grenade grenade = new Grenade(e.Player.Position, new Vector2(1, 0), 2, e.Player);
+            GrenadeList.Add(grenade);
+        }
+
 
         public Game1()
         {
@@ -212,6 +253,8 @@ namespace ArenaPlatformer1
         {
             GameState = GameState.MainMenu;
 
+            ExplosionHappenedEvent += OnExplosionHappened;
+
             base.Initialize();
         }
 
@@ -219,7 +262,14 @@ namespace ArenaPlatformer1
 
         protected void LoadGameContent()
         {
+            GrenadeList = new List<Grenade>();
+            ProjectileList = new List<Projectile>();
+
             TrapList = new List<Trap>();
+            Player.TrapList = TrapList;
+
+            ItemList = new List<Item>();
+            Player.ItemList = ItemList;
 
             DoubleBuffer = new DoubleBuffer();
             RenderManager = new RenderManager(DoubleBuffer);
@@ -233,6 +283,8 @@ namespace ArenaPlatformer1
             Emitter.RenderManager = RenderManager;
 
             ParticleTexture = Content.Load<Texture2D>("Particles/diamond");
+
+            
             
             //Emitter newEmitter4 = new Emitter(ParticleTexture, new Vector2(800, 200), new Vector2(-40, 40), new Vector2(6, 10),
             //        new Vector2(1000, 1000), 0.99f, true, new Vector2(0, 360), new Vector2(-3, 3), new Vector2(0.25f, 0.5f),
@@ -271,6 +323,23 @@ namespace ArenaPlatformer1
                 solid.LoadContent(GameContentManager);
                 SolidList.Add(solid);
             }
+
+            RocketLauncher.Texture = Content.Load<Texture2D>("Gun");
+            RocketLauncher launcher = new RocketLauncher();
+            launcher.Position = new Vector2(200, 200);
+            launcher.LoadContent(Content);
+            ItemList.Add(launcher);
+
+            MinePickup.Texture = Content.Load<Texture2D>("Blank");
+            MinePickup mine = new MinePickup()
+            {
+                Position = new Vector2(500, 500)
+            };
+            mine.LoadContent(Content);
+            ItemList.Add(mine);
+
+            Grenade.GrenadeTexture = Content.Load<Texture2D>("GrenadeTexture");
+            Grenade.Map = CurrentMap;
 
             Texture = Content.Load<Texture2D>("Backgrounds/Texture");
             NormalTexture = Content.Load<Texture2D>("Backgrounds/NormalTexture");
@@ -351,15 +420,15 @@ namespace ArenaPlatformer1
                 PlayerJoinButtons[i] = new PlayerJoin(ButtonTexture, new Vector2(106 + (451 * i), 278), new Vector2(356, 524)); 
             }
 
-            Player.Map = CurrentMap;
+            Player.Map = CurrentMap;            
             Projectile.Map = CurrentMap;
 
-            Rocket.Texture = Content.Load<Texture2D>("Particles/diamond");
-            Bullet.Texture = Content.Load<Texture2D>("Particles/diamond");
+            Rocket.Texture = Content.Load<Texture2D>("Projectiles/RocketTexture");
+            Bullet.Texture = Content.Load<Texture2D>("Projectiles/BulletTexture");
 
             Block = Content.Load<Texture2D>("Blank");
 
-            ProjectileList.Add(new Rocket() { Position = new Vector2(80, 80), Velocity = new Vector2(1, 0) });
+            //ProjectileList.Add(new Rocket() { Position = new Vector2(80, 80), Velocity = new Vector2(1, 0) });
         }
         
         protected override void UnloadContent()
@@ -412,6 +481,7 @@ namespace ArenaPlatformer1
                                 Players[i].PlayerShootHappened += OnPlayerShoot;
                                 Players[i].PlaceTrapHappened += OnPlaceTrap;
                                 Players[i].PlayerDiedHappened += OnPlayerDied;
+                                Players[i].PlayerGrenadeHappened += OnPlayerGrenade;
                             }
                             #endregion
 
@@ -529,8 +599,7 @@ namespace ArenaPlatformer1
                                 Size = 800
                             };
 
-                            LightList.Add(light);
-                           
+                            LightList.Add(light);                           
                         }
 
                         for (int i = 0; i < 4; i++)
@@ -547,10 +616,36 @@ namespace ArenaPlatformer1
                             trap.Update(gameTime);
                         }
 
+                        TrapList.RemoveAll(Trap => Trap.Exists == false);
+
                         foreach (Solid solid in SolidList)
                         {
                             solid.Update(gameTime);
                         }
+
+                        foreach (Item item in ItemList)
+                        {
+                            item.Update(gameTime);                           
+                        }
+
+                        foreach (Grenade grenade in GrenadeList)
+                        {
+                            grenade.Update(gameTime);
+
+                            if (grenade.Active == false)
+                            {
+                                Explosion explosion = new Explosion()
+                                {
+                                    BlastRadius = 200,
+                                    Damage = 20,
+                                    Position = grenade.Position
+                                };
+
+                                CreateExplosion(explosion, grenade);
+                            }
+                        }
+
+                        GrenadeList.RemoveAll(Grenade => Grenade.Active == false);
 
                         ProjectileList.RemoveAll(Projectile => !ScreenRectangle.Contains(new Point((int)Projectile.Position.X, (int)Projectile.Position.Y)));
 
@@ -561,6 +656,22 @@ namespace ArenaPlatformer1
                             PreviousKeyboardState.IsKeyDown(Keys.F3))
                         {
                             DrawDiagnostics = !DrawDiagnostics;
+                        }
+                        #endregion
+
+                        #region Turn on debug boxes with F4
+                        if (CurrentKeyboardState.IsKeyUp(Keys.F4) &&
+                            PreviousKeyboardState.IsKeyDown(Keys.F4))
+                        {
+                            DebugBoxes = !DebugBoxes;
+                        }
+                        #endregion
+
+                        #region Turn on tile boxes with F5
+                        if (CurrentKeyboardState.IsKeyUp(Keys.F5) &&
+                            PreviousKeyboardState.IsKeyDown(Keys.F5))
+                        {
+                            TileBoxes = !TileBoxes;
                         }
                         #endregion
 
@@ -586,6 +697,7 @@ namespace ArenaPlatformer1
                                 }
 
                                 projectile.Active = false;
+                                CreateExplosion(new Explosion(), projectile);
                             }
                         }
 
@@ -706,6 +818,16 @@ namespace ArenaPlatformer1
                             trap.Draw(spriteBatch);
                         }
 
+                        foreach (Item item in ItemList)
+                        {
+                            item.Draw(spriteBatch);
+                        }
+
+                        foreach (Grenade grenade in GrenadeList)
+                        {
+                            grenade.Draw(spriteBatch);
+                        }
+
                         spriteBatch.Draw(EmissiveMap, EmissiveMap.Bounds, Color.White);
                         spriteBatch.End();
                         #endregion
@@ -762,7 +884,7 @@ namespace ArenaPlatformer1
                         //TODO: This is here to have the emissive sprites also "cast" light on the LightMap. 
                         //Not sure if it looks as good as I'd like though
                         //may need to be removed
-                        spriteBatch.Begin(SpriteSortMode.Immediate, PSBlendState.Multiply);
+                        spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Additive);
                         spriteBatch.Draw(BlurMap, BlurMap.Bounds, Color.White);
                         spriteBatch.End();
                         #endregion
@@ -834,11 +956,76 @@ namespace ArenaPlatformer1
 
             if (DrawDiagnostics == true)
             {
+                int y = 16;
+                spriteBatch.DrawString(Font1, "Particles: " + RenderManager.RenderDataObjects.Count, new Vector2(32, y), Color.White);
+                y += 16;
+                spriteBatch.DrawString(Font1, "Items: " + ItemList.Count, new Vector2(32, y), Color.White);
+                y += 16;
+                spriteBatch.DrawString(Font1, "Projectiles: " + ProjectileList.Count, new Vector2(32, y), Color.White);
+                y += 16;
+                spriteBatch.DrawString(Font1, "Traps: " + TrapList.Count, new Vector2(32, y), Color.White);
+                y += 16;
+                spriteBatch.DrawString(Font1, "Grenades: " + GrenadeList.Count, new Vector2(32, y), Color.White);
+
+                foreach (Trap trap in TrapList)
+                {
+                    spriteBatch.DrawString(Font1, "ResetTime: " + trap.ResetTime.ToString(), new Vector2(trap.DestinationRectangle.Right, trap.DestinationRectangle.Top), Color.White);
+                }
+            }
+
+            if (DebugBoxes == true)
+            {
                 foreach (Player player in Players.Where(Player => Player != null))
                 {
                     player.DrawInfo(spriteBatch, GraphicsDevice, BasicEffect);
                 }
+
+                foreach (Item item in ItemList)
+                {
+                    item.DrawInfo(spriteBatch, GraphicsDevice, BasicEffect);
+                }
+
+                foreach (Trap trap in TrapList)
+                {
+                    trap.DrawInfo(spriteBatch, GraphicsDevice, BasicEffect);
+                }
+
+                foreach (Grenade grenade in GrenadeList)
+                {
+                    grenade.DrawInfo(GraphicsDevice, BasicEffect);
+                }
             }
+
+            if (TileBoxes == true)
+            {
+                foreach (Tile tile in CurrentMap.TileList)
+                {
+                    tile.DrawInfo(GraphicsDevice, BasicEffect);
+                }
+            }
+
+            #region Player 1 info
+            for (int i = 0; i < Players.Count(); i++)
+            {
+                if (Players[i] != null)
+                {
+                    int y = 16;
+                    spriteBatch.DrawString(Font1, "Health: " + Players[i].Health.X.ToString() + "/" + Players[i].Health.Y.ToString(), new Vector2(256 + (i * 256), y), Color.Red);
+                    y += 16;
+                    spriteBatch.DrawString(Font1, "Trap: " + Players[i].CurrentTrap.ToString(), new Vector2(256 + (i * 256), y), Color.Red);
+                    y += 16;
+                    spriteBatch.DrawString(Font1, "Trap Ammo: " + Players[i].TrapAmmo.ToString(), new Vector2(256 + (i * 256), y), Color.Red);
+                    y += 16;
+                    spriteBatch.DrawString(Font1, "Gun: " + Players[i].CurrentGun.ToString(), new Vector2(256 + (i * 256), y), Color.Red);
+                    y += 16;
+                    spriteBatch.DrawString(Font1, "Gun Ammo: " + Players[i].GunAmmo.ToString(), new Vector2(256 + (i * 256), y), Color.Red);
+                    y += 16;
+                    spriteBatch.DrawString(Font1, "Deahts: " + Players[i].Deaths.ToString(), new Vector2(256 + (i * 256), y), Color.Red);
+                }
+            }
+            #endregion
+
+
 
             spriteBatch.End();
             #endregion
@@ -884,36 +1071,7 @@ namespace ArenaPlatformer1
 
             DoubleBuffer.CleanUp();
         }
-
-
-
-        public static class PSBlendState
-        {
-            public static BlendState Multiply = new BlendState
-            {
-                ColorSourceBlend = Blend.DestinationColor,
-                ColorDestinationBlend = Blend.Zero,
-                ColorBlendFunction = BlendFunction.Add
-            };
-            public static BlendState Screen = new BlendState
-            {
-                ColorSourceBlend = Blend.InverseDestinationColor,
-                ColorDestinationBlend = Blend.One,
-                ColorBlendFunction = BlendFunction.Add
-            };
-            public static BlendState Darken = new BlendState
-            {
-                ColorSourceBlend = Blend.One,
-                ColorDestinationBlend = Blend.One,
-                ColorBlendFunction = BlendFunction.Min
-            };
-            public static BlendState Lighten = new BlendState
-            {
-                ColorSourceBlend = Blend.One,
-                ColorDestinationBlend = Blend.One,
-                ColorBlendFunction = BlendFunction.Max
-            };
-        }
+        
 
         public void DrawShadows(Light light)
         {
@@ -1025,12 +1183,7 @@ namespace ArenaPlatformer1
             return new Vector4(color.R, color.G, color.B, color.A);
         }
 
-        public class MyRay
-        {
-            public Vector3 position, direction;
-            public float length;
-        }
-
+        
         public static int Wrap(int index, int n)
         {
             return ((index % n) + n) % n;
@@ -1047,5 +1200,44 @@ namespace ArenaPlatformer1
                 return num + 1;
             }
         }
+
+        #region MyRay
+        public class MyRay
+        {
+            public Vector3 position, direction;
+            public float length;
+        }
+        #endregion
+
+        #region PS Blend States
+        public static class PSBlendState
+        {
+            public static BlendState Multiply = new BlendState
+            {
+                ColorSourceBlend = Blend.DestinationColor,
+                ColorDestinationBlend = Blend.Zero,
+                ColorBlendFunction = BlendFunction.Add
+            };
+            public static BlendState Screen = new BlendState
+            {
+                ColorSourceBlend = Blend.InverseDestinationColor,
+                ColorDestinationBlend = Blend.One,
+                ColorBlendFunction = BlendFunction.Add
+            };
+            public static BlendState Darken = new BlendState
+            {
+                ColorSourceBlend = Blend.One,
+                ColorDestinationBlend = Blend.One,
+                ColorBlendFunction = BlendFunction.Min
+            };
+            public static BlendState Lighten = new BlendState
+            {
+                ColorSourceBlend = Blend.One,
+                ColorDestinationBlend = Blend.One,
+                ColorBlendFunction = BlendFunction.Max
+            };
+        }
+        #endregion
+
     }
 }

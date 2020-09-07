@@ -8,31 +8,29 @@ using Microsoft.Xna.Framework.Content;
 
 namespace ArenaPlatformer1
 {
-    class Mine : Trap
+    class MinePickup : TrapPickup
     {
-        public Mine()
+        public static Texture2D Texture;
+
+        public MinePickup()
         {
             TrapType = TrapType.Mine;
-            ResetTime = new Vector2(0, 1500);
-            DetonationLimit = 5;            
         }
 
         public void LoadContent(ContentManager content)
         {
-
+            DestinationRectangle = new Rectangle((int)Position.X, (int)Position.Y, Texture.Width, Texture.Height);
+            CollisionRectangle = new Rectangle((int)Position.X, (int)Position.Y, Texture.Width, Texture.Height);
         }
 
         public override void Update(GameTime gameTime)
         {
-            DestinationRectangle = new Rectangle((int)Position.X, (int)Position.Y, 32, 16);
-            CollisionRectangle = new Rectangle((int)Position.X, (int)Position.Y, 32, 16);
 
-            base.Update(gameTime);
         }
 
         public override void Draw(SpriteBatch spriteBatch)
         {
-            spriteBatch.Draw(Texture, DestinationRectangle, Color.Red);
+            spriteBatch.Draw(Texture, DestinationRectangle, Color.White);
         }
     }
 }

@@ -91,8 +91,6 @@ Content\Player4\Standing\StandRightUp.xnb
 Content\Player4\WallSlideLeft.xnb
 Content\Player4\WallSlideRight.xnb
 Content\Blank.xnb
-Content\RocketTexture.xnb
-Content\BulletTexture.xnb
 Content\Gun.xnb
 Content\Particles\diamond.xnb
 Content\Backgrounds\NormalTexture.xnb
@@ -103,3 +101,6 @@ Content\Shaders\Crepuscular.xnb
 Content\Shaders\Depth.xnb
 Content\Shaders\LightCombined.xnb
 Content\Shaders\LightEffect.xnb
+Content\Projectiles\RocketTexture.xnb
+Content\Projectiles\BulletTexture.xnb
+Content\GrenadeTexture.xnb
