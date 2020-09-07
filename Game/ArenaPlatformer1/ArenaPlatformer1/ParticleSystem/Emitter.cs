@@ -20,7 +20,7 @@ namespace ArenaPlatformer1
                      EmitterAngle, EmitterGravity, FadeDelay, StartingInterval;
         public Color StartColor, EndColor, ThirdColor;
         public bool Fade, CanBounce, AddMore, Shrink, StopBounce, HardBounce, BouncedOnGround,
-                    RotateVelocity, FlipHor, FlipVer, ReduceDensity, SortParticles;
+                    RotateVelocity, FlipHor, FlipVer, ReduceDensity, SortParticles, Emissive;
         public bool Grow, Active;
         public string TextureName;
         public int Burst;
@@ -46,7 +46,7 @@ namespace ArenaPlatformer1
                        Vector2 yrange, bool? shrink = null, float? drawDepth = null, bool? stopBounce = null, bool? hardBounce = null,
                        Vector2? emitterSpeed = null, Vector2? emitterAngle = null, float? emitterGravity = null, bool? rotateVelocity = null,
                        Vector2? friction = null, bool? flipHor = null, bool? flipVer = null, float? fadeDelay = null, bool? reduceDensity = null,
-                       bool? sortParticles = null, bool? grow = false, Vector4? thirdColor = null)
+                       bool? sortParticles = null, bool? grow = false, Vector4? thirdColor = null, bool? emissive = false)
         {
             Active = true;
             Texture = texture;
@@ -68,6 +68,8 @@ namespace ArenaPlatformer1
             IntervalTime = Interval;
             Burst = burst;
             CanBounce = canBounce;
+
+            Emissive = emissive.Value;
 
             if (grow != null)
                 Grow = grow.Value;
@@ -286,7 +288,7 @@ namespace ArenaPlatformer1
                             Texture, Position, AngleRange, SpeedRange, ScaleRange, StartColor, EndColor,
                             Gravity, Shrink, Fade, StartingRotationRange, RotationIncrementRange,
                             Transparency, TimeRange, Grow, RotateVelocity, Friction, Orientation, FadeDelay,
-                            YRange, CanBounce, StopBounce, HardBounce,
+                            YRange, CanBounce, StopBounce, HardBounce, Emissive,
                             out gameData, out renderData);
 
                     RenderManager.RenderDataObjects.Add(renderData);

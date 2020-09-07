@@ -247,8 +247,8 @@ namespace ArenaPlatformer1
                     null, null, null, null, null, false, null, null, null,
                     null, null, null, true, null);
 
-            //EmitterList.Add(Emitter);
-            //EmitterList.Add(Emitter2);
+            EmitterList.Add(Emitter);
+            EmitterList.Add(Emitter2);
             #endregion
 
             //EMISSIVE
@@ -257,8 +257,11 @@ namespace ArenaPlatformer1
                     new Vector2(20, 160), new Vector2(0.3f, 0.8f), new Vector2(500, 1000), 1f, true, new Vector2(-2, 2),
                     new Vector2(-1, 1), new Vector2(0.15f, 0.25f), new Color(255, 128, 0, 6), new Color(0, 0, 0, 255), -0.2f, 0.1f, 10, 1, false,
                     new Vector2(explosion.Position.Y, explosion.Position.Y + 8), false, explosion.Position.Y / 1080f,
-                    null, null, null, null, null, null, new Vector2(0.1f, 0.2f), true, true, null, null, null, true);
-            //EmitterList.Add(ExplosionEmitter);
+                    null, null, null, null, null, null, new Vector2(0.1f, 0.2f), true, true, null, null, null, true)
+            {
+                Emissive = true
+            };
+            EmitterList.Add(ExplosionEmitter);
 
             //EMISSIVE
             Emitter ExplosionEmitter3 = new Emitter(ExplosionParticle2,
@@ -266,9 +269,12 @@ namespace ArenaPlatformer1
                     new Vector2(85, 95), new Vector2(2, 4), new Vector2(400, 640), 1f, false, new Vector2(0, 0),
                     new Vector2(0, 0), new Vector2(0.085f, 0.2f), new Color(255, 128, 0, 6), new Color(0, 0, 0, 255), -0.1f, 0.05f, 10, 1, false,
                     new Vector2(explosion.Position.Y, explosion.Position.Y + 8), true, explosion.Position.Y / 1080f,
-                    null, null, null, null, null, null, new Vector2(0.0025f, 0.0025f), true, true, 50);
+                    null, null, null, null, null, null, new Vector2(0.0025f, 0.0025f), true, true, 50)
+            {
+                Emissive = true
+            };
 
-            //EmitterList.Add(ExplosionEmitter3);
+            EmitterList.Add(ExplosionEmitter3);
 
             Emitter BOOMEmitter = new Emitter(BOOMParticle, 
                     new Vector2(explosion.Position.X, explosion.Position.Y - 12),
@@ -287,9 +293,12 @@ namespace ArenaPlatformer1
                     new Color(255, 255, 255, 255), 0f, 0.05f, 50f, 7, false, new Vector2(0f, 1080), true,
                     (explosion.Position.Y + 8) / 1080f,
                     false, false, null, null, 0f, true, new Vector2(0.11f, 0.11f), false, false, 0f,
-                    false, false, false, null);
+                    false, false, false, null)
+            {
+                Emissive = true
+            };
 
-            //EmitterList.Add(HitEffect1);
+            EmitterList.Add(HitEffect1);
             #endregion
 
             //ExplosionEffect explosionEffect = new ExplosionEffect(new Vector2(heavyProjectile.Position.X, heavyProjectile.BoundingBox.Max.Y))
@@ -776,12 +785,15 @@ namespace ArenaPlatformer1
                                         MathHelper.ToDegrees(-(float)Math.Atan2(projectile.Velocity.Y, projectile.Velocity.X)) - 180 - 60,
                                         MathHelper.ToDegrees(-(float)Math.Atan2(projectile.Velocity.Y, projectile.Velocity.X)) - 180 + 60);
 
-                                    Emitter emitter = new Emitter(ParticleTexture, projectile.Position - (projectile.Velocity* 0.75f), 
+                                    Emitter emitter = new Emitter(ParticleTexture, projectile.Position - (projectile.Velocity * 0.75f),
                                         new Vector2(0, 360), new Vector2(1, 3),
                                         new Vector2(500, 1500), 1f, true, Vector2.Zero, new Vector2(-3, 3), new Vector2(0.1f, 0.2f),
-                                        Color.HotPink, Color.Pink, 0f, 1f, 15, 3, true, new Vector2(1080-64, 1080-64),
+                                        Color.HotPink, Color.Pink, 0f, 1f, 15, 3, true, new Vector2(1080 - 64, 1080 - 64),
                                         false, 0, true, true, new Vector2(5, 7), rang, 0.2f,
-                                        true, null, null, null, null, true);
+                                        true, null, null, null, null, true)
+                                    {
+                                        Emissive = true
+                                    };
                                     EmitterList.Add(emitter);
                                 }
 
@@ -853,18 +865,22 @@ namespace ArenaPlatformer1
                 case GameState.Playing:
                     {
                         DoubleBuffer.GlobalStartFrame(gameTime);
-                        
+                        RenderManager.DoFrame();
+
                         #region Rmissive
                         #region Draw to EmissiveMap
                         GraphicsDevice.SetRenderTarget(EmissiveMap);
                         GraphicsDevice.Clear(Color.Transparent);
                         spriteBatch.Begin();
-                        RenderManager.DoFrame(spriteBatch);
+                        
+                        RenderManager.DrawEmissive(spriteBatch);
                         foreach (Projectile projectile in ProjectileList)
                         {
                             projectile.Draw(spriteBatch);
                         }
                         spriteBatch.End();
+
+                        
                         #endregion
 
                         #region Blur
@@ -881,12 +897,13 @@ namespace ArenaPlatformer1
                         }
                         #endregion
                         #endregion
+                        
 
                         #region Draw to ColorMap                        
                         GraphicsDevice.SetRenderTarget(ColorMap);
                         GraphicsDevice.Clear(Color.Gray);
                         spriteBatch.Begin();
-
+                        
                         spriteBatch.Draw(Texture, new Rectangle(0, 0, 1920, 1080), Color.White);
 
                         foreach (Projectile projectile in ProjectileList)
@@ -915,7 +932,8 @@ namespace ArenaPlatformer1
                         {
                             grenade.Draw(spriteBatch);
                         }
-
+                        
+                        RenderManager.Draw(spriteBatch);
                         spriteBatch.Draw(EmissiveMap, EmissiveMap.Bounds, Color.White);
                         spriteBatch.End();
                         #endregion
@@ -1015,6 +1033,7 @@ namespace ArenaPlatformer1
                         #region Crepuscular ColorMap
 
                         #endregion
+                        DoubleBuffer.SubmitRender();
                     }
                     break;
                 #endregion

@@ -130,6 +130,7 @@ namespace ArenaPlatformer1
             Color startColor, Color endColor, float gravity, bool shrink, bool fade, Vector2 startingRotation,
             Vector2 rotationIncrement, float startingTransparency, Vector2 timeRange, bool grow, bool rotateVelocity,
             Vector2 friction, int orientation, float fadeDelay, Vector2 yRange, bool canBounce, bool stopBounce, bool hardBounce,
+            bool emissive,
             out ParticleData gameData, out RenderData renderData)
         {
             float myAngle, mySpeed, myScale, myRotation, myIncrement, myTime, myBounceY;
@@ -176,7 +177,9 @@ namespace ArenaPlatformer1
                 CanBounce = canBounce,
                 HardBounce = hardBounce,
                 StopBounce = stopBounce,
-                HasBounced = false
+                HasBounced = false,
+
+                Emissive = emissive
             };
 
             if (grow == true)
@@ -190,7 +193,8 @@ namespace ArenaPlatformer1
                 Rotation = myRotation,
                 Scale = myScale,
                 Transparency = startingTransparency,
-                Orientation = orientation
+                Orientation = orientation,
+                Emissive = emissive
             };
         }
 

@@ -19,5 +19,7 @@ namespace ArenaPlatformer1
         //1 = Flip Horizontally
         //2 = Flip Vertically
         public int Orientation;
+
+        public bool Emissive;
     }
 }
