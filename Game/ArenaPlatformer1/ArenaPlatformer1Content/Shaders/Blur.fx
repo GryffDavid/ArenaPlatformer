@@ -58,9 +58,9 @@ float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
 		{
 			for (int y = -offset; y <= offset; y+=2)
 			{
-				float fx = Gaussian(40.0f, x);
-				float fy = Gaussian(40.0f, y);
-				c += 0.8f*tex2D(inputSampler, uv + float2(OnePixel.x * x, OnePixel.y * y)).xyzw * fx * fy;
+				float fx = Gaussian(20.0f, x);
+				float fy = Gaussian(20.0f, y);
+				c += 1.2f*tex2D(inputSampler, uv + float2(OnePixel.x * x, OnePixel.y * y)).xyzw * fx * fy;
 			}
 		}
 	

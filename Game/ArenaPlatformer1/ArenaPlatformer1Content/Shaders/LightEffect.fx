@@ -168,12 +168,12 @@ PixelToFrame PointLightShader(VertexToPixel PSIn) : COLOR0
 	float specular = min(pow(saturate(dot(reflect, halfVec)), specVal * 255), amount); 
 	setLuminance(light1Col, LightPower);
 
-	col += drawLight(p, light1Pos, light1Col, dist, LightSize, 1.0) * specular;
+    col += drawLight(p, light1Pos, light1Col, dist, LightSize, 1.0) * specular;
 	
 	col = lerp(col, col, clamp(-dist, 0.0, 1.0));
 	
 	
-	Output.Color = clamp(col, 0.0, 1.0) * tex2D(ShadowMapSampler, PSIn.TexCoord);	
+    Output.Color = clamp(col, 0.0, 1.0) * tex2D(ShadowMapSampler, PSIn.TexCoord);
 	//Output.Color = colorMap;
 	//Output.Color = col;
 	return Output;

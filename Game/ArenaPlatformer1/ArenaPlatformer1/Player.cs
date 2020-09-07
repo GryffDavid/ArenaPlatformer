@@ -14,6 +14,7 @@ namespace ArenaPlatformer1
 
     public class Player
     {
+        #region Events
         public event PlayerShootHappenedEventHandler PlayerShootHappened;
         public void CreatePlayerShoot(Vector2 velocity)
         {
@@ -21,9 +22,45 @@ namespace ArenaPlatformer1
         }
         protected virtual void OnPlayerShootHappened(Vector2 velocity)
         {
-            PlayerShootHappened?.Invoke(this, new PlayerShootEventArgs() { Player = this, Velocity = velocity });
+            PlayerShootHappened?.Invoke(this,
+                new PlayerShootEventArgs()
+                {
+                    Player = this,
+                    Velocity = velocity
+                });
         }
-        
+
+        public event PlaceTrapHappenedEventHandler PlaceTrapHappened;
+        public void CreatePlaceTrap(Vector2 position, TrapType trapType)
+        {
+            OnPlaceTrapHappened(position, trapType);
+        }
+        protected virtual void OnPlaceTrapHappened(Vector2 position, TrapType trapType)
+        {
+            PlaceTrapHappened?.Invoke(this,
+                new PlaceTrapEventArgs()
+                {
+                    Player = this,
+                    Position = position,
+                    TrapType = trapType
+                });
+        }
+
+        public event PlayerDiedHappenedEventHandler PlayerDiedHappened;
+        public void CreatePlayerDied()
+        {
+            OnPlayerDied();
+        }
+        protected virtual void OnPlayerDied()
+        {
+            PlayerDiedHappened?.Invoke(this,
+                new PlayerDiedEventArgs()
+                {
+                    Player = this
+                });
+        } 
+        #endregion
+
         public Animation RunRightAnimation, RunRightUpAnimation, RunRightDownAnimation,
                          RunLeftAnimation, RunLeftUpAnimation, RunLeftDownAnimation,
                          StandRightAnimation, StandRightUpAnimation, StandRightDownAnimation,
@@ -47,7 +84,7 @@ namespace ArenaPlatformer1
         bool InAir;
         bool DoubleJumped = false;
         public Texture2D Texture;
-        public Vector2 Position, Velocity, MoveStick, AimStick, RumbleValues, AimDirection;
+        public Vector2 Position, PrevPosition, Velocity, MoveStick, AimStick, RumbleValues, AimDirection;
         Vector2 MaxSpeed;
         Vector2 CurrentFriction = new Vector2(0.9999f, 1f);
         public GamePadState CurrentGamePadState, PreviousGamePadState;
@@ -67,9 +104,14 @@ namespace ArenaPlatformer1
         Facing PreviousFacing = Facing.Right;
 
         Pose CurrentPose = Pose.Standing;
-        Pose PreviousPos = Pose.Standing;
+        Pose PreviousPose = Pose.Standing;
+
+        public GunType CurrentGun;
+        public TrapType CurrentTrap;
 
         float RumbleTime, MaxRumbleTime;
+
+        int Deaths = 0;
         
         public static Map Map;
 
@@ -78,7 +120,7 @@ namespace ArenaPlatformer1
             PlayerIndex = playerIndex;
             Position = new Vector2(500, 500);
             MaxSpeed = new Vector2(5f, 6);
-            Gravity = 0.6f;
+            Gravity = 0.6f;            
         }
 
         public void Initialize()
@@ -163,9 +205,7 @@ namespace ArenaPlatformer1
                 Sticks = CurrentGamePadState.ThumbSticks;
                 MoveStick = Sticks.Left;
                 AimStick = Sticks.Right;
-
-
-
+                
                 #region Move stick left
                 if (MoveStick.X < 0f)
                 {
@@ -186,6 +226,18 @@ namespace ArenaPlatformer1
                 }
                 #endregion
 
+                #region Move stick down
+                if (MoveStick.Y < -0.75f)
+                {
+                    Velocity.X = 0;
+                    CurrentPose = Pose.Crouching;
+                }
+                else
+                {
+                    CurrentPose = Pose.Standing;
+                }
+                #endregion
+
                 if (Velocity.X < 0)
                     CheckLeftCollisions();
 
@@ -198,8 +250,61 @@ namespace ArenaPlatformer1
                     Velocity.X = 0f;
                 }
 
-                Position.X += Velocity.X * ((float)gameTime.ElapsedGameTime.TotalSeconds * 60f);
 
+                if (Velocity.X != 0)
+                {
+                    if (InAir == false)
+                    {
+                        switch (CurrentFacing)
+                        {
+                            case Facing.Left:
+                                CurrentAnimation = RunLeftAnimation;
+                                break;
+
+                            case Facing.Right:
+                                CurrentAnimation = RunRightAnimation;
+                                break;
+                        }
+                    }
+                }
+                
+                if (Velocity.X > -2f &&
+                    Velocity.X < 2f)                    
+                {
+                    switch (CurrentFacing)
+                    {
+                        case Facing.Left:
+                            if (CurrentPose == Pose.Standing)
+                                CurrentAnimation = StandLeftAnimation;
+                            else
+                                CurrentAnimation = CrouchLeftAnimation;
+                            break;
+
+                        case Facing.Right:
+                            if (CurrentPose == Pose.Standing)
+                                CurrentAnimation = StandRightAnimation;
+                            else
+                                CurrentAnimation = CrouchRightAnimation;
+                            break;
+                    }
+                }
+
+                if (InAir == true)
+                {
+                    switch (CurrentFacing)
+                    {
+                        case Facing.Left:
+                            CurrentAnimation = JumpLeftAnimation;
+                            break;
+
+                        case Facing.Right:
+                            CurrentAnimation = JumpRightAnimation;
+                            break;
+                    }
+                }
+
+                Position.X += Velocity.X * ((float)gameTime.ElapsedGameTime.TotalSeconds * 60f);
+                
                 #region Stop Moving
                 if (MoveStick.X == 0)
                 {
@@ -231,16 +336,16 @@ namespace ArenaPlatformer1
 
                 #region Shoot
                 if (CurrentGamePadState.IsButtonDown(ShootButton) &&
-                           PreviousGamePadState.IsButtonUp(ShootButton))
+                    PreviousGamePadState.IsButtonUp(ShootButton))
                 {
                     switch (CurrentFacing)
                     {
                         case Facing.Left:
-                            CreatePlayerShoot(new Vector2(-30, 0));
+                            CreatePlayerShoot(new Vector2(-25, 0));
                             break;
 
                         case Facing.Right:
-                            CreatePlayerShoot(new Vector2(30, 0));
+                            CreatePlayerShoot(new Vector2(25, 0));
                             break;
                     }
                 }
@@ -259,6 +364,7 @@ namespace ArenaPlatformer1
                     PreviousGamePadState.IsButtonUp(TrapButton))
                 {
                     //Create traps!
+                    CreatePlaceTrap(Position, TrapType.Mine);
                 }
                 #endregion
 
@@ -317,6 +423,12 @@ namespace ArenaPlatformer1
                     CurrentAnimation.Position = Position;
                     CurrentAnimation.Update(gameTime);
                 }
+
+                if (Health.X <= 0)
+                {
+                    CreatePlayerDied();
+                    Deaths++;
+                }
             }
 
             DestinationRectangle = new Rectangle((int)Position.X, (int)Position.Y, Texture.Width, Texture.Height);
@@ -331,6 +443,8 @@ namespace ArenaPlatformer1
                 (int)(Position.X - 30), (int)(Position.Y - 80),
                 (int)60, 80);
 
+            PrevPosition = Position;
+            PreviousPose = CurrentPose;
             PreviousFacing = CurrentFacing;
             PreviousGamePadState = CurrentGamePadState;
             PreviousKeyboardState = CurrentKeyboardState;

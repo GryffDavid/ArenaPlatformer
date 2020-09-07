@@ -16,7 +16,7 @@ namespace ArenaPlatformer1
         public Vector2 Velocity, Position, Direction;
         public float Rotation, Angle, Gravity;
         public static Map Map;
-
+        public bool Active;
         public abstract void Draw(SpriteBatch spriteBatch);
         public abstract void Update(GameTime gameTime);
     }

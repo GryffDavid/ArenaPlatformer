@@ -14,6 +14,7 @@ namespace ArenaPlatformer1
         {
             Gravity = 0.05f;
             //Velocity = new Vector2(17, 0);
+            Active = true;
         }
 
         public void LoadContent(ContentManager content)
@@ -29,7 +30,14 @@ namespace ArenaPlatformer1
 
         public override void Draw(SpriteBatch spriteBatch)
         {
-            spriteBatch.Draw(Texture, Position, Color.White);
+            Color color;
+
+            //color = new Color(Color.Violet.R, Color.Violet.G, Color.Violet.B, 120);
+            color = new Color(Color.HotPink.R, Color.HotPink.G, Color.HotPink.B, 120);
+
+
+            spriteBatch.Draw(Texture, new Rectangle((int)Position.X, (int)Position.Y, Texture.Width/2, Texture.Height/2),
+                color);            
         }
     }
 }
