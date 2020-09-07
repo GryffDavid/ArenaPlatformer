@@ -28,6 +28,8 @@ namespace ArenaPlatformer1
         {
             Velocity.Y += Gravity;
             Position += Velocity;
+
+            CollisionRectangle = new Rectangle((int)(Position.X - Texture.Width / 2), (int)(Position.Y - Texture.Height / 2), Texture.Width, Texture.Height);
         }
 
         public override void Draw(SpriteBatch spriteBatch)

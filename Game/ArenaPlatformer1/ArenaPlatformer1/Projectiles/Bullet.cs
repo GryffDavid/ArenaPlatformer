@@ -30,6 +30,7 @@ namespace ArenaPlatformer1
             Position += Velocity;
 
             DestinationRectangle = new Rectangle((int)Position.X, (int)Position.Y, Texture.Width, Texture.Height);
+            CollisionRectangle = new Rectangle((int)(Position.X - Texture.Width / 2), (int)(Position.Y - Texture.Height / 2), Texture.Width, Texture.Height);
         }
 
         public override void Draw(SpriteBatch spriteBatch)
@@ -39,9 +40,8 @@ namespace ArenaPlatformer1
             //color = new Color(Color.Violet.R, Color.Violet.G, Color.Violet.B, 120);
             color = new Color(Color.HotPink.R, Color.HotPink.G, Color.HotPink.B, 120);
 
-
             spriteBatch.Draw(Texture, DestinationRectangle, null, color, 0, 
-                new Vector2(Texture.Width / 2, Texture.Height / 2), SpriteEffects.None, 0);          
+                             new Vector2(Texture.Width / 2, Texture.Height / 2), SpriteEffects.None, 0);          
         }
     }
 }

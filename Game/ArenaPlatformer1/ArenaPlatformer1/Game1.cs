@@ -417,6 +417,8 @@ namespace ArenaPlatformer1
             Grenade.GrenadeTexture = Content.Load<Texture2D>("GrenadeTexture");
             Grenade.Map = CurrentMap;
 
+            Emitter.Map = CurrentMap;
+
             Texture = Content.Load<Texture2D>("Backgrounds/Texture");
             NormalTexture = Content.Load<Texture2D>("Backgrounds/NormalTexture");
         }
@@ -766,14 +768,19 @@ namespace ArenaPlatformer1
                         {
                             projectile.Update(gameTime);
 
-                            if (CurrentMap.TileList.Any(Tile => Tile.DestinationRectangle.Contains(new Point((int)projectile.Position.X, (int)projectile.Position.Y))))
+                            if (CurrentMap.TileList.Any(Tile => Tile.CollisionRectangle.Intersects(projectile.CollisionRectangle)))
                             {
                                 for (int i = 0; i < 10; i++)
                                 {
-                                    Emitter emitter = new Emitter(ParticleTexture, projectile.Position, new Vector2(0, 360), new Vector2(1, 3),
+                                    Vector2 rang = new Vector2(
+                                        MathHelper.ToDegrees(-(float)Math.Atan2(projectile.Velocity.Y, projectile.Velocity.X)) - 180 - 60,
+                                        MathHelper.ToDegrees(-(float)Math.Atan2(projectile.Velocity.Y, projectile.Velocity.X)) - 180 + 60);
+
+                                    Emitter emitter = new Emitter(ParticleTexture, projectile.Position - (projectile.Velocity* 0.75f), 
+                                        new Vector2(0, 360), new Vector2(1, 3),
                                         new Vector2(500, 1500), 1f, true, Vector2.Zero, new Vector2(-3, 3), new Vector2(0.1f, 0.2f),
                                         Color.HotPink, Color.Pink, 0f, 1f, 15, 3, true, new Vector2(1080-64, 1080-64),
-                                        false, 0, true, true, new Vector2(5, 7), new Vector2(0, 360), 0.2f,
+                                        false, 0, true, true, new Vector2(5, 7), rang, 0.2f,
                                         true, null, null, null, null, true);
                                     EmitterList.Add(emitter);
                                 }
@@ -1074,6 +1081,11 @@ namespace ArenaPlatformer1
                 foreach (Grenade grenade in GrenadeList)
                 {
                     grenade.DrawInfo(GraphicsDevice, BasicEffect);
+                }
+
+                foreach (Projectile projectile in ProjectileList)
+                {
+                    projectile.DrawInfo(GraphicsDevice, BasicEffect);
                 }
             }
 

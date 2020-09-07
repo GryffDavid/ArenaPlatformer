@@ -10,10 +10,12 @@ namespace ArenaPlatformer1
     class Emitter
     {
         static Random Random = new Random();
+        public static Map Map;
 
         Texture2D Texture;
         public Vector2 PreviousPosition, AngleRange;
-        public Vector2 Position, ScaleRange, TimeRange, RotationIncrementRange, SpeedRange, StartingRotationRange, EmitterDirection, EmitterVelocity, YRange, Friction;
+        public Vector2 Position, ScaleRange, TimeRange, RotationIncrementRange, SpeedRange, 
+                       StartingRotationRange, EmitterDirection, EmitterVelocity, YRange, Friction;
         public float Transparency, Gravity, ActiveSeconds, Interval, EmitterSpeed,
                      EmitterAngle, EmitterGravity, FadeDelay, StartingInterval;
         public Color StartColor, EndColor, ThirdColor;
@@ -35,6 +37,8 @@ namespace ArenaPlatformer1
 
         public static UpdateManager UpdateManager;
         public static RenderManager RenderManager;
+
+        Rectangle CollisionRectangle;
 
         public Emitter(Texture2D texture, Vector2 position, Vector2 angleRange, Vector2 speedRange, Vector2 timeRange,
                        float startingTransparency, bool fade, Vector2 startingRotationRange, Vector2 rotationIncrement, Vector2 scaleRange,
@@ -223,6 +227,33 @@ namespace ArenaPlatformer1
                         EmitterVelocity.X = 0;
                     }
                 }
+
+                CollisionRectangle = new Rectangle((int)Position.X - 1, (int)Position.Y - 1, 2, 2);
+
+                if (EmitterVelocity.X > 0)
+                {
+                    CheckRightCollisions();
+                }
+
+                if (EmitterVelocity.X < 0)
+                {
+                    CheckLeftCollisions();
+                }
+
+                if (EmitterVelocity.Y > 0)
+                {
+                    CheckDownCollisions();
+
+                    if (CheckDownCollisions() == true)
+                    {
+                        EmitterVelocity.X *= 0.5f;
+                    }
+                }
+
+                if (EmitterVelocity.Y < 0)
+                {
+                    CheckUpCollisions();
+                }
             }
 
 
@@ -264,8 +295,6 @@ namespace ArenaPlatformer1
 
                 IntervalTime = 0;
             }
-
-
         }
 
         private int RandomOrientation(params SpriteEffects[] Orientations)
@@ -276,6 +305,90 @@ namespace ArenaPlatformer1
         public double DoubleRange(double one, double two)
         {
             return one + Random.NextDouble() * (two - one);
+        }
+
+        public bool CheckDownCollisions()
+        {
+            foreach (Tile tile in Map.TileList)
+            {
+                for (int i = 0; i < CollisionRectangle.Width; i++)
+                {
+                    if (tile.CollisionRectangle.Contains(
+                        new Point(
+                        (int)(CollisionRectangle.Left + i),
+                        (int)(CollisionRectangle.Bottom + EmitterVelocity.Y + 1))))
+                    {
+                        Position.Y += (tile.CollisionRectangle.Top - CollisionRectangle.Bottom);
+                        EmitterVelocity.Y = -EmitterVelocity.Y * 0.85f;
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        public bool CheckRightCollisions()
+        {
+            foreach (Tile tile in Map.TileList)
+            {
+                for (int i = 0; i < CollisionRectangle.Height; i++)
+                {
+                    if (tile.CollisionRectangle.Contains(
+                        new Point(
+                            (int)(CollisionRectangle.Right + EmitterVelocity.X),
+                            (int)(CollisionRectangle.Top + i))))
+                    {
+                        Position.X -= (CollisionRectangle.Right - tile.CollisionRectangle.Left);
+                        EmitterVelocity.X = -EmitterVelocity.X * 0.85f;
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        public bool CheckLeftCollisions()
+        {
+            foreach (Tile tile in Map.TileList)
+            {
+                for (int i = 0; i < CollisionRectangle.Height; i++)
+                {
+                    if (tile.CollisionRectangle.Contains(
+                        new Point(
+                            (int)(CollisionRectangle.Left + EmitterVelocity.X - 1),
+                            (int)(CollisionRectangle.Top + i))))
+                    {
+                        Position.X += (tile.CollisionRectangle.Right - CollisionRectangle.Left);
+                        EmitterVelocity.X = -EmitterVelocity.X * 0.85f;
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        public bool CheckUpCollisions()
+        {
+            foreach (Tile tile in Map.TileList)
+            {
+                for (int i = 0; i < CollisionRectangle.Width; i++)
+                {
+                    if (EmitterVelocity.Y < 0)
+                        if (tile.CollisionRectangle.Contains(
+                            new Point(
+                            (int)(CollisionRectangle.Left + i),
+                            (int)(CollisionRectangle.Top + EmitterVelocity.Y - 1))))
+                        {
+                            Position.Y += (tile.CollisionRectangle.Bottom - CollisionRectangle.Top);
+                            EmitterVelocity.Y = -EmitterVelocity.Y * 0.85f;
+                            return true;
+                        }
+                }
+            }
+            return false;
         }
     }
 }
