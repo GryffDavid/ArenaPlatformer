@@ -168,7 +168,7 @@ namespace ArenaPlatformer1
         List<Solid> SolidList = new List<Solid>();
 
         //Color AmbientLight = new Color(0.1f, 0.1f, 0.1f, 1f);
-        Color AmbientLight = new Color(0.2f, 0.2f, 0.2f, 1f);
+        Color AmbientLight = new Color(0.4f, 0.4f, 0.4f, 1f);
         //Color AmbientLight = new Color(0.25f, 0.25f, 0.25f, 1f);
 
         #endregion
@@ -182,8 +182,6 @@ namespace ArenaPlatformer1
         List<Item> ItemList;
         List<Grenade> GrenadeList;
         List<Projectile> ProjectileList;
-
-        List<MovingPlatform> MovingPlatformList;
 
         Rectangle ScreenRectangle = new Rectangle(0, 0, 1920, 1080);
         
@@ -377,35 +375,6 @@ namespace ArenaPlatformer1
         {
             GrenadeList = new List<Grenade>();
             ProjectileList = new List<Projectile>();
-            
-
-            MovingPlatformList = new List<MovingPlatform>();
-            Player.MovingPlatformList = MovingPlatformList;
-
-            MovingPlatformList.Add(new MovingPlatform()
-            {
-                Position = new Vector2(400, 400),
-                Size = new Vector2(100, 250),
-                Speed = new Vector2(2, 0),
-                Texture = Block
-            });
-
-            MovingPlatformList.Add(new MovingPlatform()
-            {
-                Position = new Vector2(400, 1080-70-32),
-                Size = new Vector2(100, 32),
-                Speed = new Vector2(2, 0),
-                Texture = Block
-            });
-
-            MovingPlatformList.Add(new MovingPlatform()
-            {
-                Position = new Vector2(800, 500),
-                Size = new Vector2(100, 32),
-                Speed = new Vector2(0, 2),
-                Texture = Block
-            });
-
 
             TrapList = new List<Trap>();
             Player.TrapList = TrapList;
@@ -499,12 +468,12 @@ namespace ArenaPlatformer1
             });
 
 
-            foreach (Tile tile in CurrentMap.TileList)
-            {
-                Solid solid = new Solid(Block, tile.Position, new Vector2(64, 64));
-                solid.LoadContent(GameContentManager);
-                SolidList.Add(solid);
-            }
+            //foreach (Tile tile in CurrentMap.TileList)
+            //{
+            //    Solid solid = new Solid(Block, tile.Position, new Vector2(64, 64));
+            //    solid.LoadContent(GameContentManager);
+            //    SolidList.Add(solid);
+            //}
 
             RocketLauncher.Texture = Content.Load<Texture2D>("Gun");
             RocketLauncher launcher = new RocketLauncher();
@@ -720,56 +689,7 @@ namespace ArenaPlatformer1
                 #region LevelCreator
                 case GameState.LevelCreator:
                     {
-                        for (int i = 0; i < 4; i++)
-                        {
-                            if (CurrentGamePadStates[i].IsButtonUp(Buttons.Back) &&
-                                PreviousGamePadStates[i].IsButtonDown(Buttons.Back))
-                            {
-                                GameState = GameState.Playing;
-                            }
-
-                            if (CurrentGamePadStates[i].ThumbSticks.Left.Y > 0 &&
-                                PreviousGamePadStates[i].ThumbSticks.Left.Y <= 0)
-                            {
-                                PlaceTilePosition.Y -= 64;
-                            }
-
-                            if (CurrentGamePadStates[i].ThumbSticks.Left.Y < 0 &&
-                                PreviousGamePadStates[i].ThumbSticks.Left.Y >= 0)
-                            {
-                                PlaceTilePosition.Y += 64;
-                            }
-
-                            if (CurrentGamePadStates[i].ThumbSticks.Left.X > 0 &&
-                                PreviousGamePadStates[i].ThumbSticks.Left.X <= 0)
-                            {
-                                PlaceTilePosition.X += 64;
-                            }
-
-                            if (CurrentGamePadStates[i].ThumbSticks.Left.X < 0 &&
-                                PreviousGamePadStates[i].ThumbSticks.Left.X >= 0)
-                            {
-                                PlaceTilePosition.X -= 64;
-                            }
-
-                            if (CurrentGamePadStates[i].IsButtonUp(Buttons.A) &&
-                                PreviousGamePadStates[i].IsButtonDown(Buttons.A))
-                            {
-                                Tile tile = new Tile()
-                                {
-                                    Position = PlaceTilePosition,
-                                    Color = Color.Purple,
-                                    Size = new Vector2(64, 64),
-                                    TileType = TileType.Solid
-                                };
-
-                                tile.LoadContent(Content);
-
-                                CurrentMap.TileList.Add(tile);
-                            }
-                        }
-
-
+                        
                     }
                     break;
                 #endregion
@@ -817,11 +737,6 @@ namespace ArenaPlatformer1
                         foreach (Item item in ItemList)
                         {
                             item.Update(gameTime);                           
-                        }
-
-                        foreach (MovingPlatform platform in MovingPlatformList)
-                        {
-                            platform.Update(gameTime);
                         }
 
                         foreach (Grenade grenade in GrenadeList)
@@ -876,31 +791,31 @@ namespace ArenaPlatformer1
                             player.Update(gameTime);
                         }
 
-                        foreach (Projectile projectile in ProjectileList)
-                        {
-                            projectile.Update(gameTime);
+                        //foreach (Projectile projectile in ProjectileList)
+                        //{
+                        //    projectile.Update(gameTime);
 
-                            if (CurrentMap.TileList.Any(Tile => Tile.CollisionRectangle.Intersects(projectile.CollisionRectangle)))
-                            {
-                                for (int i = 0; i < 10; i++)
-                                {
-                                    Vector2 rang = new Vector2(
-                                        MathHelper.ToDegrees(-(float)Math.Atan2(projectile.Velocity.Y, projectile.Velocity.X)) - 180 - 60,
-                                        MathHelper.ToDegrees(-(float)Math.Atan2(projectile.Velocity.Y, projectile.Velocity.X)) - 180 + 60);
+                        //    if (CurrentMap.TileList.Any(Tile => Tile.CollisionRectangle.Intersects(projectile.CollisionRectangle)))
+                        //    {
+                        //        for (int i = 0; i < 10; i++)
+                        //        {
+                        //            Vector2 rang = new Vector2(
+                        //                MathHelper.ToDegrees(-(float)Math.Atan2(projectile.Velocity.Y, projectile.Velocity.X)) - 180 - 60,
+                        //                MathHelper.ToDegrees(-(float)Math.Atan2(projectile.Velocity.Y, projectile.Velocity.X)) - 180 + 60);
 
-                                    Emitter emitter = new Emitter(ParticleTexture, projectile.Position - (projectile.Velocity * 0.75f),
-                                        new Vector2(0, 360), new Vector2(1, 3),
-                                        new Vector2(500, 1500), 1f, true, Vector2.Zero, new Vector2(-3, 3), new Vector2(0.5f, 1f),
-                                        Color.HotPink, Color.Pink, 0f, (float)DoubleRange(0.5d, 1.5d), 15, 3, true, new Vector2(1080 - 64, 1080 - 64),
-                                        false, 0, true, true, new Vector2(5, 7), rang, 0.2f,
-                                        true, null, null, null, null, true, null, null, true, false);
+                        //            Emitter emitter = new Emitter(ParticleTexture, projectile.Position - (projectile.Velocity * 0.75f),
+                        //                new Vector2(0, 360), new Vector2(1, 3),
+                        //                new Vector2(500, 1500), 1f, true, Vector2.Zero, new Vector2(-3, 3), new Vector2(0.5f, 1f),
+                        //                Color.HotPink, Color.Pink, 0f, (float)DoubleRange(0.5d, 1.5d), 15, 3, true, new Vector2(1080 - 64, 1080 - 64),
+                        //                false, 0, true, true, new Vector2(5, 7), rang, 0.2f,
+                        //                true, null, null, null, null, true, null, null, true, false);
 
-                                    EmitterList.Add(emitter);
-                                }
+                        //            EmitterList.Add(emitter);
+                        //        }
 
-                                projectile.Active = false;
-                            }
-                        }
+                        //        projectile.Active = false;
+                        //    }
+                        //}
 
                         ProjectileList.RemoveAll(Projectile => Projectile.Active == false);
 
@@ -1013,14 +928,9 @@ namespace ArenaPlatformer1
                             player.Draw(spriteBatch);
                         }
 
-                        foreach (MovingPlatform platform in MovingPlatformList)
-                        {
-                            platform.Draw(spriteBatch);
-                        }
-
                         spriteBatch.Draw(Texture, new Rectangle(0, 0, 1920, 1080), null, Color.White, 0, Vector2.Zero, SpriteEffects.None, 1);
 
-                        spriteBatch.Draw(Block, new Rectangle(0, 750, 1920, 80), null, Color.Red, 0, Vector2.Zero, SpriteEffects.None, 0.15f);
+                        //spriteBatch.Draw(Block, new Rectangle(0, 750, 1920, 80), null, Color.Red, 0, Vector2.Zero, SpriteEffects.None, 0.15f);
 
                         foreach (Projectile projectile in ProjectileList)
                         {
@@ -1176,6 +1086,9 @@ namespace ArenaPlatformer1
             GraphicsDevice.Clear(Color.Transparent);
             spriteBatch.Begin();
 
+            spriteBatch.DrawString(Font1, CurrentMap.GetTile((int)Mouse.GetState().X/64, (int)Mouse.GetState().Y/64).ToString(), Vector2.Zero, Color.Yellow);
+            spriteBatch.DrawString(Font1, CurrentMap.GetMapTilePosition((int)Mouse.GetState().X / 64, (int)Mouse.GetState().Y / 64).ToString(), new Vector2(0, 32), Color.Yellow);
+
             if (DrawDiagnostics == true)
             {
                 int y = 16;
@@ -1227,9 +1140,14 @@ namespace ArenaPlatformer1
 
             if (TileBoxes == true)
             {
-                foreach (Tile tile in CurrentMap.TileList)
+                foreach (Tile tile in CurrentMap.DrawTiles)
                 {
-                    tile.DrawInfo(GraphicsDevice, BasicEffect);
+                    if (tile != null)
+                    {
+                        tile.DrawInfo(GraphicsDevice, BasicEffect);
+
+                        spriteBatch.Draw(Block, new Rectangle((int)tile.Position.X, (int)tile.Position.Y, 4, 4), Color.Red);
+                    }
                 }
             }
 

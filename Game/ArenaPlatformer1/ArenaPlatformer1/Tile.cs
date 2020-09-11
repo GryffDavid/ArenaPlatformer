@@ -8,7 +8,7 @@ using Microsoft.Xna.Framework.Content;
 
 namespace ArenaPlatformer1
 {
-    public enum TileType { Solid, Death, Slow, BouncePad };
+    public enum TileType { Empty, Solid, Death, Slow, BouncePad };
 
     public class Tile
     {
@@ -20,7 +20,7 @@ namespace ArenaPlatformer1
 
         public Tile()
         {
-            
+
         }
 
         public void LoadContent(ContentManager content)

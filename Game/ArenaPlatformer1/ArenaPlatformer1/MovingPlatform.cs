@@ -33,13 +33,13 @@ namespace ArenaPlatformer1
             DestinationRectangle = new Rectangle((int)Position.X, (int)Position.Y, (int)Size.X, (int)Size.Y);
             CollisionRectangle = new Rectangle((int)Position.X, (int)Position.Y, (int)Size.X, (int)Size.Y);
 
-            foreach (Tile tile in Map.TileList)
-            {
-                if (tile.CollisionRectangle.Intersects(CollisionRectangle))
-                {
-                    Speed = -Speed;
-                }
-            }
+            //foreach (Tile tile in Map.TileList)
+            //{
+            //    if (tile.CollisionRectangle.Intersects(CollisionRectangle))
+            //    {
+            //        Speed = -Speed;
+            //    }
+            //}
         }
 
         public void Draw(SpriteBatch spriteBatch)

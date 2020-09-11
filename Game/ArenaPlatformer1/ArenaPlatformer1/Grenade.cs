@@ -65,128 +65,35 @@ namespace ArenaPlatformer1
                 Rotation += RotationIncrement;
             }
 
-            if (Velocity.X > 0)
-            {
-                CheckRightCollisions();
-            }
+            //if (Velocity.X > 0)
+            //{
+            //    CheckRightCollisions();
+            //}
 
-            if (Velocity.X < 0)
-            {
-                CheckLeftCollisions();
-            }
+            //if (Velocity.X < 0)
+            //{
+            //    CheckLeftCollisions();
+            //}
 
-            if (Velocity.Y > 0)
-            {
-                CheckDownCollisions();
+            //if (Velocity.Y > 0)
+            //{
+            //    CheckDownCollisions();
 
-                if (CheckDownCollisions() == true)
-                {
-                    Velocity.X *= 0.5f;
-                }
-            }
+            //    if (CheckDownCollisions() == true)
+            //    {
+            //        Velocity.X *= 0.5f;
+            //    }
+            //}
 
-            if (Velocity.Y < 0)
-            {
-                CheckUpCollisions();
-            }
+            //if (Velocity.Y < 0)
+            //{
+            //    CheckUpCollisions();
+            //}
         }
 
         public void Draw(SpriteBatch spriteBatch)
         {
             spriteBatch.Draw(GrenadeTexture, DestinationRectangle, null, Color.White, Rotation, new Vector2(GrenadeTexture.Width / 2, GrenadeTexture.Height / 2), SpriteEffects.None, 0);
-        }
-
-        public bool CheckDownCollisions()
-        {
-            foreach (Tile tile in Map.TileList)
-            {
-                for (int i = 0; i < CollisionRectangle.Width; i++)
-                {
-                    if (tile.CollisionRectangle.Contains(
-                        new Point(
-                        (int)(CollisionRectangle.Left + i),
-                        (int)(CollisionRectangle.Bottom + Velocity.Y + 1))))
-                    {
-                        if (tile.TileType == TileType.BouncePad)
-                        {
-                            Position.Y += (tile.CollisionRectangle.Top - CollisionRectangle.Bottom);
-                            Velocity.Y = -25f;
-                            return false;
-                        }
-                        else
-                        {
-                            Position.Y += (tile.CollisionRectangle.Top - CollisionRectangle.Bottom);
-                            Velocity.Y = -Velocity.Y * 0.85f;
-                            return true;
-                        }
-                    }
-                }
-            }
-
-            return false;
-        }
-
-        public bool CheckRightCollisions()
-        {
-            foreach (Tile tile in Map.TileList)
-            {
-                for (int i = 0; i < CollisionRectangle.Height; i++)
-                {
-                    if (tile.CollisionRectangle.Contains(
-                        new Point(
-                            (int)(CollisionRectangle.Right + Velocity.X),
-                            (int)(CollisionRectangle.Top + i))))
-                    {
-                        Position.X -= (CollisionRectangle.Right - tile.CollisionRectangle.Left);
-                        Velocity.X = -Velocity.X * 0.85f;
-                        return true;
-                    }
-                }
-            }
-
-            return false;
-        }
-
-        public bool CheckLeftCollisions()
-        {
-            foreach (Tile tile in Map.TileList)
-            {
-                for (int i = 0; i < CollisionRectangle.Height; i++)
-                {
-                    if (tile.CollisionRectangle.Contains(
-                        new Point(
-                            (int)(CollisionRectangle.Left + Velocity.X - 1),
-                            (int)(CollisionRectangle.Top + i))))
-                    {
-                        Position.X += (tile.CollisionRectangle.Right - CollisionRectangle.Left);
-                        Velocity.X = -Velocity.X * 0.85f;
-                        return true;
-                    }
-                }
-            }
-
-            return false;
-        }
-
-        public bool CheckUpCollisions()
-        {
-            foreach (Tile tile in Map.TileList)
-            {
-                for (int i = 0; i < CollisionRectangle.Width; i++)
-                {
-                    if (Velocity.Y < 0)
-                        if (tile.CollisionRectangle.Contains(
-                            new Point(
-                            (int)(CollisionRectangle.Left + i),
-                            (int)(CollisionRectangle.Top + Velocity.Y - 1))))
-                        {
-                            Position.Y += (tile.CollisionRectangle.Bottom - CollisionRectangle.Top);
-                            Velocity.Y = -Velocity.Y * 0.85f;
-                            return true;
-                        }
-                }
-            }
-            return false;
         }
 
         public void DrawInfo(GraphicsDevice graphics, BasicEffect basicEffect)

@@ -133,10 +133,7 @@ namespace ArenaPlatformer1
         public static Map Map;
         public static List<Item> ItemList;
         public static List<Trap> TrapList;
-        public static List<MovingPlatform> MovingPlatformList;
-
-        Vector2 PlatformSpeed;
-        
+                
         public Player(PlayerIndex playerIndex)
         {
             PlayerIndex = playerIndex;
@@ -222,329 +219,101 @@ namespace ArenaPlatformer1
             CurrentKeyboardState = Keyboard.GetState();
             CurrentMouseState = Mouse.GetState();
 
-            if (Active == true)
+            Sticks = CurrentGamePadState.ThumbSticks;
+            MoveStick = Sticks.Left;
+            AimStick = Sticks.Right;
+
+
+            Velocity.Y += Gravity;
+
+            //Handle horizontal control+movement
+            #region Move stick left
+            if (MoveStick.X < 0f)
             {
-                Sticks = CurrentGamePadState.ThumbSticks;
-                MoveStick = Sticks.Left;
-                AimStick = Sticks.Right;
-                
-                #region Move stick left
-                if (MoveStick.X < 0f)
-                {
-                    AimDirection.X = -1f;
-                    CurrentFacing = Facing.Left;
+                AimDirection.X = -1f;
+                CurrentFacing = Facing.Left;
 
-                    Velocity.X += (MoveStick.X * 3f);
-                }
-                #endregion
+                Velocity.X += (MoveStick.X * 3f);
+            }
+            #endregion
 
-                #region Move stick right
-                if (MoveStick.X > 0f)
-                {
-                    AimDirection.X = 1f;
-                    CurrentFacing = Facing.Right;
+            #region Move stick right
+            if (MoveStick.X > 0f)
+            {
+                AimDirection.X = 1f;
+                CurrentFacing = Facing.Right;
 
-                    Velocity.X += (MoveStick.X * 3f);
-                }
-                #endregion
+                Velocity.X += (MoveStick.X * 3f);
+            }
+            #endregion
 
-                #region Move stick down
-                if (MoveStick.Y < -0.75f)
-                {
-                    Velocity.X = 0;
-                    CurrentPose = Pose.Crouching;
-                }
+            #region Stop Moving
+            if (MoveStick.X == 0)
+            {
+                if (InAir == false)
+                    Velocity.X *= 0.85f;
                 else
-                {
-                    CurrentPose = Pose.Standing;
-                }
-                #endregion
+                    Velocity.X *= 0.95f;
+            }
+            #endregion
 
-                CheckDownCollisions2();
+            #region Limit Speed
+            if (Velocity.X > MaxSpeed.X)
+            {
+                Velocity.X = MaxSpeed.X;
+            }
 
-                //if (Velocity.X + PlatformSpeed.X < 0)
-                //{
-                    CheckLeftCollisions();
-                    CheckLeftCollisions2();
-                //}
+            if (Velocity.X < -MaxSpeed.X)
+            {
+                Velocity.X = -MaxSpeed.X;
+            }
 
-                //if (Velocity.X + PlatformSpeed.X > 0)
-                //{
-                    CheckRightCollisions();
-                    CheckRightCollisions2();
-                //}
+            if (Velocity.Y < -25)
+            {
+                Velocity.Y = -25;
+            }
 
-                if ((CheckRightCollisions2() == true || CheckRightCollisions() == true) &&
-                    (CheckLeftCollisions2() == true || CheckLeftCollisions() == true))
-                {
-                    Health.X = 0;
-                }
+            if (Velocity.Y > 25)
+            {
+                Velocity.Y = 25;
+            }
+            #endregion
 
-                //if ((CheckUpCollisions2() == true || CheckUpCollisions() == true) &&
-                //    (CheckDownCollisions2() == true || CheckDownCollisions() == true))
-                //{
-                //    Health.X = 0;
-                //}
+            //Handle Collisions
+            Vector2 tPos;
+            bool foo = OnGround(Velocity, Position, out tPos);
+            if (foo == true && Velocity.Y > 0)
+            {
+                Velocity.Y = 0;
+                Position.Y = tPos.Y;
+            }
+
+            Vector2 cPos;
+            //bool foo2 = ;
+            if (OnCeiling(Velocity, Position, out cPos) == true)
+            {
+                Velocity.Y = 0;
+                Position.Y = cPos.Y + 64 + CollisionRectangle.Height + 1;
+            }
+
+            if (CurrentGamePadState.IsButtonDown(JumpButton) &&
+                PreviousGamePadState.IsButtonUp(JumpButton))
+            {
+                if (foo == true)
+                    Velocity.Y = -15f;
+            }
 
 
+            Position += Velocity * ((float)gameTime.ElapsedGameTime.TotalSeconds * 60f);
 
-
-
-                if (Velocity.X <= 0.5f &&
-                    Velocity.X >= -0.5f)
-                {
-                    Velocity.X = 0f;
-                }
-
-                #region Player is Moving horizontally
-                if (Velocity.X != 0)
-                {
-                    if (InAir == false)
-                    {
-                        switch (CurrentFacing)
-                        {
-                            case Facing.Left:
-                                CurrentAnimation = RunLeftAnimation;
-                                break;
-
-                            case Facing.Right:
-                                CurrentAnimation = RunRightAnimation;
-                                break;
-                        }
-                    }
-                }
-                #endregion
-
-                #region Player has stopped moving - Display Stand/Crouch animation
-                if (Velocity.X > -2f &&
-                            Velocity.X < 2f)
-                {
-                    switch (CurrentFacing)
-                    {
-                        case Facing.Left:
-                            if (CurrentPose == Pose.Standing)
-                                CurrentAnimation = StandLeftAnimation;
-                            else
-                                CurrentAnimation = CrouchLeftAnimation;
-                            break;
-
-                        case Facing.Right:
-                            if (CurrentPose == Pose.Standing)
-                                CurrentAnimation = StandRightAnimation;
-                            else
-                                CurrentAnimation = CrouchRightAnimation;
-                            break;
-                    }
-                }
-                #endregion
-
-                #region Player is in the air
-                if (InAir == true)
-                {
-                    switch (CurrentFacing)
-                    {
-                        case Facing.Left:
-                            CurrentAnimation = JumpLeftAnimation;
-                            break;
-
-                        case Facing.Right:
-                            CurrentAnimation = JumpRightAnimation;
-                            break;
-                    }
-                }
-                #endregion
-                
-                Position.X += (Velocity.X + PlatformSpeed.X) * ((float)gameTime.ElapsedGameTime.TotalSeconds * 60f);                
-
-                #region Stop Moving
-                if (MoveStick.X == 0)
-                {
-                    if (InAir == false)
-                        Velocity.X *= 0.85f;
-                    else
-                        Velocity.X *= 0.95f;
-                }
-                #endregion
-
-                #region Jump
-                if (CurrentGamePadState.IsButtonDown(JumpButton) &&
-                    PreviousGamePadState.IsButtonUp(JumpButton) &&
-                    CheckUpCollisions() == false &&
-                    DoubleJumped == false &&
-                    Velocity.Y >= 0)
-                {
-                    if (InAir == true)
-                    {
-                        Velocity.Y = -15f;
-                        DoubleJumped = true;
-                    }
-                    else
-                    {
-                        Velocity.Y -= 15f;
-                    }
-                }
-                #endregion
-
-                #region Shoot
-                if (CurrentGamePadState.IsButtonDown(ShootButton) &&
-                    PreviousGamePadState.IsButtonUp(ShootButton))
-                {
-                    if (GunAmmo > 0)
-                    {
-                        switch (CurrentFacing)
-                        {
-                            case Facing.Left:
-                                CreatePlayerShoot(new Vector2(-25, 0));
-                                break;
-
-                            case Facing.Right:
-                                CreatePlayerShoot(new Vector2(25, 0));
-                                break;
-                        }
-
-                        GunAmmo--;
-                    }
-                }
-                #endregion
-
-                #region Grenade
-                if (CurrentGamePadState.IsButtonDown(GrenadeButton) &&
-                            PreviousGamePadState.IsButtonUp(GrenadeButton))
-                {
-                    //Create grenades!
-                    CreatePlayerGrenade();
-                }
-                #endregion
-
-                #region Trap
-                if (CurrentGamePadState.IsButtonDown(TrapButton) &&
-                    PreviousGamePadState.IsButtonUp(TrapButton))
-                {
-                    if (TrapAmmo > 0)
-                    {
-                        //Create traps!
-                        CreatePlaceTrap(Position, TrapType.Mine);
-                        TrapAmmo--;
-                    }
-                }
-                #endregion
-
-                #region Handle Rumble
-                if (RumbleTime <= MaxRumbleTime)
-                    RumbleTime += (float)gameTime.ElapsedGameTime.TotalMilliseconds;
-
-                if (RumbleTime >= MaxRumbleTime)
-                {
-                    GamePad.SetVibration(PlayerIndex, 0, 0);
-                }
-                #endregion
-                
-
-                if (ItemList != null)
-                ItemList.ForEach(Item =>
-                {
-                    if (Item.CollisionRectangle.Intersects(CollisionRectangle))
-                    {
-                        if (Item as TrapPickup != null)
-                        {
-                            if (TrapAmmo <= 0)
-                            {
-                                CurrentTrap = (Item as TrapPickup).TrapType;
-                            }
-
-                            if (Item as MinePickup != null)
-                            {
-                                TrapAmmo++;
-                            }
-                        }
-
-                        if (Item as Gun != null)
-                        {
-                            if (GunAmmo <= 0)
-                            {
-                                GunAmmo += 15;
-                            }
-                        }
-
-                        ItemList.Remove(Item);
-                    }
-                });
-
-                if (TrapList != null)
-                TrapList.ForEach(Trap =>
-                {
-                    if (Trap.Active == true && Trap.CollisionRectangle.Intersects(CollisionRectangle))
-                    {
-                        Health.X -= 20;
-                        Trap.Reset();
-                    }
-                });
-
-                if (CheckUpCollisions() == true || CheckUpCollisions2() == true)
-                {
-                    Velocity.Y = 0;
-                }
-
-                if (CheckDownCollisions() == false)
-                {
-                    Velocity.Y += Gravity * ((float)gameTime.ElapsedGameTime.TotalSeconds * 60f);
-                    Position.Y += Velocity.Y * ((float)gameTime.ElapsedGameTime.TotalSeconds * 60f);
-                    InAir = true;
-                }
-                else
-                {
-                    Velocity.Y = 0f;
-                    InAir = false;
-                    DoubleJumped = false;
-                }
-
-                #region Limit Speed
-                if (Velocity.X > MaxSpeed.X)
-                {
-                    Velocity.X = MaxSpeed.X;
-                }
-
-                if (Velocity.X < -MaxSpeed.X)
-                {
-                    Velocity.X = -MaxSpeed.X;
-                }
-
-                if (Velocity.Y < -25)
-                {
-                    Velocity.Y = -25;
-                }
-
-                if (Velocity.Y > 25)
-                {
-                    Velocity.Y = 25;
-                }
-                #endregion
-
-                if (CurrentAnimation != null)
-                {
-                    CurrentAnimation.Position = Position;
-                    CurrentAnimation.Update(gameTime);
-                }
-
-                if (Health.X <= 0)
-                {
-                    Deaths++;
-                    CreatePlayerDied();                    
-                }
+            if (CurrentAnimation != null)
+            {
+                CurrentAnimation.Position = Position;
+                CurrentAnimation.Update(gameTime);
             }
 
             DestinationRectangle = new Rectangle((int)Position.X, (int)Position.Y, Texture.Width, Texture.Height);
-
-            //Collision Rectangle same size as animation rectangle
-            //CollisionRectangle = new Rectangle(
-            //    (int)(CurrentAnimation.Position.X - CurrentAnimation.FrameSize.X/2), (int)(CurrentAnimation.Position.Y - CurrentAnimation.FrameSize.Y), 
-            //    (int)CurrentAnimation.FrameSize.X, (int)CurrentAnimation.FrameSize.Y);
-
-            //Collision rectangle standard size
-            CollisionRectangle = new Rectangle(
-                (int)(Position.X - 30), 
-                (int)(Position.Y - 80),
-                60, 80);
+            CollisionRectangle = new Rectangle((int)(Position.X - 30), (int)(Position.Y - 90 + Velocity.Y), 60, 90);
 
             PrevPosition = Position;
             PreviousPose = CurrentPose;
@@ -630,231 +399,55 @@ namespace ArenaPlatformer1
             MaxRumbleTime = time;
         }
 
-        public bool CheckDownCollisions()
+
+        public bool OnGround(Vector2 velocity, Vector2 position, out Vector2 tPos)
         {
-            foreach (Tile tile in Map.TileList)
+            Vector2 bottomLeft = new Vector2(CollisionRectangle.Left, CollisionRectangle.Bottom);
+            Vector2 bottomRight = new Vector2(CollisionRectangle.Right, CollisionRectangle.Bottom);
+            
+            for (int x = (int)bottomLeft.X; ; x++)
             {
-                for (int i = 0; i < CollisionRectangle.Width; i++)
+                TileType tile = Map.GetTile(x / 64, (int)(position.Y + velocity.Y+1) / 64);
+
+                tPos = Map.GetMapTilePosition(x / 64, (int)(position.Y + velocity.Y + 1) / 64);
+
+                if (tile == TileType.Solid)
                 {
-                    if (tile.CollisionRectangle.Contains(
-                        new Point(
-                        (int)(CollisionRectangle.Left + i), 
-                        (int)(CollisionRectangle.Bottom + Velocity.Y + PlatformSpeed.Y + 1))))
-                    {
-                        if (tile.TileType == TileType.BouncePad)
-                        {
-                            Position.Y += (tile.CollisionRectangle.Top - CollisionRectangle.Bottom);
-                            Velocity.Y = -25f;
-                            return false;
-                        }
-                        else
-                        {
-                            Position.Y += (tile.CollisionRectangle.Top - CollisionRectangle.Bottom);
-                            return true;
-                        }
-                    }
+                    return true;
+                }
+
+                if (x >= bottomRight.X)
+                {
+                    break;
                 }
             }
 
-            Gravity = 0.6f;
             return false;
         }
 
-        public bool CheckRightCollisions()
+        public bool OnCeiling(Vector2 velocity, Vector2 position, out Vector2 tPos)
         {
-            foreach(Tile tile in Map.TileList)
+            Vector2 topLeft = new Vector2(CollisionRectangle.Left, CollisionRectangle.Top);
+            Vector2 topRight = new Vector2(CollisionRectangle.Right, CollisionRectangle.Top);
+
+            for (int x = (int)topLeft.X; ; x++)
             {
-                for (int i = 0; i < CollisionRectangle.Height; i++)
+                TileType tile = Map.GetTile(x / 64, (int)(position.Y - CollisionRectangle.Height + velocity.Y - 1) / 64);
+
+                tPos = Map.GetMapTilePosition(x / 64, (int)(position.Y - CollisionRectangle.Height + velocity.Y - 1) / 64);
+
+                if (tile == TileType.Solid)
                 {
-                    if (tile.CollisionRectangle.Contains(
-                        new Point(
-                            (int)(CollisionRectangle.Right + Velocity.X + PlatformSpeed.X),
-                            (int)(CollisionRectangle.Top + i))))
-                    {
-                        Position.X -= (CollisionRectangle.Right - tile.CollisionRectangle.Left);
-                        Velocity.X = 0;
-                        return true;
-                    }
+                    return true;
+                }
+
+                if (x >= topRight.X)
+                {
+                    break;
                 }
             }
 
-            Gravity = 0.6f;
             return false;
         }
-
-        public bool CheckLeftCollisions()
-        {
-            foreach (Tile tile in Map.TileList)
-            {
-                for (int i = 0; i < CollisionRectangle.Height; i++)
-                {
-                    if (tile.CollisionRectangle.Contains(
-                        new Point(
-                            (int)(CollisionRectangle.Left + Velocity.X + PlatformSpeed.X - 1),
-                            (int)(CollisionRectangle.Top + i))))
-                    {
-                        Position.X += (tile.CollisionRectangle.Right - CollisionRectangle.Left);
-                        Velocity.X = 0;
-                        return true;
-                    }
-                }
-            }
-
-            Gravity = 0.6f;
-            return false;
-        }
-
-        public bool CheckUpCollisions()
-        {
-            foreach (Tile tile in Map.TileList)
-            {
-                for (int i = 0; i < CollisionRectangle.Width; i++)
-                {
-                    if (Velocity.Y < 0)
-                    if (tile.CollisionRectangle.Contains(
-                        new Point(
-                        (int)(CollisionRectangle.Left + i),
-                        (int)(CollisionRectangle.Top + Velocity.Y + PlatformSpeed.Y - 1))))
-                    {
-                            Position.Y += (tile.CollisionRectangle.Bottom - CollisionRectangle.Top);
-                            Velocity.Y = 0;
-                            return true;
-                    }
-                }
-            }
-
-            Gravity = 0.6f;
-            return false;
-        }
-
-
-        public bool CheckDownCollisions2()
-        {
-            foreach (MovingPlatform tile in MovingPlatformList)
-            {
-                for (int i = 0; i < CollisionRectangle.Width; i++)
-                {
-                    if (tile.CollisionRectangle.Contains(
-                        new Point(
-                        (int)(CollisionRectangle.Left + i),
-                        (int)(CollisionRectangle.Bottom + Velocity.Y + 1))))
-                    {
-                        //Position.Y += (tile.CollisionRectangle.Top - CollisionRectangle.Bottom);
-                        Position.Y = tile.CollisionRectangle.Top;
-
-                        Velocity.Y = 0f;
-                        InAir = false;
-                        DoubleJumped = false;
-
-                        if (CheckRightCollisions() == false &&
-                            CheckLeftCollisions() == false)
-                        {
-                            PlatformSpeed = tile.Speed;
-                            return true;
-                        }
-                        else
-                        {
-                            PlatformSpeed = Vector2.Zero;
-
-                            if (CheckRightCollisions() == true &&
-                                tile.Speed.X < 0)
-                            {
-                                PlatformSpeed = tile.Speed;
-                                return true;
-                            }
-
-                            if (CheckLeftCollisions() == true &&
-                                tile.Speed.X > 0)
-                            {
-                                PlatformSpeed = tile.Speed;
-                                return true;
-                            }
-                        }
-
-                        
-                        return true;
-                    }
-                }
-            }
-
-            Gravity = 0.6f;
-            PlatformSpeed = Vector2.Zero;
-            return false;
-        }
-
-        public bool CheckUpCollisions2()
-        {
-            foreach (MovingPlatform tile in MovingPlatformList)
-            {
-                for (int i = 0; i < CollisionRectangle.Width; i++)
-                {
-                    if (Velocity.Y < 0)
-                        if (tile.CollisionRectangle.Contains(
-                            new Point(
-                            (int)(CollisionRectangle.Left + i),
-                            (int)(CollisionRectangle.Top + Velocity.Y + PlatformSpeed.Y - 1))))
-                        {
-                            Position.Y += (tile.CollisionRectangle.Bottom - CollisionRectangle.Top);
-                            Velocity.Y = 0;
-                            return true;
-                        }
-                }
-            }
-
-            Gravity = 0.6f;
-            return false;
-        }
-
-        public bool CheckLeftCollisions2()
-        {
-            foreach (MovingPlatform tile in MovingPlatformList)
-            {
-                for (int i = 0; i < CollisionRectangle.Height; i++)
-                {
-                    if (tile.CollisionRectangle.Contains(
-                        new Point(
-                            (int)(CollisionRectangle.Left + Velocity.X + PlatformSpeed.X - 1),
-                            (int)(CollisionRectangle.Top + i))))
-                    {
-                        Position.X += (tile.CollisionRectangle.Right - CollisionRectangle.Left);
-                        Velocity.X = 0;
-
-                        if (tile.Speed.X > 0)
-                            PlatformSpeed.X = tile.Speed.X;
-                        return true;
-                    }
-                }
-            }
-
-            Gravity = 0.6f;
-            return false;
-        }
-
-        public bool CheckRightCollisions2()
-        {
-            foreach (MovingPlatform tile in MovingPlatformList)
-            {
-                for (int i = 0; i < CollisionRectangle.Height; i++)
-                {
-                    if (tile.CollisionRectangle.Contains(
-                        new Point(
-                            (int)(CollisionRectangle.Right + Velocity.X + PlatformSpeed.X),
-                            (int)(CollisionRectangle.Top + i))))
-                    {
-                        Position.X -= (CollisionRectangle.Right - tile.CollisionRectangle.Left);
-                        Velocity.X = 0;
-                        
-                        if (tile.Speed.X < 0)
-                            PlatformSpeed.X = tile.Speed.X;
-                        return true;
-                    }
-                }
-            }
-
-            Gravity = 0.6f;
-            return false;
-        }
-
-
     }
 }

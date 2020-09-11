@@ -491,35 +491,35 @@ namespace ArenaPlatformer1
                 } 
                 #endregion
 
-                #region Emitter collisions
-                if (EmitterVelocity != Vector2.Zero)
-                    CollisionRectangle = new Rectangle((int)Position.X - 1, (int)Position.Y - 1, 2, 2);
+                //#region Emitter collisions
+                //if (EmitterVelocity != Vector2.Zero)
+                //    CollisionRectangle = new Rectangle((int)Position.X - 1, (int)Position.Y - 1, 2, 2);
 
-                if (EmitterVelocity.X > 0)
-                {
-                    CheckRightCollisions();
-                }
+                //if (EmitterVelocity.X > 0)
+                //{
+                //    CheckRightCollisions();
+                //}
 
-                if (EmitterVelocity.X < 0)
-                {
-                    CheckLeftCollisions();
-                }
+                //if (EmitterVelocity.X < 0)
+                //{
+                //    CheckLeftCollisions();
+                //}
 
-                if (EmitterVelocity.Y > 0)
-                {
-                    CheckDownCollisions();
+                //if (EmitterVelocity.Y > 0)
+                //{
+                //    CheckDownCollisions();
 
-                    if (CheckDownCollisions() == true)
-                    {
-                        EmitterVelocity.X *= 0.5f;
-                    }
-                }
+                //    if (CheckDownCollisions() == true)
+                //    {
+                //        EmitterVelocity.X *= 0.5f;
+                //    }
+                //}
 
-                if (EmitterVelocity.Y < 0)
-                {
-                    CheckUpCollisions();
-                }
-                #endregion
+                //if (EmitterVelocity.Y < 0)
+                //{
+                //    CheckUpCollisions();
+                //}
+                //#endregion
             }
             #endregion
 
@@ -644,90 +644,6 @@ namespace ArenaPlatformer1
         public double DoubleRange(double one, double two)
         {
             return one + Random.NextDouble() * (two - one);
-        }
-
-        public bool CheckDownCollisions()
-        {
-            foreach (Tile tile in Map.TileList)
-            {
-                for (int i = 0; i < CollisionRectangle.Width; i++)
-                {
-                    if (tile.CollisionRectangle.Contains(
-                        new Point(
-                        (int)(CollisionRectangle.Left + i),
-                        (int)(CollisionRectangle.Bottom + EmitterVelocity.Y + 1))))
-                    {
-                        Position.Y += (tile.CollisionRectangle.Top - CollisionRectangle.Bottom);
-                        EmitterVelocity.Y = -EmitterVelocity.Y * 0.85f;
-                        return true;
-                    }
-                }
-            }
-
-            return false;
-        }
-
-        public bool CheckRightCollisions()
-        {
-            foreach (Tile tile in Map.TileList)
-            {
-                for (int i = 0; i < CollisionRectangle.Height; i++)
-                {
-                    if (tile.CollisionRectangle.Contains(
-                        new Point(
-                            (int)(CollisionRectangle.Right + EmitterVelocity.X),
-                            (int)(CollisionRectangle.Top + i))))
-                    {
-                        Position.X -= (CollisionRectangle.Right - tile.CollisionRectangle.Left);
-                        EmitterVelocity.X = -EmitterVelocity.X * 0.85f;
-                        return true;
-                    }
-                }
-            }
-
-            return false;
-        }
-
-        public bool CheckLeftCollisions()
-        {
-            foreach (Tile tile in Map.TileList)
-            {
-                for (int i = 0; i < CollisionRectangle.Height; i++)
-                {
-                    if (tile.CollisionRectangle.Contains(
-                        new Point(
-                            (int)(CollisionRectangle.Left + EmitterVelocity.X - 1),
-                            (int)(CollisionRectangle.Top + i))))
-                    {
-                        Position.X += (tile.CollisionRectangle.Right - CollisionRectangle.Left);
-                        EmitterVelocity.X = -EmitterVelocity.X * 0.85f;
-                        return true;
-                    }
-                }
-            }
-
-            return false;
-        }
-
-        public bool CheckUpCollisions()
-        {
-            foreach (Tile tile in Map.TileList)
-            {
-                for (int i = 0; i < CollisionRectangle.Width; i++)
-                {
-                    if (EmitterVelocity.Y < 0)
-                        if (tile.CollisionRectangle.Contains(
-                            new Point(
-                            (int)(CollisionRectangle.Left + i),
-                            (int)(CollisionRectangle.Top + EmitterVelocity.Y - 1))))
-                        {
-                            Position.Y += (tile.CollisionRectangle.Bottom - CollisionRectangle.Top);
-                            EmitterVelocity.Y = -EmitterVelocity.Y * 0.85f;
-                            return true;
-                        }
-                }
-            }
-            return false;
         }
 
         public void ActivateChanges()
