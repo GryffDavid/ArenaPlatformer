@@ -288,7 +288,7 @@ namespace ArenaPlatformer1
                             Texture, Position, AngleRange, SpeedRange, ScaleRange, StartColor, EndColor,
                             Gravity, Shrink, Fade, StartingRotationRange, RotationIncrementRange,
                             Transparency, TimeRange, Grow, RotateVelocity, Friction, Orientation, FadeDelay,
-                            YRange, CanBounce, StopBounce, HardBounce, Emissive,
+                            YRange, CanBounce, StopBounce, HardBounce, Emissive, DrawDepth,
                             out gameData, out renderData);
 
                     RenderManager.RenderDataObjects.Add(renderData);

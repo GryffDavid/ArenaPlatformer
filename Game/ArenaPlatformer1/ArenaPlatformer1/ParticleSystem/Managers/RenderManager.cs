@@ -92,7 +92,7 @@ namespace ArenaPlatformer1
                                   (int)(renderData.Texture.Width * renderData.Scale),
                                   (int)(renderData.Texture.Height * renderData.Scale)),
                     null, renderData.Color * renderData.Transparency, renderData.Rotation,
-                    new Vector2(renderData.Texture.Width / 2, renderData.Texture.Height / 2), Orientation, 0);
+                    new Vector2(renderData.Texture.Width / 2, renderData.Texture.Height / 2), Orientation, renderData.DrawDepth);
             }
             #endregion
         }
@@ -125,7 +125,7 @@ namespace ArenaPlatformer1
                                   (int)(renderData.Texture.Width * renderData.Scale),
                                   (int)(renderData.Texture.Height * renderData.Scale)),
                     null, renderData.Color * renderData.Transparency, renderData.Rotation,
-                    new Vector2(renderData.Texture.Width / 2, renderData.Texture.Height / 2), Orientation, 0);
+                    new Vector2(renderData.Texture.Width / 2, renderData.Texture.Height / 2), Orientation, renderData.DrawDepth);
             }
             #endregion
         }

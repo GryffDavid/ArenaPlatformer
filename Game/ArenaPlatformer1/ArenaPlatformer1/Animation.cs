@@ -54,12 +54,12 @@ namespace ArenaPlatformer1
 
         public void Draw(SpriteBatch spriteBatch)
         {
-            spriteBatch.Draw(Texture, DestinationRectangle, SourceRectangle, Color.White);
+            spriteBatch.Draw(Texture, DestinationRectangle, SourceRectangle, Color.White, 0, Vector2.Zero, SpriteEffects.None, 0.5f);
         }
 
         public void Draw(SpriteBatch spriteBatch, Vector2 pos)
         {
-            spriteBatch.Draw(Texture, DestinationRectangle, SourceRectangle, Color.White);
+            spriteBatch.Draw(Texture, DestinationRectangle, SourceRectangle, Color.White, 0, Vector2.Zero, SpriteEffects.None, 0.5f);
         }
     }
 }

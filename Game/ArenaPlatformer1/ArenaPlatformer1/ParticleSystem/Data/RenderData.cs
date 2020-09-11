@@ -12,7 +12,7 @@ namespace ArenaPlatformer1
         //What is needed to draw the objects
         public Texture2D Texture;
         public Vector2 Position;
-        public float Rotation, Scale, Transparency;
+        public float Rotation, Scale, Transparency, DrawDepth;
         public Color Color;
 
         //0 = None

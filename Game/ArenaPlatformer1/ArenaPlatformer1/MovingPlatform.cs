@@ -12,6 +12,25 @@ namespace ArenaPlatformer1
     {
         Texture2D Texture;
         Vector2 Position, Size, Speed;
+
+        public MovingPlatform()
+        {
+
+        }
+
+        public void LoadContent(ContentManager content)
+        {
+
+        }
         
+        public void Update(GameTime gameTime)
+        {
+
+        }
+
+        public void Draw(SpriteBatch spriteBatch)
+        {
+
+        }
     }
 }
