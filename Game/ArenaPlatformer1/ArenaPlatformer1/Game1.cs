@@ -116,7 +116,6 @@ namespace ArenaPlatformer1
         //Specifically for menu interactions before the Player objects have been created
         GamePadState[] CurrentGamePadStates = new GamePadState[4];
         GamePadState[] PreviousGamePadStates = new GamePadState[4];
-
         
 
         Vector2 PlaceTilePosition = new Vector2(64, 64);
@@ -128,16 +127,8 @@ namespace ArenaPlatformer1
         DoubleBuffer DoubleBuffer;
         RenderManager RenderManager;
         UpdateManager UpdateManager;
-
-
-        //These emitters are drawn with an emissive effect applied
+                
         List<Emitter> EmitterList = new List<Emitter>();
-
-        //These emitters are not affected by lighting conditions
-        List<Emitter> EmissiveEmitterList = new List<Emitter>();
-        
-        //Emitters that need to have lighting effects applied
-        List<Emitter> LitEmitterList = new List<Emitter>();
         #endregion
 
         Texture2D Texture, NormalTexture, ParticleTexture;
@@ -235,7 +226,7 @@ namespace ArenaPlatformer1
                     Color.Maroon, Color.DarkRed, 0.01f, 1f, 15, 2, true, new Vector2(1080 - 64, 1080), true, 0, true,
                     true, new Vector2(2, 4), new Vector2(0, 360), 0.1f, true, null, null, null, null, true);
 
-                LitEmitterList.Add(emitter);
+                EmitterList.Add(emitter);
             }
 
             e.Player.Position = new Vector2(100, 100 + 64);
@@ -808,15 +799,12 @@ namespace ArenaPlatformer1
 
                                     Emitter emitter = new Emitter(ParticleTexture, projectile.Position - (projectile.Velocity * 0.75f),
                                         new Vector2(0, 360), new Vector2(1, 3),
-                                        new Vector2(500, 1500), 1f, true, Vector2.Zero, new Vector2(-3, 3), new Vector2(0.1f, 0.2f),
+                                        new Vector2(500, 1500), 1f, true, Vector2.Zero, new Vector2(-3, 3), new Vector2(0.5f, 1f),
                                         Color.HotPink, Color.Pink, 0f, 1f, 15, 3, true, new Vector2(1080 - 64, 1080 - 64),
                                         false, 0, true, true, new Vector2(5, 7), rang, 0.2f,
-                                        true, null, null, null, null, true)
-                                    {
-                                        Emissive = true
-                                    };
+                                        true, null, null, null, null, true, null, null, true, false);
 
-                                    EmissiveEmitterList.Add(emitter);
+                                    EmitterList.Add(emitter);
                                 }
 
                                 projectile.Active = false;
@@ -829,16 +817,6 @@ namespace ArenaPlatformer1
                         //EmitterList[1].Position = new Vector2(Random.Next(-200, -50), Random.Next(1080 / 2, 1080));
 
                         foreach (Emitter emitter in EmitterList)
-                        {
-                            emitter.Update(gameTime);
-                        }
-
-                        foreach (Emitter emitter in EmissiveEmitterList)
-                        {
-                            emitter.Update(gameTime);
-                        }
-
-                        foreach (Emitter emitter in LitEmitterList)
                         {
                             emitter.Update(gameTime);
                         }
@@ -904,12 +882,9 @@ namespace ArenaPlatformer1
                         GraphicsDevice.SetRenderTarget(EmissiveMap);
                         GraphicsDevice.Clear(Color.Transparent);
                         spriteBatch.Begin();
-                        //RenderManager.DrawEmissive(spriteBatch);
 
-                        foreach (Emitter emitter in EmissiveEmitterList)
-                        {
-                            RenderManager.Draw(spriteBatch, emitter.ID);
-                        }
+                        RenderManager.DrawEmissive(spriteBatch);
+                        
 
                         foreach (Projectile projectile in ProjectileList)
                         {
@@ -971,14 +946,9 @@ namespace ArenaPlatformer1
                             grenade.Draw(spriteBatch);
                         }
 
-                        //RenderManager.Draw(spriteBatch);
-
-                        foreach (Emitter emitter in LitEmitterList)
-                        {
-                            RenderManager.Draw(spriteBatch, emitter.ID);
-                        }
-
                         spriteBatch.Draw(EmissiveMap, EmissiveMap.Bounds, Color.White);
+
+                        RenderManager.DrawLit(spriteBatch);
                         spriteBatch.End();
                         #endregion
 
@@ -1068,11 +1038,7 @@ namespace ArenaPlatformer1
                             solid.Draw(spriteBatch, Color.Black);
                         }
 
-                        foreach (Emitter emitter in EmitterList)
-                        {
-                            RenderManager.Draw(spriteBatch, emitter.ID);
-                        }
-                        //RenderManager.Draw(spriteBatch);
+                        RenderManager.Draw(spriteBatch);
                         spriteBatch.End();
                         #endregion
 

@@ -59,42 +59,70 @@ namespace ArenaPlatformer1
                         #endregion
                 }
             }
-            
-            //Draw or DrawEmissive
-            //DoubleBuffer.SubmitRender();
         }
 
-        public void Draw(SpriteBatch spriteBatch, float id)
+        public void Draw(SpriteBatch spriteBatch)
         {
-            SpriteEffects Orientation = SpriteEffects.None;
-
-            #region Draw particles
-            foreach (RenderData renderData in RenderDataObjects.Where(data => data.SourceID == id))
+            foreach (RenderData renderData in RenderDataObjects.Where(data => data.Emissive == false && data.Lit == false))
             {
-                switch (renderData.Orientation)
-                {
-                    default:
-                        Orientation = SpriteEffects.None;
-                        break;
-
-                    case 1:
-                        Orientation = SpriteEffects.FlipHorizontally;
-                        break;
-
-                    case 2:
-                        Orientation = SpriteEffects.FlipVertically;
-                        break;
-                }
-
                 spriteBatch.Draw(renderData.Texture,
                     new Rectangle((int)renderData.Position.X,
                                   (int)renderData.Position.Y,
                                   (int)(renderData.Texture.Width * renderData.Scale),
                                   (int)(renderData.Texture.Height * renderData.Scale)),
                     null, renderData.Color * renderData.Transparency, renderData.Rotation,
-                    new Vector2(renderData.Texture.Width / 2, renderData.Texture.Height / 2), Orientation, renderData.DrawDepth);
+                    new Vector2(renderData.Texture.Width / 2, renderData.Texture.Height / 2), (SpriteEffects)renderData.Orientation, renderData.DrawDepth);
             }
-            #endregion
         }
+
+        public void DrawEmissive(SpriteBatch spriteBatch)
+        {
+            foreach (RenderData renderData in RenderDataObjects.Where(data => data.Emissive == true))
+            {
+                spriteBatch.Draw(renderData.Texture,
+                    new Rectangle((int)renderData.Position.X,
+                                  (int)renderData.Position.Y,
+                                  (int)(renderData.Texture.Width * renderData.Scale),
+                                  (int)(renderData.Texture.Height * renderData.Scale)),
+                    null, renderData.Color * renderData.Transparency, renderData.Rotation,
+                    new Vector2(renderData.Texture.Width / 2, renderData.Texture.Height / 2), (SpriteEffects)renderData.Orientation, renderData.DrawDepth);
+            }
+        }
+
+        public void DrawLit(SpriteBatch spriteBatch)
+        {
+            foreach (RenderData renderData in RenderDataObjects.Where(data => data.Lit == true))
+            {
+                spriteBatch.Draw(renderData.Texture,
+                    new Rectangle((int)renderData.Position.X,
+                                  (int)renderData.Position.Y,
+                                  (int)(renderData.Texture.Width * renderData.Scale),
+                                  (int)(renderData.Texture.Height * renderData.Scale)),
+                    null, renderData.Color * renderData.Transparency, renderData.Rotation,
+                    new Vector2(renderData.Texture.Width / 2, renderData.Texture.Height / 2), (SpriteEffects)renderData.Orientation, renderData.DrawDepth);
+            }
+        }
+
+        //public SpriteEffects GetOrientation(RenderData data)
+        //{
+        //    SpriteEffects Orientation = SpriteEffects.None;
+
+        //    switch (data.Orientation)
+        //    {
+        //        default:
+        //            Orientation = SpriteEffects.None;
+        //            break;
+
+        //        case 1:
+        //            Orientation = SpriteEffects.FlipHorizontally;
+        //            break;
+
+        //        case 2:
+        //            Orientation = SpriteEffects.FlipVertically;
+        //            break;
+        //    }
+
+        //    return Orientation;
+        //}
     }
 }

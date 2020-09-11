@@ -10,9 +10,6 @@ namespace ArenaPlatformer1
 {
     class Emitter
     {
-        public float ID;
-        public static ObjectIDGenerator ObjectIDGen = new ObjectIDGenerator();
-
         static Random Random = new Random();
         public static Map Map;
 
@@ -22,11 +19,10 @@ namespace ArenaPlatformer1
                        StartingRotationRange, EmitterDirection, EmitterVelocity, YRange, Friction;
         public float Transparency, Gravity, ActiveSeconds, Interval, EmitterSpeed,
                      EmitterAngle, EmitterGravity, FadeDelay, StartingInterval;
-        public Color StartColor, EndColor, ThirdColor;
+        public Color StartColor, EndColor;
         public bool Fade, CanBounce, AddMore, Shrink, StopBounce, HardBounce, BouncedOnGround,
-                    RotateVelocity, FlipHor, FlipVer, ReduceDensity, SortParticles, Emissive;
-        public bool Grow, Active;
-        public string TextureName;
+                    RotateVelocity, FlipHor, FlipVer, ReduceDensity, SortParticles;
+        public bool Grow, Active, Emissive, Lit;
         public int Burst;
         public double IntervalTime, CurrentTime, MaxTime;
         //public SpriteEffects Orientation = SpriteEffects.None;
@@ -50,10 +46,8 @@ namespace ArenaPlatformer1
                        Vector2 yrange, bool? shrink = null, float? drawDepth = null, bool? stopBounce = null, bool? hardBounce = null,
                        Vector2? emitterSpeed = null, Vector2? emitterAngle = null, float? emitterGravity = null, bool? rotateVelocity = null,
                        Vector2? friction = null, bool? flipHor = null, bool? flipVer = null, float? fadeDelay = null, bool? reduceDensity = null,
-                       bool? sortParticles = null, bool? grow = false, Vector4? thirdColor = null, bool? emissive = false)
+                       bool? sortParticles = null, bool? grow = false, bool? emissive = false, bool? lit = false)
         {
-            bool firstTime;
-            ID = ObjectIDGen.GetId(this, out firstTime);
             Active = true;
             Texture = texture;
             SpeedRange = speedRange;
@@ -74,18 +68,26 @@ namespace ArenaPlatformer1
             IntervalTime = Interval;
             Burst = burst;
             CanBounce = canBounce;
+            
 
-            Emissive = emissive.Value;
+            if (lit != null)
+                Lit = lit.Value;
+            else
+                Lit = false;
+
+
+            if (emissive != null)
+                Emissive = emissive.Value;
+            else
+                Emissive = false;
+
+
+
 
             if (grow != null)
                 Grow = grow.Value;
             else
                 Grow = false;
-
-            if (thirdColor != null)
-                ThirdColor = new Color(thirdColor.Value.X, thirdColor.Value.Y, thirdColor.Value.Z, thirdColor.Value.W);
-            else
-                ThirdColor = Color.Transparent;
 
             if (shrink == null)
                 Shrink = false;
@@ -304,7 +306,7 @@ namespace ArenaPlatformer1
                             Texture, Position, AngleRange, SpeedRange, ScaleRange, StartColor, EndColor,
                             Gravity, Shrink, Fade, StartingRotationRange, RotationIncrementRange,
                             Transparency, TimeRange, Grow, RotateVelocity, Friction, Orientation, FadeDelay,
-                            YRange, CanBounce, StopBounce, HardBounce, Emissive, DrawDepth, ID,
+                            YRange, CanBounce, StopBounce, HardBounce, DrawDepth, Emissive, Lit,
                             out gameData, out renderData);
 
                     RenderManager.RenderDataObjects.Add(renderData);
