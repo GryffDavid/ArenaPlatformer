@@ -8,10 +8,13 @@ using Microsoft.Xna.Framework.Content;
 
 namespace ArenaPlatformer1
 {
-    class MovingPlatform
+    public class MovingPlatform
     {
-        Texture2D Texture;
-        Vector2 Position, Size, Speed;
+        public Texture2D Texture;
+        public Vector2 Position, Size, Speed;
+        public Rectangle DestinationRectangle, CollisionRectangle;
+
+        public static Map Map;
 
         public MovingPlatform()
         {
@@ -25,12 +28,23 @@ namespace ArenaPlatformer1
         
         public void Update(GameTime gameTime)
         {
+            Position += Speed;
 
+            DestinationRectangle = new Rectangle((int)Position.X, (int)Position.Y, (int)Size.X, (int)Size.Y);
+            CollisionRectangle = new Rectangle((int)Position.X, (int)Position.Y, (int)Size.X, (int)Size.Y);
+
+            foreach (Tile tile in Map.TileList)
+            {
+                if (tile.CollisionRectangle.Intersects(CollisionRectangle))
+                {
+                    Speed = -Speed;
+                }
+            }
         }
 
         public void Draw(SpriteBatch spriteBatch)
         {
-
+            spriteBatch.Draw(Texture, DestinationRectangle, Color.White);
         }
     }
 }

@@ -40,6 +40,38 @@ namespace ArenaPlatformer1
 
         Rectangle CollisionRectangle;
 
+        public struct ChangeEmitter
+        {
+            /// <summary>
+            /// How long the change is effective for
+            /// X = CurrentTime, Y = MaxTime
+            /// </summary>
+            public Vector2 ChangeTime;
+
+            public bool Active, shrink, grow, fade, reduceDensity, 
+                        rotateVelocity, canBounce, stopBounce, 
+                        hardBounce, flipVer, flipHor, emissive, lit;
+            public Vector2 angleRange, timeRange, speedRange, friction, 
+                           scaleRange, rotationIncrement, startingRotation;
+            public float gravity, startingTransparency, 
+                         fadeDelay, activeSeconds, interval;
+            public Color startColor, endColor;
+            public int burst;
+
+            public void Update(GameTime gameTime)
+            {
+                ChangeTime.X += (float)gameTime.ElapsedGameTime.TotalMilliseconds;
+
+                if (ChangeTime.X > ChangeTime.Y)
+                {
+                    Active = false;
+                    ChangeTime.X = 0;
+                }
+            }
+        }
+
+        public ChangeEmitter CurrentChange;
+
         public Emitter(Texture2D texture, Vector2 position, Vector2 angleRange, Vector2 speedRange, Vector2 timeRange,
                        float startingTransparency, bool fade, Vector2 startingRotationRange, Vector2 rotationIncrement, Vector2 scaleRange,
                        Color startColor, Color endColor, float gravity, float activeSeconds, float interval, int burst, bool canBounce,
@@ -180,8 +212,7 @@ namespace ArenaPlatformer1
 
         public void Update(GameTime gameTime)
         {
-            IntervalTime += (float)gameTime.ElapsedGameTime.TotalMilliseconds;
-
+            #region Control emitter life time
             if (ActiveSeconds > 0)
             {
                 CurrentTime += gameTime.ElapsedGameTime.TotalMilliseconds;
@@ -191,7 +222,9 @@ namespace ArenaPlatformer1
                     AddMore = false;
                 }
             }
+            #endregion
 
+            #region Reduce density
             if (ReduceDensity == true)
             {
                 //After halftime, begin reducing the density from 100% down to 0% as the time continues to expire                    
@@ -201,13 +234,15 @@ namespace ArenaPlatformer1
                 if (PercentageThrough >= 50)
                     Interval = StartingInterval + (Interval / 100 * PercentageThrough);
             }
+            #endregion
 
-
+            #region Emitter motion
             if (EmitterSpeed != 0)
             {
                 EmitterVelocity.Y += EmitterGravity * ((float)gameTime.ElapsedGameTime.TotalSeconds * 60.0f);
                 Position += EmitterVelocity * ((float)gameTime.ElapsedGameTime.TotalSeconds * 60.0f);
 
+                #region Emitter bouncing
                 if (CanBounce == true)
                     if (Position.Y >= BounceY && BouncedOnGround == false)
                     {
@@ -219,9 +254,10 @@ namespace ArenaPlatformer1
                         BouncedOnGround = true;
                     }
 
+                
                 if (StopBounce == true &&
-                    BouncedOnGround == true &&
-                    Position.Y > BounceY)
+                            BouncedOnGround == true &&
+                            Position.Y > BounceY)
                 {
                     EmitterVelocity.Y = (-EmitterVelocity.Y / 2) * ((float)gameTime.ElapsedGameTime.TotalSeconds * 60.0f);
 
@@ -246,9 +282,12 @@ namespace ArenaPlatformer1
                     {
                         EmitterVelocity.X = 0;
                     }
-                }
+                } 
+                #endregion
 
-                CollisionRectangle = new Rectangle((int)Position.X - 1, (int)Position.Y - 1, 2, 2);
+                #region Emitter collisions
+                if (EmitterVelocity != Vector2.Zero)
+                    CollisionRectangle = new Rectangle((int)Position.X - 1, (int)Position.Y - 1, 2, 2);
 
                 if (EmitterVelocity.X > 0)
                 {
@@ -274,9 +313,11 @@ namespace ArenaPlatformer1
                 {
                     CheckUpCollisions();
                 }
+                #endregion
             }
+            #endregion
 
-
+            #region Particle orientation
             if (FlipHor == true && FlipVer == false)
             {
                 Orientation = RandomOrientation(SpriteEffects.None, SpriteEffects.FlipHorizontally);
@@ -297,24 +338,62 @@ namespace ArenaPlatformer1
                 //Get back None, FlipHor, FlipVer
                 //2
             }
+            #endregion
 
-            if (IntervalTime > Interval && AddMore == true)
+            #region Add particle
+            if (CurrentChange.Active == false)
             {
-                for (int i = 0; i < Burst; i++)
+                IntervalTime += (float)gameTime.ElapsedGameTime.TotalMilliseconds;
+
+                if (IntervalTime > Interval && AddMore == true)
                 {
-                    UpdateManager.AddParticle(
-                            Texture, Position, AngleRange, SpeedRange, ScaleRange, StartColor, EndColor,
-                            Gravity, Shrink, Fade, StartingRotationRange, RotationIncrementRange,
-                            Transparency, TimeRange, Grow, RotateVelocity, Friction, Orientation, FadeDelay,
-                            YRange, CanBounce, StopBounce, HardBounce, DrawDepth, Emissive, Lit,
-                            out gameData, out renderData);
+                    for (int i = 0; i < Burst; i++)
+                    {
+                        UpdateManager.AddParticle(
+                                Texture, Position, AngleRange, SpeedRange, ScaleRange, StartColor, EndColor,
+                                Gravity, Shrink, Fade, StartingRotationRange, RotationIncrementRange,
+                                Transparency, TimeRange, Grow, RotateVelocity, Friction, Orientation, FadeDelay,
+                                YRange, CanBounce, StopBounce, HardBounce, DrawDepth, Emissive, Lit,
+                                out gameData, out renderData);
 
-                    RenderManager.RenderDataObjects.Add(renderData);
-                    UpdateManager.ParticleDataObjects.Add(gameData);
+                        RenderManager.RenderDataObjects.Add(renderData);
+                        UpdateManager.ParticleDataObjects.Add(gameData);
+                    }
+
+                    IntervalTime = 0;
                 }
-
-                IntervalTime = 0;
             }
+            else
+            {
+                CurrentChange.Update(gameTime);
+
+                IntervalTime += (float)gameTime.ElapsedGameTime.TotalMilliseconds;
+
+                if (IntervalTime > CurrentChange.interval && AddMore == true)
+                {
+                    for (int i = 0; i < CurrentChange.burst; i++)
+                    {
+                        UpdateManager.AddParticle(
+                                Texture, Position, CurrentChange.angleRange, CurrentChange.speedRange, ScaleRange, 
+                                CurrentChange.startColor, CurrentChange.endColor,
+                                CurrentChange.gravity, CurrentChange.shrink, CurrentChange.fade,
+                                CurrentChange.startingRotation, CurrentChange.rotationIncrement,
+                                CurrentChange.startingTransparency, CurrentChange.timeRange, CurrentChange.grow,
+                                CurrentChange.rotateVelocity, CurrentChange.friction, Orientation, CurrentChange.fadeDelay,
+                                YRange, 
+                                CurrentChange.canBounce, CurrentChange.stopBounce, CurrentChange.hardBounce, 
+                                DrawDepth,
+                                CurrentChange.emissive, CurrentChange.lit,
+                                out gameData, out renderData);
+
+                        RenderManager.RenderDataObjects.Add(renderData);
+                        UpdateManager.ParticleDataObjects.Add(gameData);
+                    }
+
+                    IntervalTime = 0;
+                }
+            }
+            #endregion
         }
 
         private int RandomOrientation(params SpriteEffects[] Orientations)

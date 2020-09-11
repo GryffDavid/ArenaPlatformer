@@ -133,7 +133,8 @@ namespace ArenaPlatformer1
         public static Map Map;
         public static List<Item> ItemList;
         public static List<Trap> TrapList;
-
+        public static List<MovingPlatform> MovingPlatformList;
+        
         public Player(PlayerIndex playerIndex)
         {
             PlayerIndex = playerIndex;
@@ -269,7 +270,7 @@ namespace ArenaPlatformer1
                     Velocity.X = 0f;
                 }
 
-
+                #region Player is Moving horizontally
                 if (Velocity.X != 0)
                 {
                     if (InAir == false)
@@ -286,9 +287,11 @@ namespace ArenaPlatformer1
                         }
                     }
                 }
-                
+                #endregion
+
+                #region Player has stopped moving - Display Stand/Crouch animation
                 if (Velocity.X > -2f &&
-                    Velocity.X < 2f)                    
+                            Velocity.X < 2f)
                 {
                     switch (CurrentFacing)
                     {
@@ -307,7 +310,9 @@ namespace ArenaPlatformer1
                             break;
                     }
                 }
+                #endregion
 
+                #region Player is in the air
                 if (InAir == true)
                 {
                     switch (CurrentFacing)
@@ -320,9 +325,11 @@ namespace ArenaPlatformer1
                             CurrentAnimation = JumpRightAnimation;
                             break;
                     }
-                }
+                } 
+                #endregion
 
-                Position.X += Velocity.X * ((float)gameTime.ElapsedGameTime.TotalSeconds * 60f);
+                if (CheckRightCollisions() == false && CheckLeftCollisions() == false)
+                Position.X += (Velocity.X) * ((float)gameTime.ElapsedGameTime.TotalSeconds * 60f);
                 
                 #region Stop Moving
                 if (MoveStick.X == 0)
@@ -510,8 +517,9 @@ namespace ArenaPlatformer1
 
             //Collision rectangle standard size
             CollisionRectangle = new Rectangle(
-                (int)(Position.X - 30), (int)(Position.Y - 80),
-                (int)60, 80);
+                (int)(Position.X - 30), 
+                (int)(Position.Y - 80),
+                60, 80);
 
             PrevPosition = Position;
             PreviousPose = CurrentPose;
@@ -687,6 +695,6 @@ namespace ArenaPlatformer1
                 }
             }
             return false;
-        }
+        }        
     }
 }
