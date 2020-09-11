@@ -134,6 +134,8 @@ namespace ArenaPlatformer1
         public static List<Item> ItemList;
         public static List<Trap> TrapList;
         public static List<MovingPlatform> MovingPlatformList;
+
+        Vector2 PlatformSpeed;
         
         public Player(PlayerIndex playerIndex)
         {
@@ -258,11 +260,35 @@ namespace ArenaPlatformer1
                 }
                 #endregion
 
-                if (Velocity.X < 0)
-                    CheckLeftCollisions();
+                CheckDownCollisions2();
 
-                if (Velocity.X > 0)
+                //if (Velocity.X + PlatformSpeed.X < 0)
+                //{
+                    CheckLeftCollisions();
+                    CheckLeftCollisions2();
+                //}
+
+                //if (Velocity.X + PlatformSpeed.X > 0)
+                //{
                     CheckRightCollisions();
+                    CheckRightCollisions2();
+                //}
+
+                if ((CheckRightCollisions2() == true || CheckRightCollisions() == true) &&
+                    (CheckLeftCollisions2() == true || CheckLeftCollisions() == true))
+                {
+                    Health.X = 0;
+                }
+
+                //if ((CheckUpCollisions2() == true || CheckUpCollisions() == true) &&
+                //    (CheckDownCollisions2() == true || CheckDownCollisions() == true))
+                //{
+                //    Health.X = 0;
+                //}
+
+
+
+
 
                 if (Velocity.X <= 0.5f &&
                     Velocity.X >= -0.5f)
@@ -325,12 +351,11 @@ namespace ArenaPlatformer1
                             CurrentAnimation = JumpRightAnimation;
                             break;
                     }
-                } 
+                }
                 #endregion
-
-                if (CheckRightCollisions() == false && CheckLeftCollisions() == false)
-                Position.X += (Velocity.X) * ((float)gameTime.ElapsedGameTime.TotalSeconds * 60f);
                 
+                Position.X += (Velocity.X + PlatformSpeed.X) * ((float)gameTime.ElapsedGameTime.TotalSeconds * 60f);                
+
                 #region Stop Moving
                 if (MoveStick.X == 0)
                 {
@@ -455,7 +480,7 @@ namespace ArenaPlatformer1
                     }
                 });
 
-                if (CheckUpCollisions() == true)
+                if (CheckUpCollisions() == true || CheckUpCollisions2() == true)
                 {
                     Velocity.Y = 0;
                 }
@@ -614,7 +639,7 @@ namespace ArenaPlatformer1
                     if (tile.CollisionRectangle.Contains(
                         new Point(
                         (int)(CollisionRectangle.Left + i), 
-                        (int)(CollisionRectangle.Bottom + Velocity.Y + 1))))
+                        (int)(CollisionRectangle.Bottom + Velocity.Y + PlatformSpeed.Y + 1))))
                     {
                         if (tile.TileType == TileType.BouncePad)
                         {
@@ -631,6 +656,7 @@ namespace ArenaPlatformer1
                 }
             }
 
+            Gravity = 0.6f;
             return false;
         }
 
@@ -642,7 +668,7 @@ namespace ArenaPlatformer1
                 {
                     if (tile.CollisionRectangle.Contains(
                         new Point(
-                            (int)(CollisionRectangle.Right + Velocity.X),
+                            (int)(CollisionRectangle.Right + Velocity.X + PlatformSpeed.X),
                             (int)(CollisionRectangle.Top + i))))
                     {
                         Position.X -= (CollisionRectangle.Right - tile.CollisionRectangle.Left);
@@ -652,6 +678,7 @@ namespace ArenaPlatformer1
                 }
             }
 
+            Gravity = 0.6f;
             return false;
         }
 
@@ -663,7 +690,7 @@ namespace ArenaPlatformer1
                 {
                     if (tile.CollisionRectangle.Contains(
                         new Point(
-                            (int)(CollisionRectangle.Left + Velocity.X - 1),
+                            (int)(CollisionRectangle.Left + Velocity.X + PlatformSpeed.X - 1),
                             (int)(CollisionRectangle.Top + i))))
                     {
                         Position.X += (tile.CollisionRectangle.Right - CollisionRectangle.Left);
@@ -673,6 +700,7 @@ namespace ArenaPlatformer1
                 }
             }
 
+            Gravity = 0.6f;
             return false;
         }
 
@@ -686,7 +714,7 @@ namespace ArenaPlatformer1
                     if (tile.CollisionRectangle.Contains(
                         new Point(
                         (int)(CollisionRectangle.Left + i),
-                        (int)(CollisionRectangle.Top + Velocity.Y - 1))))
+                        (int)(CollisionRectangle.Top + Velocity.Y + PlatformSpeed.Y - 1))))
                     {
                             Position.Y += (tile.CollisionRectangle.Bottom - CollisionRectangle.Top);
                             Velocity.Y = 0;
@@ -694,7 +722,139 @@ namespace ArenaPlatformer1
                     }
                 }
             }
+
+            Gravity = 0.6f;
             return false;
-        }        
+        }
+
+
+        public bool CheckDownCollisions2()
+        {
+            foreach (MovingPlatform tile in MovingPlatformList)
+            {
+                for (int i = 0; i < CollisionRectangle.Width; i++)
+                {
+                    if (tile.CollisionRectangle.Contains(
+                        new Point(
+                        (int)(CollisionRectangle.Left + i),
+                        (int)(CollisionRectangle.Bottom + Velocity.Y + 1))))
+                    {
+                        //Position.Y += (tile.CollisionRectangle.Top - CollisionRectangle.Bottom);
+                        Position.Y = tile.CollisionRectangle.Top;
+
+                        Velocity.Y = 0f;
+                        InAir = false;
+                        DoubleJumped = false;
+
+                        if (CheckRightCollisions() == false &&
+                            CheckLeftCollisions() == false)
+                        {
+                            PlatformSpeed = tile.Speed;
+                            return true;
+                        }
+                        else
+                        {
+                            PlatformSpeed = Vector2.Zero;
+
+                            if (CheckRightCollisions() == true &&
+                                tile.Speed.X < 0)
+                            {
+                                PlatformSpeed = tile.Speed;
+                                return true;
+                            }
+
+                            if (CheckLeftCollisions() == true &&
+                                tile.Speed.X > 0)
+                            {
+                                PlatformSpeed = tile.Speed;
+                                return true;
+                            }
+                        }
+
+                        
+                        return true;
+                    }
+                }
+            }
+
+            Gravity = 0.6f;
+            PlatformSpeed = Vector2.Zero;
+            return false;
+        }
+
+        public bool CheckUpCollisions2()
+        {
+            foreach (MovingPlatform tile in MovingPlatformList)
+            {
+                for (int i = 0; i < CollisionRectangle.Width; i++)
+                {
+                    if (Velocity.Y < 0)
+                        if (tile.CollisionRectangle.Contains(
+                            new Point(
+                            (int)(CollisionRectangle.Left + i),
+                            (int)(CollisionRectangle.Top + Velocity.Y + PlatformSpeed.Y - 1))))
+                        {
+                            Position.Y += (tile.CollisionRectangle.Bottom - CollisionRectangle.Top);
+                            Velocity.Y = 0;
+                            return true;
+                        }
+                }
+            }
+
+            Gravity = 0.6f;
+            return false;
+        }
+
+        public bool CheckLeftCollisions2()
+        {
+            foreach (MovingPlatform tile in MovingPlatformList)
+            {
+                for (int i = 0; i < CollisionRectangle.Height; i++)
+                {
+                    if (tile.CollisionRectangle.Contains(
+                        new Point(
+                            (int)(CollisionRectangle.Left + Velocity.X + PlatformSpeed.X - 1),
+                            (int)(CollisionRectangle.Top + i))))
+                    {
+                        Position.X += (tile.CollisionRectangle.Right - CollisionRectangle.Left);
+                        Velocity.X = 0;
+
+                        if (tile.Speed.X > 0)
+                            PlatformSpeed.X = tile.Speed.X;
+                        return true;
+                    }
+                }
+            }
+
+            Gravity = 0.6f;
+            return false;
+        }
+
+        public bool CheckRightCollisions2()
+        {
+            foreach (MovingPlatform tile in MovingPlatformList)
+            {
+                for (int i = 0; i < CollisionRectangle.Height; i++)
+                {
+                    if (tile.CollisionRectangle.Contains(
+                        new Point(
+                            (int)(CollisionRectangle.Right + Velocity.X + PlatformSpeed.X),
+                            (int)(CollisionRectangle.Top + i))))
+                    {
+                        Position.X -= (CollisionRectangle.Right - tile.CollisionRectangle.Left);
+                        Velocity.X = 0;
+                        
+                        if (tile.Speed.X < 0)
+                            PlatformSpeed.X = tile.Speed.X;
+                        return true;
+                    }
+                }
+            }
+
+            Gravity = 0.6f;
+            return false;
+        }
+
+
     }
 }

@@ -385,8 +385,24 @@ namespace ArenaPlatformer1
             MovingPlatformList.Add(new MovingPlatform()
             {
                 Position = new Vector2(400, 400),
+                Size = new Vector2(100, 250),
+                Speed = new Vector2(2, 0),
+                Texture = Block
+            });
+
+            MovingPlatformList.Add(new MovingPlatform()
+            {
+                Position = new Vector2(400, 1080-70-32),
                 Size = new Vector2(100, 32),
                 Speed = new Vector2(2, 0),
+                Texture = Block
+            });
+
+            MovingPlatformList.Add(new MovingPlatform()
+            {
+                Position = new Vector2(800, 500),
+                Size = new Vector2(100, 32),
+                Speed = new Vector2(0, 2),
                 Texture = Block
             });
 
