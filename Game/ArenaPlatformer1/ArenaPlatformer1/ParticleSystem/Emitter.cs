@@ -40,6 +40,202 @@ namespace ArenaPlatformer1
 
         Rectangle CollisionRectangle;
 
+        private ChangeEmitter _changeEmitter;
+        public ChangeEmitter CurrentChange
+        {
+            get { return _changeEmitter; }
+            set
+            {
+                _changeEmitter.ChangeTime = value.ChangeTime;
+
+                #region Boolean Changes
+                ////Active
+                //if (value.Active == null)
+                //    _changeEmitter.Active = false;
+                //else
+                _changeEmitter.Active = value.Active;
+
+                //Shrink
+                if (value.shrink == null)
+                    _changeEmitter.shrink = Shrink;
+                else
+                    _changeEmitter.shrink = value.shrink.Value;
+
+                //Grow
+                if (value.grow == null)
+                    _changeEmitter.grow = Grow;
+                else
+                    _changeEmitter.grow = value.grow.Value;
+
+                //Fade
+                if (value.fade == null)
+                    _changeEmitter.fade = Fade;
+                else
+                    _changeEmitter.fade = value.fade.Value;
+
+                //Reduce Density
+                if (value.reduceDensity == null)
+                    _changeEmitter.reduceDensity = ReduceDensity;
+                else
+                    _changeEmitter.reduceDensity = value.reduceDensity.Value;
+
+                //Rotate Velocity
+                if (value.rotateVelocity == null)
+                    _changeEmitter.rotateVelocity = RotateVelocity;
+                else
+                    _changeEmitter.rotateVelocity = value.rotateVelocity.Value;
+
+                //Can Bounce
+                if (value.canBounce == null)
+                    _changeEmitter.canBounce = CanBounce;
+                else
+                    _changeEmitter.canBounce = value.canBounce.Value;
+
+                //Stop Bounce
+                if (value.stopBounce == null)
+                    _changeEmitter.stopBounce = StopBounce;
+                else
+                    _changeEmitter.stopBounce = value.stopBounce.Value;
+
+                //Hard Bounce
+                if (value.hardBounce == null)
+                    _changeEmitter.hardBounce = HardBounce;
+                else
+                    _changeEmitter.hardBounce = value.hardBounce.Value;
+
+                //Flip Vertically
+                if (value.flipVer == null)
+                    _changeEmitter.flipVer = FlipVer;
+                else
+                    _changeEmitter.flipVer = value.flipVer.Value;
+
+                //Flip Horizontally
+                if (value.flipHor == null)
+                    _changeEmitter.flipHor = FlipHor;
+                else
+                    _changeEmitter.flipHor = value.flipHor.Value;
+
+                //Emissive
+                if (value.emissive == null)
+                    _changeEmitter.emissive = Emissive;
+                else
+                    _changeEmitter.emissive = value.emissive.Value;
+
+                //Lit
+                if (value.lit == null)
+                    _changeEmitter.lit = Lit;
+                else
+                    _changeEmitter.lit = value.lit.Value;
+                #endregion
+
+                #region Vector2 Changes
+                //Angle Range
+                if (value.angleRange == null)
+                    _changeEmitter.angleRange = AngleRange;
+                else
+                    _changeEmitter.angleRange = value.speedRange.Value;
+
+                //Time Range
+                if (value.timeRange == null)
+                    _changeEmitter.timeRange = TimeRange;
+                else
+                    _changeEmitter.timeRange = value.timeRange.Value;
+
+                //Speed Range
+                if (value.speedRange == null)
+                    _changeEmitter.speedRange = SpeedRange;
+                else
+                    _changeEmitter.speedRange = value.speedRange.Value;
+
+                //Friction
+                if (value.friction == null)
+                    _changeEmitter.friction = Friction;
+                else
+                    _changeEmitter.friction = value.friction.Value;
+
+                //Scale Range
+                if (value.scaleRange == null)
+                    _changeEmitter.scaleRange = ScaleRange;
+                else
+                    _changeEmitter.scaleRange = value.scaleRange.Value;
+
+                //Rotation Increment
+                if (value.rotationIncrement == null)
+                    _changeEmitter.rotationIncrement = RotationIncrementRange;
+                else
+                    _changeEmitter.rotationIncrement = value.rotationIncrement.Value;
+
+                //Starting Rotation
+                if (value.startingRotation == null)
+                    _changeEmitter.startingRotation = StartingRotationRange;
+                else
+                    _changeEmitter.startingRotation = value.startingRotation.Value;
+
+                //YRange
+                if (value.yRange == null)
+                    _changeEmitter.yRange = YRange;
+                else
+                    _changeEmitter.yRange = value.yRange.Value;
+                #endregion
+
+                #region Float Changes
+                //Gravity
+                if (value.gravity == null)
+                    _changeEmitter.gravity = Gravity;
+                else
+                    _changeEmitter.gravity = value.gravity.Value;
+
+                //Starting Transparency
+                if (value.startingTransparency == null)
+                    _changeEmitter.startingTransparency = Transparency;
+                else
+                    _changeEmitter.startingTransparency = value.startingTransparency.Value;
+
+                //Fade Delay
+                if (value.fadeDelay == null)
+                    _changeEmitter.fadeDelay = FadeDelay;
+                else
+                    _changeEmitter.fadeDelay = value.fadeDelay.Value;
+
+                //Active Seconds
+                if (value.activeSeconds == null)
+                    _changeEmitter.activeSeconds = ActiveSeconds;
+                else
+                    _changeEmitter.activeSeconds = value.activeSeconds.Value;
+
+                //Interval
+                if (value.interval == null)
+                    _changeEmitter.interval = Interval;
+                else
+                    _changeEmitter.interval = value.interval.Value;
+                #endregion
+
+                //StartColor
+                if (value.startColor == null)
+                    _changeEmitter.startColor = StartColor;
+                else
+                    _changeEmitter.startColor = value.startColor.Value;
+
+                //EndColor
+                if (value.endColor == null)
+                    _changeEmitter.endColor = EndColor;
+                else
+                    _changeEmitter.endColor = value.endColor.Value;
+
+                //Burst
+                if (value.burst == null)
+                    _changeEmitter.burst = Burst;
+                else
+                    _changeEmitter.burst = value.burst.Value;
+
+                //DrawDepth
+                if (value.drawDepth == null)
+                    _changeEmitter.drawDepth = DrawDepth;
+                else
+                    _changeEmitter.drawDepth = value.drawDepth.Value;
+            }
+        }
+
         public struct ChangeEmitter
         {
             /// <summary>
@@ -47,16 +243,16 @@ namespace ArenaPlatformer1
             /// X = CurrentTime, Y = MaxTime
             /// </summary>
             public Vector2 ChangeTime;
-
-            public bool Active, shrink, grow, fade, reduceDensity, 
+            public bool Active;
+            public bool? shrink, grow, fade, reduceDensity, 
                         rotateVelocity, canBounce, stopBounce, 
                         hardBounce, flipVer, flipHor, emissive, lit;
-            public Vector2 angleRange, timeRange, speedRange, friction, 
-                           scaleRange, rotationIncrement, startingRotation;
-            public float gravity, startingTransparency, 
-                         fadeDelay, activeSeconds, interval;
-            public Color startColor, endColor;
-            public int burst;
+            public Vector2? angleRange, timeRange, speedRange, friction,
+                           scaleRange, rotationIncrement, startingRotation, yRange;
+            public float? gravity, startingTransparency,
+                         fadeDelay, activeSeconds, interval, drawDepth;
+            public Color? startColor, endColor;
+            public int? burst;
 
             public void Update(GameTime gameTime)
             {
@@ -68,9 +264,19 @@ namespace ArenaPlatformer1
                     ChangeTime.X = 0;
                 }
             }
+
+            public void Activate()
+            {
+                Active = true;
+            }
+
+            public void Deactivate()
+            {
+                Active = false;
+            }
         }
 
-        public ChangeEmitter CurrentChange;
+        
 
         public Emitter(Texture2D texture, Vector2 position, Vector2 angleRange, Vector2 speedRange, Vector2 timeRange,
                        float startingTransparency, bool fade, Vector2 startingRotationRange, Vector2 rotationIncrement, Vector2 scaleRange,
@@ -317,28 +523,7 @@ namespace ArenaPlatformer1
             }
             #endregion
 
-            #region Particle orientation
-            if (FlipHor == true && FlipVer == false)
-            {
-                Orientation = RandomOrientation(SpriteEffects.None, SpriteEffects.FlipHorizontally);
-                //Get back None or FlipHor
-                //0
-            }
-
-            if (FlipHor == false && FlipVer == true)
-            {
-                Orientation = RandomOrientation(SpriteEffects.None, SpriteEffects.FlipVertically);
-                //Get back None or FlipVer
-                //1
-            }
-
-            if (FlipHor == true && FlipVer == true)
-            {
-                Orientation = RandomOrientation(SpriteEffects.None, SpriteEffects.FlipVertically, SpriteEffects.FlipHorizontally);
-                //Get back None, FlipHor, FlipVer
-                //2
-            }
-            #endregion
+            
 
             #region Add particle
             if (CurrentChange.Active == false)
@@ -347,6 +532,29 @@ namespace ArenaPlatformer1
 
                 if (IntervalTime > Interval && AddMore == true)
                 {
+                    #region Particle orientation
+                    if (FlipHor == true && FlipVer == false)
+                    {
+                        Orientation = RandomOrientation(SpriteEffects.None, SpriteEffects.FlipHorizontally);
+                        //Get back None or FlipHor
+                        //0
+                    }
+
+                    if (FlipHor == false && FlipVer == true)
+                    {
+                        Orientation = RandomOrientation(SpriteEffects.None, SpriteEffects.FlipVertically);
+                        //Get back None or FlipVer
+                        //1
+                    }
+
+                    if (FlipHor == true && FlipVer == true)
+                    {
+                        Orientation = RandomOrientation(SpriteEffects.None, SpriteEffects.FlipVertically, SpriteEffects.FlipHorizontally);
+                        //Get back None, FlipHor, FlipVer
+                        //2
+                    }
+                    #endregion
+
                     for (int i = 0; i < Burst; i++)
                     {
                         UpdateManager.AddParticle(
@@ -365,25 +573,57 @@ namespace ArenaPlatformer1
             }
             else
             {
-                CurrentChange.Update(gameTime);
+                _changeEmitter.Update(gameTime);
 
                 IntervalTime += (float)gameTime.ElapsedGameTime.TotalMilliseconds;
 
                 if (IntervalTime > CurrentChange.interval && AddMore == true)
                 {
+                    #region Particle orientation
+                    if (CurrentChange.flipHor == true && CurrentChange.flipVer == false)
+                    {
+                        Orientation = RandomOrientation(SpriteEffects.None, SpriteEffects.FlipHorizontally);
+                    }
+
+                    if (CurrentChange.flipHor == false && CurrentChange.flipVer == true)
+                    {
+                        Orientation = RandomOrientation(SpriteEffects.None, SpriteEffects.FlipVertically);
+                    }
+
+                    if (CurrentChange.flipHor == true && CurrentChange.flipVer == true)
+                    {
+                        Orientation = RandomOrientation(SpriteEffects.None, SpriteEffects.FlipVertically, SpriteEffects.FlipHorizontally);
+                    }
+                    #endregion
+
                     for (int i = 0; i < CurrentChange.burst; i++)
                     {
                         UpdateManager.AddParticle(
-                                Texture, Position, CurrentChange.angleRange, CurrentChange.speedRange, ScaleRange, 
-                                CurrentChange.startColor, CurrentChange.endColor,
-                                CurrentChange.gravity, CurrentChange.shrink, CurrentChange.fade,
-                                CurrentChange.startingRotation, CurrentChange.rotationIncrement,
-                                CurrentChange.startingTransparency, CurrentChange.timeRange, CurrentChange.grow,
-                                CurrentChange.rotateVelocity, CurrentChange.friction, Orientation, CurrentChange.fadeDelay,
-                                YRange, 
-                                CurrentChange.canBounce, CurrentChange.stopBounce, CurrentChange.hardBounce, 
-                                DrawDepth,
-                                CurrentChange.emissive, CurrentChange.lit,
+                                Texture, Position, 
+                                CurrentChange.angleRange.Value, 
+                                CurrentChange.speedRange.Value, 
+                                CurrentChange.scaleRange.Value, 
+                                CurrentChange.startColor.Value, 
+                                CurrentChange.endColor.Value,
+                                CurrentChange.gravity.Value, 
+                                CurrentChange.shrink.Value, 
+                                CurrentChange.fade.Value,
+                                CurrentChange.startingRotation.Value, 
+                                CurrentChange.rotationIncrement.Value,
+                                CurrentChange.startingTransparency.Value, 
+                                CurrentChange.timeRange.Value, 
+                                CurrentChange.grow.Value,
+                                CurrentChange.rotateVelocity.Value, 
+                                CurrentChange.friction.Value, 
+                                Orientation, 
+                                CurrentChange.fadeDelay.Value,
+                                CurrentChange.yRange.Value, 
+                                CurrentChange.canBounce.Value, 
+                                CurrentChange.stopBounce.Value, 
+                                CurrentChange.hardBounce.Value, 
+                                CurrentChange.drawDepth.Value,
+                                CurrentChange.emissive.Value, 
+                                CurrentChange.lit.Value,
                                 out gameData, out renderData);
 
                         RenderManager.RenderDataObjects.Add(renderData);
@@ -488,6 +728,16 @@ namespace ArenaPlatformer1
                 }
             }
             return false;
+        }
+
+        public void ActivateChanges()
+        {
+            _changeEmitter.Activate();
+        }
+
+        public void DeactivateChanges()
+        {
+            _changeEmitter.Deactivate();
         }
     }
 }

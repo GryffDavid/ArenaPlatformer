@@ -418,7 +418,6 @@ namespace ArenaPlatformer1
             //        new Color(Color.OrangeRed.R, Color.OrangeRed.G, Color.OrangeRed.B, 20),
             //        0.03f, -2f, 60, 1, false, new Vector2(1080, 1080), false,
             //        null, true, true, new Vector2(0, 0), new Vector2(0, 0), 0, true, new Vector2(0, 0), true, true, 2000, null, null, false);
-
             //EmitterList.Add(newEmitter4);
 
             //Emitter newEmitter5 = new Emitter(ParticleTexture, new Vector2(800, 200), new Vector2(-40, 40), new Vector2(6, 10),
@@ -427,8 +426,8 @@ namespace ArenaPlatformer1
             //        new Color(Color.OrangeRed.R, Color.OrangeRed.G, Color.OrangeRed.B, 5),
             //        -0.008f, -2f, 150, 2, false, new Vector2(1080, 1080), true,
             //        null, true, true, new Vector2(0, 0), new Vector2(0, 0), 0, true, new Vector2(0, 0), true, true, 1500, null, null, false);
-
             //EmitterList.Add(newEmitter5);
+
 
             Emitter emitter = new Emitter(ParticleTexture, new Vector2(70, 1080 / 2),
                     new Vector2(0, 360), new Vector2(0, 0.5f),
@@ -438,19 +437,17 @@ namespace ArenaPlatformer1
                     -0.0f, -1f, 15, 10, true, new Vector2(1080 - 64, 1080 - 64),
                     false, 0, true, true, null, null, 0.0f,
                     false, new Vector2(0.05f, 0.08f), null, null, null, true, null, null, true, false);
+
             emitter.CurrentChange = new Emitter.ChangeEmitter()
             {
-                Active = true,
-                angleRange = new Vector2(0, 180),
-                ChangeTime = new Vector2(0, 1500),
-                speedRange = new Vector2(0, 1),
-                startColor = Color.Red,
-                endColor = Color.Orange,
-                gravity = 0.2f,
-                timeRange = new Vector2(250, 500)
+                Active = false,
+                ChangeTime = new Vector2(0, 3000),
+                startColor = Color.DeepSkyBlue,
+                endColor = Color.Blue
             };
 
             EmitterList.Add(emitter);
+
 
             Emitter emitter2 = new Emitter(ParticleTexture, new Vector2(70, 1080/2),
                     new Vector2(0, 360), new Vector2(0, 0.5f),
@@ -460,6 +457,14 @@ namespace ArenaPlatformer1
                     0.0f, -1f, 15, 10, true, new Vector2(1080 - 64, 1080 - 64),
                     false, 0, true, true, null, null, 0.0f,
                     false, new Vector2(0.05f, 0.08f), null, null, null, true, null, null, true, false);
+
+            emitter2.CurrentChange = new Emitter.ChangeEmitter()
+            {
+                Active = false,
+                ChangeTime = new Vector2(0, 1500),
+                startColor = Color.Red,
+                endColor = Color.OrangeRed
+            };
 
             EmitterList.Add(emitter2);
 
@@ -849,7 +854,7 @@ namespace ArenaPlatformer1
                             TileBoxes = !TileBoxes;
                         }
                         #endregion
-
+                        
                         foreach (Player player in Players.Where(Player => Player != null))
                         {
                             player.Update(gameTime);
