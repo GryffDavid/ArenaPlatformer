@@ -129,7 +129,15 @@ namespace ArenaPlatformer1
         RenderManager RenderManager;
         UpdateManager UpdateManager;
 
+
+        //These emitters are drawn with an emissive effect applied
         List<Emitter> EmitterList = new List<Emitter>();
+
+        //These emitters are not affected by lighting conditions
+        List<Emitter> EmissiveEmitterList = new List<Emitter>();
+        
+        //Emitters that need to have lighting effects applied
+        List<Emitter> LitEmitterList = new List<Emitter>();
         #endregion
 
         Texture2D Texture, NormalTexture, ParticleTexture;
@@ -219,10 +227,23 @@ namespace ArenaPlatformer1
 
         public void OnPlayerDied(object source, PlayerDiedEventArgs e)
         {
+            for (int i = 0; i < 15; i++)
+            {
+                Emitter emitter = new Emitter(SplodgeParticle, e.Player.Position - new Vector2(0, e.Player.DestinationRectangle.Height),
+                    new Vector2(0, 360), new Vector2(1, 3),
+                    new Vector2(250, 500), 1, false, new Vector2(0, 360), new Vector2(-3, 3), new Vector2(0.025f, 0.1f),
+                    Color.Maroon, Color.DarkRed, 0.01f, 1f, 15, 2, true, new Vector2(1080 - 64, 1080), true, 0, true,
+                    true, new Vector2(2, 4), new Vector2(0, 360), 0.1f, true, null, null, null, null, true);
+
+                LitEmitterList.Add(emitter);
+            }
+
             e.Player.Position = new Vector2(100, 100 + 64);
             e.Player.Health.X = 100;
             e.Player.GunAmmo = 50;
             e.Player.Velocity = new Vector2(0, 0);
+
+            
         }
 
         public void OnExplosionHappened(object source, ExplosionEventArgs e)
@@ -794,7 +815,8 @@ namespace ArenaPlatformer1
                                     {
                                         Emissive = true
                                     };
-                                    EmitterList.Add(emitter);
+
+                                    EmissiveEmitterList.Add(emitter);
                                 }
 
                                 projectile.Active = false;
@@ -807,6 +829,16 @@ namespace ArenaPlatformer1
                         //EmitterList[1].Position = new Vector2(Random.Next(-200, -50), Random.Next(1080 / 2, 1080));
 
                         foreach (Emitter emitter in EmitterList)
+                        {
+                            emitter.Update(gameTime);
+                        }
+
+                        foreach (Emitter emitter in EmissiveEmitterList)
+                        {
+                            emitter.Update(gameTime);
+                        }
+
+                        foreach (Emitter emitter in LitEmitterList)
                         {
                             emitter.Update(gameTime);
                         }
@@ -872,7 +904,13 @@ namespace ArenaPlatformer1
                         GraphicsDevice.SetRenderTarget(EmissiveMap);
                         GraphicsDevice.Clear(Color.Transparent);
                         spriteBatch.Begin();
-                        RenderManager.DrawEmissive(spriteBatch);
+                        //RenderManager.DrawEmissive(spriteBatch);
+
+                        foreach (Emitter emitter in EmissiveEmitterList)
+                        {
+                            RenderManager.Draw(spriteBatch, emitter.ID);
+                        }
+
                         foreach (Projectile projectile in ProjectileList)
                         {
                             projectile.Draw(spriteBatch);
@@ -932,8 +970,14 @@ namespace ArenaPlatformer1
                         {
                             grenade.Draw(spriteBatch);
                         }
-                        
-                        RenderManager.Draw(spriteBatch);
+
+                        //RenderManager.Draw(spriteBatch);
+
+                        foreach (Emitter emitter in LitEmitterList)
+                        {
+                            RenderManager.Draw(spriteBatch, emitter.ID);
+                        }
+
                         spriteBatch.Draw(EmissiveMap, EmissiveMap.Bounds, Color.White);
                         spriteBatch.End();
                         #endregion
@@ -942,7 +986,7 @@ namespace ArenaPlatformer1
                         GraphicsDevice.SetRenderTarget(NormalMap);
                         GraphicsDevice.Clear(new Color(127, 127, 255));
                         spriteBatch.Begin();
-                        spriteBatch.Draw(NormalTexture, new Rectangle(0, 0, 1920, 1080), Color.White);
+                        //spriteBatch.Draw(NormalTexture, new Rectangle(0, 0, 1920, 1080), Color.White);
                         CurrentMap.Draw(spriteBatch);
                         spriteBatch.End();
                         #endregion
@@ -1016,13 +1060,19 @@ namespace ArenaPlatformer1
                         #endregion
                         spriteBatch.End();
 
-                        spriteBatch.Begin();
-                        spriteBatch.Draw(EmissiveMap, ColorMap.Bounds, Color.White);
-                        spriteBatch.Draw(BlurMap, BlurMap.Bounds, Color.White);
+                        spriteBatch.Begin(SpriteSortMode.BackToFront, BlendState.AlphaBlend);
+                        spriteBatch.Draw(EmissiveMap, ColorMap.Bounds, null, Color.White, 0, Vector2.Zero, SpriteEffects.None, 0.99f);
+                        spriteBatch.Draw(BlurMap, BlurMap.Bounds, null, Color.White, 0, Vector2.Zero, SpriteEffects.None, 0.99f);
                         foreach (Solid solid in SolidList)
                         {
                             solid.Draw(spriteBatch, Color.Black);
                         }
+
+                        foreach (Emitter emitter in EmitterList)
+                        {
+                            RenderManager.Draw(spriteBatch, emitter.ID);
+                        }
+                        //RenderManager.Draw(spriteBatch);
                         spriteBatch.End();
                         #endregion
 

@@ -130,7 +130,7 @@ namespace ArenaPlatformer1
             Color startColor, Color endColor, float gravity, bool shrink, bool fade, Vector2 startingRotation,
             Vector2 rotationIncrement, float startingTransparency, Vector2 timeRange, bool grow, bool rotateVelocity,
             Vector2 friction, int orientation, float fadeDelay, Vector2 yRange, bool canBounce, bool stopBounce, bool hardBounce,
-            bool emissive, float drawDepth,
+            bool emissive, float drawDepth, float sourceID,
             out ParticleData gameData, out RenderData renderData)
         {
             float myAngle, mySpeed, myScale, myRotation, myIncrement, myTime, myBounceY;
@@ -139,8 +139,8 @@ namespace ArenaPlatformer1
             mySpeed = (float)DoubleRange(speedRange.X, speedRange.Y);
             myAngle = -MathHelper.ToRadians((float)DoubleRange(angleRange.X, angleRange.Y));
             myScale = (float)DoubleRange(scaleRange.X, scaleRange.Y);
-            myRotation = (float)DoubleRange(startingRotation.X, startingRotation.Y);
-            myIncrement = (float)DoubleRange(rotationIncrement.X, rotationIncrement.Y);
+            myRotation = MathHelper.ToRadians((float)DoubleRange(startingRotation.X, startingRotation.Y));
+            myIncrement = MathHelper.ToRadians((float)DoubleRange(rotationIncrement.X, rotationIncrement.Y));
             myTime = (float)DoubleRange(timeRange.X, timeRange.Y);
             myBounceY = (float)DoubleRange(yRange.X, yRange.Y);
 
@@ -179,7 +179,8 @@ namespace ArenaPlatformer1
                 StopBounce = stopBounce,
                 HasBounced = false,
 
-                Emissive = emissive
+                Emissive = emissive,
+                SourceID = sourceID
             };
 
             if (grow == true)
@@ -195,7 +196,8 @@ namespace ArenaPlatformer1
                 Transparency = startingTransparency,
                 Orientation = orientation,
                 Emissive = emissive,
-                DrawDepth = drawDepth
+                DrawDepth = drawDepth,
+                SourceID = sourceID
             };
         }
 

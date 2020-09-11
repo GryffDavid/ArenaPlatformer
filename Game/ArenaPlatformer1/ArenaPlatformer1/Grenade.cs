@@ -56,7 +56,7 @@ namespace ArenaPlatformer1
             Velocity.Y += 0.6f;
 
             DestinationRectangle = new Rectangle((int)Position.X, (int)Position.Y, GrenadeTexture.Width, GrenadeTexture.Height);
-            CollisionRectangle = new Rectangle((int)Position.X, (int)Position.Y, GrenadeTexture.Width, GrenadeTexture.Height);
+            CollisionRectangle = new Rectangle((int)(Position.X - GrenadeTexture.Width/2), (int)(Position.Y - GrenadeTexture.Height/2), GrenadeTexture.Width, GrenadeTexture.Height);
 
             if (Math.Abs(Velocity.X) >= 1 || Math.Abs(Velocity.Y) >= 1)
             {

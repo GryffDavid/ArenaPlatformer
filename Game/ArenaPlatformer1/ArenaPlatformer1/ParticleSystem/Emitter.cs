@@ -4,11 +4,15 @@ using System.Linq;
 using System.Text;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using System.Runtime.Serialization;
 
 namespace ArenaPlatformer1
 {
     class Emitter
     {
+        public float ID;
+        public static ObjectIDGenerator ObjectIDGen = new ObjectIDGenerator();
+
         static Random Random = new Random();
         public static Map Map;
 
@@ -48,6 +52,8 @@ namespace ArenaPlatformer1
                        Vector2? friction = null, bool? flipHor = null, bool? flipVer = null, float? fadeDelay = null, bool? reduceDensity = null,
                        bool? sortParticles = null, bool? grow = false, Vector4? thirdColor = null, bool? emissive = false)
         {
+            bool firstTime;
+            ID = ObjectIDGen.GetId(this, out firstTime);
             Active = true;
             Texture = texture;
             SpeedRange = speedRange;
@@ -184,6 +190,16 @@ namespace ArenaPlatformer1
                 }
             }
 
+            if (ReduceDensity == true)
+            {
+                //After halftime, begin reducing the density from 100% down to 0% as the time continues to expire                    
+                //Interval = MathHelper.Lerp((float)Interval, (float)(Interval * 5), 0.0001f);
+                float PercentageThrough = ((float)CurrentTime / (ActiveSeconds * 1000)) * 100;
+
+                if (PercentageThrough >= 50)
+                    Interval = StartingInterval + (Interval / 100 * PercentageThrough);
+            }
+
 
             if (EmitterSpeed != 0)
             {
@@ -288,7 +304,7 @@ namespace ArenaPlatformer1
                             Texture, Position, AngleRange, SpeedRange, ScaleRange, StartColor, EndColor,
                             Gravity, Shrink, Fade, StartingRotationRange, RotationIncrementRange,
                             Transparency, TimeRange, Grow, RotateVelocity, Friction, Orientation, FadeDelay,
-                            YRange, CanBounce, StopBounce, HardBounce, Emissive, DrawDepth,
+                            YRange, CanBounce, StopBounce, HardBounce, Emissive, DrawDepth, ID,
                             out gameData, out renderData);
 
                     RenderManager.RenderDataObjects.Add(renderData);

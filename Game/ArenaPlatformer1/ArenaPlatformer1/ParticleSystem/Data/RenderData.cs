@@ -21,5 +21,6 @@ namespace ArenaPlatformer1
         public int Orientation;
 
         public bool Emissive;
+        public float SourceID;
     }
 }

@@ -19,6 +19,8 @@ namespace ArenaPlatformer1
             CurrentScale, MaxScale,
             Gravity, StartingTransparency,
             BounceY;
+
+        public float SourceID;
         public bool Active, Shrink, Grow, Fade, RotateVelocity, CanBounce, StopBounce, HardBounce, HasBounced, Emissive;
 
         public void Update(GameTime gameTime)
