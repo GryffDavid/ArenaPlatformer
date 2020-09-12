@@ -212,8 +212,8 @@ namespace ArenaPlatformer1
 
             CurrentAnimation = StandRightAnimation;
 
-            DestinationRectangle = new Rectangle((int)Position.X, (int)Position.Y, Texture.Width, Texture.Height);
-            CollisionRectangle = new Rectangle((int)(Position.X - 30), (int)(Position.Y - 90 + Velocity.Y), 60, 90);
+            //DestinationRectangle = new Rectangle((int)Position.X, (int)Position.Y, Texture.Width, Texture.Height);
+            //CollisionRectangle = new Rectangle((int)(Position.X - 30), (int)(Position.Y - 90 + Velocity.Y), 60, 90);
         }
 
         public void Update(GameTime gameTime)
@@ -226,7 +226,7 @@ namespace ArenaPlatformer1
             MoveStick = Sticks.Left;
             AimStick = Sticks.Right;
 
-            Velocity.Y += Gravity;
+            Velocity.Y += Gravity * ((float)gameTime.ElapsedGameTime.TotalSeconds * 60f);
 
             bool leftCol, rightCol;
             Vector2 lPos, rPos;
@@ -252,7 +252,7 @@ namespace ArenaPlatformer1
                 }
             }
 
-            if (Velocity.Y > 0)
+            if (Velocity.Y >= 0)
             {
                 if (OnGround(Velocity, Position, out float groundY) == true)
                 {
@@ -266,20 +266,21 @@ namespace ArenaPlatformer1
                 }
             }
 
-            if (Velocity.Y < 0)
+            if (Velocity.Y <= 0)
             {
                 if (OnCeiling(Velocity, Position, out float cPos))
                 {
                     Velocity.Y = 0;
-                    Position.Y = cPos + 64 + CollisionRectangle.Height;
+                    Position.Y = cPos + 64 + CollisionRectangle.Height + 1;
                 }
             }
 
             if (InAir == false &&
                 CurrentGamePadState.IsButtonDown(JumpButton) &&
-                PreviousGamePadState.IsButtonUp(JumpButton))
+                PreviousGamePadState.IsButtonUp(JumpButton) &&
+                Velocity.Y >= 0)
             {
-                Velocity.Y -= 15f;
+                Velocity.Y -= 25f;
             }
 
             //Handle horizontal control+movement
@@ -335,23 +336,77 @@ namespace ArenaPlatformer1
             //}
             #endregion
 
-            //Handle Collisions            
+            if (Velocity.X != 0)
+            {
+                if (InAir == false)
+                {
+                    switch (CurrentFacing)
+                    {
+                        case Facing.Left:
+                            CurrentAnimation = RunLeftAnimation;
+                            break;
+
+                        case Facing.Right:
+                            CurrentAnimation = RunRightAnimation;
+                            break;
+                    }
+                }
+            }
+
+            #region Player has stopped moving - Display Stand/Crouch animation
+            if (Velocity.X > -2f &&
+                Velocity.X < 2f)
+            {
+                switch (CurrentFacing)
+                {
+                    case Facing.Left:
+                        if (CurrentPose == Pose.Standing)
+                            CurrentAnimation = StandLeftAnimation;
+                        else
+                            CurrentAnimation = CrouchLeftAnimation;
+                        break;
+
+                    case Facing.Right:
+                        if (CurrentPose == Pose.Standing)
+                            CurrentAnimation = StandRightAnimation;
+                        else
+                            CurrentAnimation = CrouchRightAnimation;
+                        break;
+                }
+            }
+            #endregion
+
+
+            //Handle Collisions 
 
             Position.Y += Velocity.Y * ((float)gameTime.ElapsedGameTime.TotalSeconds * 60f);
 
             if ((leftCol == false && Velocity.X < 0) ||
                 (rightCol == false && Velocity.X > 0))
-                    Position.X += Velocity.X * ((float)gameTime.ElapsedGameTime.TotalSeconds * 60f);
-            
+            {
+                Position.X += Velocity.X * ((float)gameTime.ElapsedGameTime.TotalSeconds * 60f);
+            }
+
+            if (Velocity.X <= 0.5f &&
+                Velocity.X >= -0.5f)
+            {
+                Velocity.X = 0f;
+            }
+
+       
+            DestinationRectangle = new Rectangle((int)(Position.X - CurrentAnimation.FrameSize.X/2), 
+                                                 (int)(Position.Y - CurrentAnimation.FrameSize.Y + 1), 
+                                                 (int)CurrentAnimation.FrameSize.X, 
+                                                 (int)CurrentAnimation.FrameSize.Y);
+
+            CollisionRectangle = new Rectangle((int)(Position.X - 30), (int)(Position.Y - 90), 60, 90);
 
             if (CurrentAnimation != null)
             {
                 CurrentAnimation.Position = Position;
-                CurrentAnimation.Update(gameTime);
+                CurrentAnimation.Update(gameTime, DestinationRectangle);
             }
 
-            DestinationRectangle = new Rectangle((int)Position.X, (int)Position.Y, Texture.Width, Texture.Height);
-            CollisionRectangle = new Rectangle((int)(Position.X - 30), (int)(Position.Y - 90), 60, 90);
 
             PrevPosition = Position;
             PreviousPose = CurrentPose;
@@ -460,7 +515,7 @@ namespace ArenaPlatformer1
 
                 if (Map.IsObstacle(tileIndexX, tileIndexY))
                 {
-                    Map.DrawTiles[tileIndexX, tileIndexY].Color = Color.Red;
+                    //Map.DrawTiles[tileIndexX, tileIndexY].Color = Color.Red;
                     tPos = Map.DrawTiles[tileIndexX, tileIndexY].Position;
                     return true;
                 }
@@ -494,7 +549,7 @@ namespace ArenaPlatformer1
 
                 if (Map.IsObstacle(tileIndexX, tileIndexY))
                 {
-                    Map.DrawTiles[tileIndexX, tileIndexY].Color = Color.Red;
+                    //Map.DrawTiles[tileIndexX, tileIndexY].Color = Color.Yellow;
                     tPos = Map.DrawTiles[tileIndexX, tileIndexY].Position;
                     return true;
                 }
