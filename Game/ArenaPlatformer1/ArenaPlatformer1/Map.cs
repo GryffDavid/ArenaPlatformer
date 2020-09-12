@@ -131,6 +131,24 @@ namespace ArenaPlatformer1
             return Tiles[x, y];
         }
 
+        public bool IsObstacle(int x, int y)
+        {
+            if (x < 0 || x >= MapSize.X || y < 0 || y >= MapSize.Y)
+                return true;
+
+            return (Tiles[x, y] == TileType.Solid);
+        }
+
+        //The player can stand on these types of blocks.
+        //Need to consider that standing on a one-way platform is still "ground"
+        public bool IsGround(int x, int y)
+        {
+            if (x < 0 || x >= MapSize.X || y < 0 || y >= MapSize.Y)
+                return true;
+
+            return (Tiles[x, y] == TileType.Solid);
+        }
+
         public bool IsEmpty(int x, int y)
         {
             if (x < 0 || x >= MapSize.X || y < 0 || y >= MapSize.Y)
@@ -138,24 +156,39 @@ namespace ArenaPlatformer1
 
             return (Tiles[x, y] == TileType.Empty);
         }
-
-        public int GetMapTileXAtPoint(float x)
-        {
-            return (int)(x / (float)(TileSize.X));
-        }
-
-        public int GetMapTileYAtPoint(float y)
-        {
-            return (int)(y / (float)(TileSize.Y));
-        }
-
-        public Vector2 GetMapTilePosition(int tileIndexX, int tileIndexY)
+        
+        /// <summary>
+        /// The the top left corner position of the tile at index x,y
+        /// </summary>
+        /// <param name="tileIndexX"></param>
+        /// <param name="tileIndexY"></param>
+        /// <returns></returns>
+        public Vector2 GetTilePosition(int tileIndexX, int tileIndexY)
         {
             return new Vector2(
                     (float)(tileIndexX * TileSize.X),
                     (float)(tileIndexY * TileSize.Y)
                 );
         }
-
+        
+        /// <summary>
+        /// Get the x index of a tile at xPos
+        /// </summary>
+        /// <param name="xPos"></param>
+        /// <returns></returns>
+        public int GetMapTileXAtPoint(int xPos)
+        {
+            return (int)(xPos / TileSize.X);
+        }
+        
+        /// <summary>
+        /// Get the y index of a tile at yPos
+        /// </summary>
+        /// <param name="yPos"></param>
+        /// <returns></returns>
+        public int GetMapTileYAtPoint(int yPos)
+        {
+            return (int)(yPos / TileSize.Y);
+        }
     }
 }

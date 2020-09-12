@@ -1087,7 +1087,7 @@ namespace ArenaPlatformer1
             spriteBatch.Begin();
 
             spriteBatch.DrawString(Font1, CurrentMap.GetTile((int)Mouse.GetState().X/64, (int)Mouse.GetState().Y/64).ToString(), Vector2.Zero, Color.Yellow);
-            spriteBatch.DrawString(Font1, CurrentMap.GetMapTilePosition((int)Mouse.GetState().X / 64, (int)Mouse.GetState().Y / 64).ToString(), new Vector2(0, 32), Color.Yellow);
+            spriteBatch.DrawString(Font1, CurrentMap.GetTilePosition((int)Mouse.GetState().X / 64, (int)Mouse.GetState().Y / 64).ToString(), new Vector2(0, 32), Color.Yellow);
 
             if (DrawDiagnostics == true)
             {
