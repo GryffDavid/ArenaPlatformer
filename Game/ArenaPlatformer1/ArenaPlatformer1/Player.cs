@@ -226,24 +226,29 @@ namespace ArenaPlatformer1
             MoveStick = Sticks.Left;
             AimStick = Sticks.Right;
 
-
             Velocity.Y += Gravity;
+
+            bool leftCol, rightCol;
+            Vector2 lPos, rPos;
+
+            leftCol = CheckLeft(out lPos);
+            rightCol = CheckRight(out rPos);
 
             if (Velocity.X < 0)
             {
-                if (CheckLeft(out Vector2 tPos) == true)
+                if (leftCol == true)
                 {
                     Velocity.X = 0;
-                    Position.X = tPos.X + 64 + CollisionRectangle.Width / 2 + 1;
+                    Position.X = lPos.X + 64 + (CollisionRectangle.Width / 2) + 1;
                 }
             }
 
             if (Velocity.X > 0)
             {
-                if (CheckRight(out Vector2 tPos) == true)
+                if (rightCol == true)
                 {
                     Velocity.X = 0;
-                    Position.X = tPos.X - CollisionRectangle.Width / 2 - 1;
+                    Position.X = rPos.X - (CollisionRectangle.Width / 2) - 1;
                 }
             }
 
@@ -253,7 +258,7 @@ namespace ArenaPlatformer1
                 {
                     InAir = false;
                     Velocity.Y = 0;
-                    Position.Y = groundY-1;
+                    Position.Y = groundY - 1;
                 }
                 else
                 {
@@ -266,7 +271,7 @@ namespace ArenaPlatformer1
                 if (OnCeiling(Velocity, Position, out float cPos))
                 {
                     Velocity.Y = 0;
-                    Position.Y = cPos + 64 + CollisionRectangle.Height + 12;
+                    Position.Y = cPos + 64 + CollisionRectangle.Height;
                 }
             }
 
@@ -278,7 +283,7 @@ namespace ArenaPlatformer1
             }
 
             //Handle horizontal control+movement
-                #region Move stick left
+            #region Move stick left
             if (MoveStick.X < 0f)
             {
                 AimDirection.X = -1f;
@@ -330,10 +335,14 @@ namespace ArenaPlatformer1
             //}
             #endregion
 
-            //Handle Collisions
-            
+            //Handle Collisions            
 
-            Position += Velocity * ((float)gameTime.ElapsedGameTime.TotalSeconds * 60f);
+            Position.Y += Velocity.Y * ((float)gameTime.ElapsedGameTime.TotalSeconds * 60f);
+
+            if ((leftCol == false && Velocity.X < 0) ||
+                (rightCol == false && Velocity.X > 0))
+                    Position.X += Velocity.X * ((float)gameTime.ElapsedGameTime.TotalSeconds * 60f);
+            
 
             if (CurrentAnimation != null)
             {
@@ -431,8 +440,13 @@ namespace ArenaPlatformer1
 
         public bool CheckLeft(out Vector2 tPos)
         {
-            Vector2 bottomLeft = new Vector2(Position.X - CollisionRectangle.Width/ 2 + Velocity.X, Position.Y - 1 + Velocity.X);
-            Vector2 topLeft = new Vector2(Position.X - CollisionRectangle.Width / 2 + Velocity.X, Position.Y - CollisionRectangle.Height + Velocity.X);
+            Vector2 bottomLeft = new Vector2(
+                Position.X - (CollisionRectangle.Width / 2) + Velocity.X - 1,
+                Position.Y);
+
+            Vector2 topLeft = new Vector2(
+                Position.X - (CollisionRectangle.Width / 2) + Velocity.X - 1, 
+                Position.Y - CollisionRectangle.Height);
 
             int tileIndexX, tileIndexY;
             tPos = Vector2.Zero;
@@ -460,8 +474,13 @@ namespace ArenaPlatformer1
 
         public bool CheckRight(out Vector2 tPos)
         {
-            Vector2 bottomRight = new Vector2(Position.X + CollisionRectangle.Width / 2 + Velocity.X, Position.Y + 1 - 2);
-            Vector2 topRight = new Vector2(Position.X + CollisionRectangle.Width / 2 + Velocity.X, Position.Y - CollisionRectangle.Height - 2);
+            Vector2 bottomRight = new Vector2(
+                Position.X + (CollisionRectangle.Width / 2) + Velocity.X + 1, 
+                Position.Y);
+
+            Vector2 topRight = new Vector2(
+                Position.X + (CollisionRectangle.Width / 2) + Velocity.X + 1, 
+                Position.Y - CollisionRectangle.Height);
 
             int tileIndexX, tileIndexY;
             tPos = Vector2.Zero;
@@ -489,14 +508,18 @@ namespace ArenaPlatformer1
 
         public bool OnGround(Vector2 velocity, Vector2 position, out float groundY)
         {
-            Vector2 bottomLeft = new Vector2(Position.X - CollisionRectangle.Width / 2, Position.Y + 1 + Velocity.Y);
-            Vector2 bottomRight = new Vector2(Position.X + CollisionRectangle.Width / 2, Position.Y + 1 + Velocity.Y);
+            Vector2 bottomLeft = new Vector2(
+                Position.X - (CollisionRectangle.Width / 2), 
+                Position.Y + Velocity.Y + 1);
+
+            Vector2 bottomRight = new Vector2(
+                Position.X + (CollisionRectangle.Width / 2), 
+                Position.Y + Velocity.Y + 1);
 
             int tileIndexX, tileIndexY;
 
             for (var checkedTile = bottomLeft; ; checkedTile.X += Map.TileSize.X)
             {
-                //Make sure we aren't checking beyond the X bounds of the collision rectangle
                 checkedTile.X = Math.Min(checkedTile.X, bottomRight.X);
 
                 tileIndexX = Map.GetMapTileXAtPoint((int)checkedTile.X);
@@ -516,14 +539,18 @@ namespace ArenaPlatformer1
 
         public bool OnCeiling(Vector2 velocity, Vector2 position, out float tPos)
         {
-            Vector2 topLeft = new Vector2(CollisionRectangle.Left, CollisionRectangle.Top - 1 + Velocity.Y);
-            Vector2 topRight = new Vector2(CollisionRectangle.Right, CollisionRectangle.Top - 1 + Velocity.Y);
+            Vector2 topLeft = new Vector2(
+                Position.X - (CollisionRectangle.Width / 2), 
+                Position.Y - CollisionRectangle.Height + Velocity.Y - 1);
+
+            Vector2 topRight = new Vector2(
+                Position.X + (CollisionRectangle.Width / 2),
+                Position.Y - CollisionRectangle.Height + Velocity.Y - 1);
 
             int tileIndexX, tileIndexY;
 
             for (var checkedTile = topLeft; ; checkedTile.X += Map.TileSize.X)
             {
-                //Make sure we aren't checking beyond the X bounds of the collision rectangle
                 checkedTile.X = Math.Min(checkedTile.X, topRight.X);
 
                 tileIndexX = Map.GetMapTileXAtPoint((int)checkedTile.X);
