@@ -50,9 +50,9 @@ namespace ArenaPlatformer1
                 Tiles[x, (int)MapSize.Y - 1] = TileType.Solid;
             }
 
-            for (int y = 0; y < MapSize.Y; y++)
+            //for (int y = 6; y < MapSize.Y; y++)
             {
-                Tiles[0, y] = TileType.Solid;
+                Tiles[0, 6] = TileType.Solid;
             }
 
             for (int y = 0; y < MapSize.Y; y++)
@@ -101,8 +101,9 @@ namespace ArenaPlatformer1
                             Size = TileSize,
                             Position = new Vector2(x * TileSize.X, y * TileSize.Y)
                         };
+                        drawTile.Index = new Vector2(x, y);
                         drawTile.LoadContent(content);
-
+                        
                         DrawTiles[x, y] = drawTile;
                     }
                 }

@@ -229,8 +229,56 @@ namespace ArenaPlatformer1
 
             Velocity.Y += Gravity;
 
+            if (Velocity.X < 0)
+            {
+                if (CheckLeft(out Vector2 tPos) == true)
+                {
+                    Velocity.X = 0;
+                    Position.X = tPos.X + 64 + CollisionRectangle.Width / 2 + 1;
+                }
+            }
+
+            if (Velocity.X > 0)
+            {
+                if (CheckRight(out Vector2 tPos) == true)
+                {
+                    Velocity.X = 0;
+                    Position.X = tPos.X - CollisionRectangle.Width / 2 - 1;
+                }
+            }
+
+            if (Velocity.Y > 0)
+            {
+                if (OnGround(Velocity, Position, out float groundY) == true)
+                {
+                    InAir = false;
+                    Velocity.Y = 0;
+                    Position.Y = groundY-1;
+                }
+                else
+                {
+                    InAir = true;
+                }
+            }
+
+            if (Velocity.Y < 0)
+            {
+                if (OnCeiling(Velocity, Position, out float cPos))
+                {
+                    Velocity.Y = 0;
+                    Position.Y = cPos + 64 + CollisionRectangle.Height + 12;
+                }
+            }
+
+            if (InAir == false &&
+                CurrentGamePadState.IsButtonDown(JumpButton) &&
+                PreviousGamePadState.IsButtonUp(JumpButton))
+            {
+                Velocity.Y -= 15f;
+            }
+
             //Handle horizontal control+movement
-            #region Move stick left
+                #region Move stick left
             if (MoveStick.X < 0f)
             {
                 AimDirection.X = -1f;
@@ -283,26 +331,7 @@ namespace ArenaPlatformer1
             #endregion
 
             //Handle Collisions
-            bool foo = OnGround(Velocity, Position, out float tPos);
-            if (foo == true && Velocity.Y > 0)
-            {
-                Velocity.Y = 0;
-                Position.Y = tPos;
-            }
-
-            bool foo2 = OnCeiling(Velocity, Position, out float cPos);
-            if (foo2 == true && Velocity.Y < 0)
-            {
-                Velocity.Y = 0;
-                Position.Y = cPos;
-            }
-
-            if (CurrentGamePadState.IsButtonDown(JumpButton) &&
-                PreviousGamePadState.IsButtonUp(JumpButton))
-            {
-                if (foo == true)
-                    Velocity.Y = -25f;
-            }
+            
 
             Position += Velocity * ((float)gameTime.ElapsedGameTime.TotalSeconds * 60f);
 
@@ -313,7 +342,7 @@ namespace ArenaPlatformer1
             }
 
             DestinationRectangle = new Rectangle((int)Position.X, (int)Position.Y, Texture.Width, Texture.Height);
-            CollisionRectangle = new Rectangle((int)(Position.X - 30), (int)(Position.Y - 90 + Velocity.Y), 60, 90);
+            CollisionRectangle = new Rectangle((int)(Position.X - 30), (int)(Position.Y - 90), 60, 90);
 
             PrevPosition = Position;
             PreviousPose = CurrentPose;
@@ -400,265 +429,116 @@ namespace ArenaPlatformer1
         }
 
 
+        public bool CheckLeft(out Vector2 tPos)
+        {
+            Vector2 bottomLeft = new Vector2(Position.X - CollisionRectangle.Width/ 2 + Velocity.X, Position.Y - 1 + Velocity.X);
+            Vector2 topLeft = new Vector2(Position.X - CollisionRectangle.Width / 2 + Velocity.X, Position.Y - CollisionRectangle.Height + Velocity.X);
+
+            int tileIndexX, tileIndexY;
+            tPos = Vector2.Zero;
+
+            for (var checkedTile = topLeft; ; checkedTile.Y += Map.TileSize.Y)
+            {
+                checkedTile.Y = Math.Min(checkedTile.Y, bottomLeft.Y);
+
+                tileIndexX = Map.GetMapTileXAtPoint((int)checkedTile.X);
+                tileIndexY = Map.GetMapTileYAtPoint((int)checkedTile.Y);
+
+                if (Map.IsObstacle(tileIndexX, tileIndexY))
+                {
+                    Map.DrawTiles[tileIndexX, tileIndexY].Color = Color.Red;
+                    tPos = Map.DrawTiles[tileIndexX, tileIndexY].Position;
+                    return true;
+                }
+
+                if (checkedTile.Y >= bottomLeft.Y)
+                    break;
+            }
+
+            return false;
+        }
+
+        public bool CheckRight(out Vector2 tPos)
+        {
+            Vector2 bottomRight = new Vector2(Position.X + CollisionRectangle.Width / 2 + Velocity.X, Position.Y + 1 - 2);
+            Vector2 topRight = new Vector2(Position.X + CollisionRectangle.Width / 2 + Velocity.X, Position.Y - CollisionRectangle.Height - 2);
+
+            int tileIndexX, tileIndexY;
+            tPos = Vector2.Zero;
+
+            for (var checkedTile = topRight; ; checkedTile.Y += Map.TileSize.Y)
+            {
+                checkedTile.Y = Math.Min(checkedTile.Y, bottomRight.Y);
+
+                tileIndexX = Map.GetMapTileXAtPoint((int)checkedTile.X);
+                tileIndexY = Map.GetMapTileYAtPoint((int)checkedTile.Y);
+
+                if (Map.IsObstacle(tileIndexX, tileIndexY))
+                {
+                    Map.DrawTiles[tileIndexX, tileIndexY].Color = Color.Red;
+                    tPos = Map.DrawTiles[tileIndexX, tileIndexY].Position;
+                    return true;
+                }
+
+                if (checkedTile.Y >= bottomRight.Y)
+                    break;
+            }
+
+            return false;
+        }
+
         public bool OnGround(Vector2 velocity, Vector2 position, out float groundY)
         {
-            Vector2 oldBottomLeft = new Vector2(PrevPosition.X - (CollisionRectangle.Width / 2), PrevPosition.Y + 1);
-            Vector2 newBottomLeft = new Vector2(CollisionRectangle.Left, CollisionRectangle.Bottom + 1);
-            Vector2 newBottomRight = new Vector2(CollisionRectangle.Right, CollisionRectangle.Bottom + 1);
+            Vector2 bottomLeft = new Vector2(Position.X - CollisionRectangle.Width / 2, Position.Y + 1 + Velocity.Y);
+            Vector2 bottomRight = new Vector2(Position.X + CollisionRectangle.Width / 2, Position.Y + 1 + Velocity.Y);
 
-            int endY = Map.GetMapTileYAtPoint((int)newBottomLeft.Y);
-            int begY = Math.Max(Map.GetMapTileYAtPoint((int)oldBottomLeft.Y) - 1, endY);
-            int dist = Math.Max(Math.Abs(endY - begY), 1);
+            int tileIndexX, tileIndexY;
 
-            int tileIndexX;
-
-            for (int tileIndexY = begY; tileIndexY >= endY; --tileIndexY)
+            for (var checkedTile = bottomLeft; ; checkedTile.X += Map.TileSize.X)
             {
-                var bottomLeft = Vector2.Lerp(newBottomLeft, oldBottomLeft, (float)Math.Abs(endY - tileIndexY) / dist);
-                var bottomRight = new Vector2(bottomLeft.X + CollisionRectangle.Width, bottomLeft.Y);
+                //Make sure we aren't checking beyond the X bounds of the collision rectangle
+                checkedTile.X = Math.Min(checkedTile.X, bottomRight.X);
 
-                for (var checkedTile = bottomLeft; ; checkedTile.X += Map.TileSize.X)
-                {
-                    //Make sure we aren't checking beyond the X bounds of the collision rectangle
-                    checkedTile.X = Math.Min(checkedTile.X, bottomRight.X);
+                tileIndexX = Map.GetMapTileXAtPoint((int)checkedTile.X);
+                tileIndexY = Map.GetMapTileYAtPoint((int)checkedTile.Y);
 
-                    tileIndexX = Map.GetMapTileXAtPoint((int)checkedTile.X);
-                    tileIndexY = Map.GetMapTileYAtPoint((int)checkedTile.Y);
+                groundY = (float)tileIndexY * Map.TileSize.Y;
 
-                    groundY = (float)tileIndexY * Map.TileSize.Y;
+                if (Map.IsObstacle(tileIndexX, tileIndexY))
+                    return true;
 
-                    if (Map.IsObstacle(tileIndexX, tileIndexY))
-                        return true;
-
-                    if (checkedTile.X >= bottomRight.X)
-                        break;
-                }
+                if (checkedTile.X >= bottomRight.X)
+                    break;
             }
 
-            groundY = 0;
             return false;
         }
 
-        public bool OnCeiling(Vector2 velocity, Vector2 position, out float ceilingY)
+        public bool OnCeiling(Vector2 velocity, Vector2 position, out float tPos)
         {
-            Vector2 oldTopLeft = new Vector2(PrevPosition.X - (CollisionRectangle.Width / 2), PrevPosition.Y - CollisionRectangle.Height - 1);
-            Vector2 newTopLeft = new Vector2(CollisionRectangle.Left, CollisionRectangle.Bottom - CollisionRectangle.Height - 1);
-            Vector2 newTopRight = new Vector2(CollisionRectangle.Right, CollisionRectangle.Bottom - CollisionRectangle.Height - 1);
+            Vector2 topLeft = new Vector2(CollisionRectangle.Left, CollisionRectangle.Top - 1 + Velocity.Y);
+            Vector2 topRight = new Vector2(CollisionRectangle.Right, CollisionRectangle.Top - 1 + Velocity.Y);
 
-            int endY = Map.GetMapTileYAtPoint((int)newTopLeft.Y);
-            int begY = Math.Max(Map.GetMapTileYAtPoint((int)oldTopLeft.Y) + 1, endY);
-            int dist = Math.Max(Math.Abs(endY - begY), 1);
+            int tileIndexX, tileIndexY;
 
-            int tileIndexX;
-
-            for (int tileIndexY = begY; tileIndexY >= endY; --tileIndexY)
+            for (var checkedTile = topLeft; ; checkedTile.X += Map.TileSize.X)
             {
-                var topLeft = Vector2.Lerp(newTopLeft, oldTopLeft, (float)Math.Abs(endY - tileIndexY) / dist);
-                var topRight = new Vector2(topLeft.X + CollisionRectangle.Width, topLeft.Y);
+                //Make sure we aren't checking beyond the X bounds of the collision rectangle
+                checkedTile.X = Math.Min(checkedTile.X, topRight.X);
 
-                for (var checkedTile = topLeft; ; checkedTile.X += Map.TileSize.X)
-                {
-                    //Make sure we aren't checking beyond the X bounds of the collision rectangle
-                    checkedTile.X = Math.Min(checkedTile.X, topRight.X);
+                tileIndexX = Map.GetMapTileXAtPoint((int)checkedTile.X);
+                tileIndexY = Map.GetMapTileYAtPoint((int)checkedTile.Y);
 
-                    tileIndexX = Map.GetMapTileXAtPoint((int)checkedTile.X);
-                    tileIndexY = Map.GetMapTileYAtPoint((int)checkedTile.Y);
+                tPos = (float)tileIndexY * Map.TileSize.Y;
 
-                    ceilingY = (float)tileIndexY * Map.TileSize.Y + Map.TileSize.Y + CollisionRectangle.Height;
+                if (Map.IsObstacle(tileIndexX, tileIndexY))
+                    return true;
 
-                    if (Map.IsObstacle(tileIndexX, tileIndexY))
-                        return true;
-
-                    if (checkedTile.X >= topRight.X)
-                        break;
-                }
+                if (checkedTile.X >= topRight.X)
+                    break;
             }
 
-            ceilingY = 0;
             return false;
         }
-
-        #region MyRegion
-        //public bool CollidesWithLeftWall(Vector2 velocity, Vector2 position, out float wallX)
-        //{
-        //    wallX = 0.0f;
-
-        //    Vector2 oldBottomLeft = new Vector2(PrevPosition.X - (CollisionRectangle.Width / 2) - 1, PrevPosition.Y);
-        //    Vector2 newBottomLeft = new Vector2(CollisionRectangle.Left - 1, CollisionRectangle.Bottom);
-        //    Vector2 newTopLeft = newBottomLeft - new Vector2(0.0f, CollisionRectangle.Height);
-
-        //    int tileIndexY;
-
-        //    var endX = Map.GetMapTileXAtPoint((int)newBottomLeft.X);
-        //    var begX = Math.Max(Map.GetMapTileXAtPoint((int)oldBottomLeft.X) - 1, endX);
-        //    int dist = Math.Max(Math.Abs(endX - begX), 1);
-
-        //    for (int tileIndexX = begX; tileIndexX >= endX; --tileIndexX)
-        //    {
-        //        var bottomLeft = Vector2.Lerp(newBottomLeft, oldBottomLeft, (float)Math.Abs(endX - tileIndexX) / dist);
-        //        var topLeft = new Vector2(bottomLeft.X, bottomLeft.Y - CollisionRectangle.Height);
-
-        //        for (var checkedTile = bottomLeft; ; checkedTile.Y += Map.TileSize.Y)
-        //        {
-        //            checkedTile.Y = Math.Min(checkedTile.Y, topLeft.Y);
-
-        //            tileIndexY = Map.GetMapTileYAtPoint((int)checkedTile.Y);
-
-        //            if (Map.IsObstacle(tileIndexX, tileIndexY))
-        //            {
-        //                wallX = (tileIndexX * Map.TileSize.X) + Map.TileSize.X + (CollisionRectangle.Width / 2);
-        //                return true;
-        //            }
-
-        //            if (checkedTile.Y >= topLeft.Y)
-        //                break;
-        //        }
-        //    }
-
-        //    return false;
-        //}
-
-        //public bool CollidesWithRightWall(Vector2 velocity, Vector2 position, out float wallX)
-        //{
-        //    wallX = 0.0f;
-
-        //    Vector2 oldBottomRight = new Vector2(PrevPosition.X + (CollisionRectangle.Width / 2) + 1, PrevPosition.Y);
-        //    Vector2 newBottomRight = new Vector2(CollisionRectangle.Right + 1, CollisionRectangle.Bottom);
-        //    Vector2 newTopRight = newBottomRight - new Vector2(0.0f, CollisionRectangle.Height);
-
-        //    var endX = Map.GetMapTileXAtPoint((int)newBottomRight.X);
-        //    var begX = Math.Min(Map.GetMapTileXAtPoint((int)oldBottomRight.X) + 1, endX);
-        //    int dist = Math.Max(Math.Abs(endX - begX), 1);
-
-        //    int tileIndexY;
-
-        //    for (int tileIndexX = begX; tileIndexX <= endX; ++tileIndexX)
-        //    {
-        //        var bottomRight = Vector2.Lerp(newBottomRight, oldBottomRight, (float)Math.Abs(endX - tileIndexX) / dist);
-        //        var topRight = new Vector2(bottomRight.X, bottomRight.Y - CollisionRectangle.Height);
-
-        //        for (var checkedTile = bottomRight; ; checkedTile.Y += Map.TileSize.Y)
-        //        {
-        //            checkedTile.Y = Math.Min(checkedTile.Y, topRight.Y);
-
-        //            tileIndexY = Map.GetMapTileYAtPoint((int)checkedTile.Y);
-
-        //            if (Map.IsObstacle(tileIndexX, tileIndexY))
-        //            {
-        //                wallX = (tileIndexX * Map.TileSize.X) - (CollisionRectangle.Width / 2) - 1;
-        //                return true;
-        //            }
-
-        //            if (checkedTile.Y >= topRight.Y)
-        //                break;
-        //        }
-        //    }
-
-        //    return false;
-        //}
-        #endregion
-
-        #region OldRightWall
-        //public bool CollidesWithRightWall(Vector2 velocity, Vector2 position, out float wallX)
-        //{
-
-        //    wallX = 0.0f;
-
-        //    Vector2 oldBottomRight = new Vector2(PrevPosition.X + (CollisionRectangle.Width / 2) + 1, PrevPosition.Y);
-        //    Vector2 newBottomRight = new Vector2(CollisionRectangle.Right + 1, CollisionRectangle.Bottom);
-        //    Vector2 newTopRight = newBottomRight - new Vector2(0.0f, CollisionRectangle.Height);
-
-        //    int tileIndexY;
-
-        //    var endX = Map.GetMapTileXAtPoint((int)newBottomRight.X);
-        //    var begX = Math.Min(Map.GetMapTileXAtPoint((int)oldBottomRight.X) + 1, endX);
-        //    int dist = Math.Max(Math.Abs(endX - begX), 1);
-
-        //    for (int tileIndexX = begX; tileIndexX <= endX; ++tileIndexX)
-        //    {
-        //        var bottomRight = Vector2.Lerp(newBottomRight, oldBottomRight, (float)Math.Abs(endX - tileIndexX) / dist);
-        //        var topRight = new Vector2(bottomRight.X, bottomRight.Y - CollisionRectangle.Height);
-
-        //        for (var checkedTile = bottomRight; ; checkedTile.Y += Map.TileSize.Y)
-        //        {
-        //            checkedTile.Y = Math.Min(checkedTile.Y, topRight.Y);
-
-        //            tileIndexY = Map.GetMapTileYAtPoint((int)checkedTile.Y);
-
-        //            if (Map.IsObstacle(tileIndexX, tileIndexY))
-        //            {
-        //                wallX = (tileIndexX * Map.TileSize.X) - (CollisionRectangle.Width / 2) - 1;
-        //                return true;
-        //            }
-
-        //            if (checkedTile.Y >= topRight.Y)
-        //                break;
-        //        }
-        //    }
-
-        //    return false;
-        //} 
-        #endregion
-
-        #region Old OnGround
-        //public bool OnGround(Vector2 velocity, Vector2 position, out float groundY)
-        //{
-        //    Vector2 bottomLeft = new Vector2(CollisionRectangle.Left, CollisionRectangle.Bottom + 1);
-        //    Vector2 bottomRight = new Vector2(CollisionRectangle.Right, CollisionRectangle.Bottom + 1);
-
-        //    int tileIndexX, tileIndexY;
-
-        //    for (var checkedTile = bottomLeft; ; checkedTile.X += Map.TileSize.X)
-        //    {
-        //        //Make sure we aren't checking beyond the X bounds of the collision rectangle
-        //        checkedTile.X = Math.Min(checkedTile.X, bottomRight.X);
-
-        //        tileIndexX = Map.GetMapTileXAtPoint((int)checkedTile.X);
-        //        tileIndexY = Map.GetMapTileYAtPoint((int)checkedTile.Y);
-
-        //        groundY = (float)tileIndexY * Map.TileSize.Y;
-
-        //        if (Map.IsObstacle(tileIndexX, tileIndexY))
-        //            return true;
-
-        //        if (checkedTile.X >= bottomRight.X)
-        //            break;
-        //    }
-
-        //    return false;
-        //}
-
-        #endregion
-
-        #region Old OnCeiling
-        //public bool OnCeiling(Vector2 velocity, Vector2 position, out Vector2 tPos)
-        //{
-        //    Vector2 topLeft = new Vector2(CollisionRectangle.Left, CollisionRectangle.Top);
-        //    Vector2 topRight = new Vector2(CollisionRectangle.Right, CollisionRectangle.Top);
-
-        //    for (int x = (int)topLeft.X; ; x++)
-        //    {
-        //        TileType tile = Map.GetTile(x / 64, (int)(position.Y - CollisionRectangle.Height + velocity.Y - 1) / 64);
-
-        //        tPos = Map.GetTilePosition(x / 64, (int)(position.Y - CollisionRectangle.Height + velocity.Y - 1) / 64);
-
-        //        if (tile == TileType.Solid)
-        //        {
-        //            return true;
-        //        }
-
-        //        if (x >= topRight.X)
-        //        {
-        //            break;
-        //        }
-        //    }
-
-        //    return false;
-        //} 
-        #endregion
-
-
-
-
     }
 }

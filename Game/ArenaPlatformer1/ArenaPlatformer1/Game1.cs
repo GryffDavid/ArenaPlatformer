@@ -1147,6 +1147,9 @@ namespace ArenaPlatformer1
                         tile.DrawInfo(GraphicsDevice, BasicEffect);
 
                         spriteBatch.Draw(Block, new Rectangle((int)tile.Position.X, (int)tile.Position.Y, 4, 4), Color.Red);
+                        spriteBatch.DrawString(Font1, tile.Index.X.ToString(), tile.Position, Color.Yellow);
+                        spriteBatch.DrawString(Font1, tile.Index.Y.ToString(), tile.Position + new Vector2(0, 24), Color.Yellow);
+
                     }
                 }
             }

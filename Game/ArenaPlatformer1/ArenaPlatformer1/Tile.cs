@@ -14,7 +14,7 @@ namespace ArenaPlatformer1
     {
         public TileType TileType;
         Texture2D Texture;
-        public Vector2 Position, Size;
+        public Vector2 Position, Size, Index;
         public Rectangle DestinationRectangle, CollisionRectangle;
         public Color Color = new Color(1, 0, 0, 255);
 
