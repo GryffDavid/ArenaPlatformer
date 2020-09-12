@@ -7,7 +7,7 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace ArenaPlatformer1
 {
-    class ParticleData
+    public class ParticleData
     {
         //What is needed to perform updates
         public Vector2 Position, Angle, Velocity, Friction;

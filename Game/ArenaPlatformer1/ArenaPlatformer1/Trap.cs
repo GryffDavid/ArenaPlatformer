@@ -15,6 +15,8 @@ namespace ArenaPlatformer1
 
         public int DetonationLimit;
 
+        public List<Emitter> EmitterList = new List<Emitter>();
+
         /// <summary>
         /// X = CurrentTime, Y = MaxTime
         /// </summary>
@@ -55,6 +57,11 @@ namespace ArenaPlatformer1
                     ResetTime.X = 0;
                     Active = true;
                 }
+            }
+
+            foreach (Emitter emitter in EmitterList)
+            {
+                emitter.Update(gameTime);
             }
         }
 

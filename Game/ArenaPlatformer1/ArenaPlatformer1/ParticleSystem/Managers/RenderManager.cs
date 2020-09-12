@@ -8,7 +8,7 @@ using Microsoft.Xna.Framework.Content;
 
 namespace ArenaPlatformer1
 {
-    class RenderManager
+    public class RenderManager
     {
         public List<RenderData> RenderDataObjects { get; set; }
         private DoubleBuffer DoubleBuffer;

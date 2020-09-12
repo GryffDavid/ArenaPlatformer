@@ -229,10 +229,50 @@ namespace ArenaPlatformer1
             Velocity.Y += Gravity * ((float)gameTime.ElapsedGameTime.TotalSeconds * 60f);
 
             bool leftCol, rightCol;
+            bool upCol, downCol;
             Vector2 lPos, rPos;
+
+            //Ceiling, Ground
+            //float cPos, gPos;
+
+
+            #region Move stick left
+            if (MoveStick.X < 0f)
+            {
+                AimDirection.X = -1f;
+                CurrentFacing = Facing.Left;
+
+                Velocity.X += (MoveStick.X * 3f);
+            }
+            #endregion
+
+            #region Move stick right
+            if (MoveStick.X > 0f)
+            {
+                AimDirection.X = 1f;
+                CurrentFacing = Facing.Right;
+
+                Velocity.X += (MoveStick.X * 3f);
+            }
+            #endregion
+
+            #region Move stick down
+            if (MoveStick.Y < -0.75f)
+            {
+                Velocity.X = 0;
+                CurrentPose = Pose.Crouching;
+            }
+            else
+            {
+                CurrentPose = Pose.Standing;
+            }
+            #endregion
+
 
             leftCol = CheckLeft(out lPos);
             rightCol = CheckRight(out rPos);
+            
+            downCol = OnGround(Velocity, Position, out float gPos);
 
             if (Velocity.X < 0)
             {
@@ -254,11 +294,12 @@ namespace ArenaPlatformer1
 
             if (Velocity.Y >= 0)
             {
-                if (OnGround(Velocity, Position, out float groundY) == true)
+                if (downCol == true)
                 {
                     InAir = false;
+                    DoubleJumped = false;
                     Velocity.Y = 0;
-                    Position.Y = groundY - 1;
+                    Position.Y = gPos - 1;
                 }
                 else
                 {
@@ -266,43 +307,36 @@ namespace ArenaPlatformer1
                 }
             }
 
+           
+            if (CurrentGamePadState.IsButtonDown(JumpButton) &&
+                PreviousGamePadState.IsButtonUp(JumpButton) &&
+                Velocity.Y >= 0 &&
+                DoubleJumped == false)
+            {
+                if (InAir == true)
+                {
+                    DoubleJumped = true;
+                    Velocity.Y -= 15f;
+                }
+                else
+                {
+                    Velocity.Y = -15f;
+                }                
+            }
+
+            upCol = OnCeiling(Velocity, Position, out float cPos);
+
             if (Velocity.Y <= 0)
             {
-                if (OnCeiling(Velocity, Position, out float cPos))
+                if (upCol == true)
                 {
                     Velocity.Y = 0;
                     Position.Y = cPos + 64 + CollisionRectangle.Height + 1;
                 }
             }
 
-            if (InAir == false &&
-                CurrentGamePadState.IsButtonDown(JumpButton) &&
-                PreviousGamePadState.IsButtonUp(JumpButton) &&
-                Velocity.Y >= 0)
-            {
-                Velocity.Y -= 25f;
-            }
 
             //Handle horizontal control+movement
-            #region Move stick left
-            if (MoveStick.X < 0f)
-            {
-                AimDirection.X = -1f;
-                CurrentFacing = Facing.Left;
-
-                Velocity.X += (MoveStick.X * 3f);
-            }
-            #endregion
-
-            #region Move stick right
-            if (MoveStick.X > 0f)
-            {
-                AimDirection.X = 1f;
-                CurrentFacing = Facing.Right;
-
-                Velocity.X += (MoveStick.X * 3f);
-            }
-            #endregion
 
             #region Stop Moving
             if (MoveStick.X == 0)
@@ -334,6 +368,50 @@ namespace ArenaPlatformer1
             //{
             //    Velocity.Y = 25;
             //}
+            #endregion
+
+            #region Shoot
+            if (CurrentGamePadState.IsButtonDown(ShootButton) &&
+                PreviousGamePadState.IsButtonUp(ShootButton))
+            {
+                if (GunAmmo > 0)
+                {
+                    switch (CurrentFacing)
+                    {
+                        case Facing.Left:
+                            CreatePlayerShoot(new Vector2(-25, 0));
+                            break;
+
+                        case Facing.Right:
+                            CreatePlayerShoot(new Vector2(25, 0));
+                            break;
+                    }
+
+                    GunAmmo--;
+                }
+            }
+            #endregion
+
+            #region Grenade
+            if (CurrentGamePadState.IsButtonDown(GrenadeButton) &&
+                        PreviousGamePadState.IsButtonUp(GrenadeButton))
+            {
+                //Create grenades!
+                CreatePlayerGrenade();
+            }
+            #endregion
+
+            #region Trap
+            if (CurrentGamePadState.IsButtonDown(TrapButton) &&
+                PreviousGamePadState.IsButtonUp(TrapButton))
+            {
+                if (TrapAmmo > 0)
+                {
+                    //Create traps!
+                    CreatePlaceTrap(Position, TrapType.Mine);
+                    TrapAmmo--;
+                }
+            }
             #endregion
 
             if (Velocity.X != 0)
@@ -379,7 +457,11 @@ namespace ArenaPlatformer1
 
             //Handle Collisions 
 
-            Position.Y += Velocity.Y * ((float)gameTime.ElapsedGameTime.TotalSeconds * 60f);
+            if (upCol== false &&
+                downCol == false)
+            {
+                Position.Y += Velocity.Y * ((float)gameTime.ElapsedGameTime.TotalSeconds * 60f);
+            }
 
             if ((leftCol == false && Velocity.X < 0) ||
                 (rightCol == false && Velocity.X > 0))
@@ -399,13 +481,71 @@ namespace ArenaPlatformer1
                                                  (int)CurrentAnimation.FrameSize.X, 
                                                  (int)CurrentAnimation.FrameSize.Y);
 
-            CollisionRectangle = new Rectangle((int)(Position.X - 30), (int)(Position.Y - 90), 60, 90);
+            if (CurrentPose == Pose.Standing)
+                CollisionRectangle = new Rectangle((int)(Position.X - 30), (int)(Position.Y - 90), 60, 90);
+            else
+                CollisionRectangle = new Rectangle((int)(Position.X - 30), (int)(Position.Y - 45), 60, 45);
 
             if (CurrentAnimation != null)
             {
                 CurrentAnimation.Position = Position;
                 CurrentAnimation.Update(gameTime, DestinationRectangle);
             }
+
+            switch (CurrentFacing)
+            {
+                case Facing.Left:
+                    {
+                        AimDirection = new Vector2(-1, 0);
+                    }
+                    break;
+
+                case Facing.Right:
+                    {
+                        AimDirection = new Vector2(1, 0);
+                    }
+                    break;
+            }
+
+            if (ItemList != null)
+                ItemList.ForEach(Item =>
+                {
+                    if (Item.CollisionRectangle.Intersects(CollisionRectangle))
+                    {
+                        if (Item as TrapPickup != null)
+                        {
+                            if (TrapAmmo <= 0)
+                            {
+                                CurrentTrap = (Item as TrapPickup).TrapType;
+                            }
+
+                            if (Item as MinePickup != null)
+                            {
+                                TrapAmmo++;
+                            }
+                        }
+
+                        if (Item as Gun != null)
+                        {
+                            if (GunAmmo <= 0)
+                            {
+                                GunAmmo += 15;
+                            }
+                        }
+
+                        ItemList.Remove(Item);
+                    }
+                });
+
+            if (TrapList != null)
+                TrapList.ForEach(Trap =>
+                {
+                    if (Trap.Active == true && Trap.CollisionRectangle.Intersects(CollisionRectangle))
+                    {
+                        Health.X -= 20;
+                        Trap.Reset();
+                    }
+                });
 
 
             PrevPosition = Position;
@@ -564,11 +704,11 @@ namespace ArenaPlatformer1
         public bool OnGround(Vector2 velocity, Vector2 position, out float groundY)
         {
             Vector2 bottomLeft = new Vector2(
-                Position.X - (CollisionRectangle.Width / 2), 
+                Position.X,
                 Position.Y + Velocity.Y + 1);
 
             Vector2 bottomRight = new Vector2(
-                Position.X + (CollisionRectangle.Width / 2), 
+                Position.X + (CollisionRectangle.Width / 2),
                 Position.Y + Velocity.Y + 1);
 
             int tileIndexX, tileIndexY;
@@ -582,25 +722,105 @@ namespace ArenaPlatformer1
 
                 groundY = (float)tileIndexY * Map.TileSize.Y;
 
-                if (Map.IsObstacle(tileIndexX, tileIndexY))
+                if (Map.IsGround(tileIndexX, tileIndexY))
+                {
                     return true;
+                }
+
+                if (Map.IsBounce(tileIndexX, tileIndexY) == true)
+                {
+                    Velocity.Y = -25f;
+                    return false;
+                }
 
                 if (checkedTile.X >= bottomRight.X)
+                    break;
+            }
+
+
+            bottomLeft = new Vector2(
+                Position.X,
+                Position.Y + Velocity.Y + 1);
+
+            bottomRight = new Vector2(
+                Position.X - (CollisionRectangle.Width / 2),
+                Position.Y + Velocity.Y + 1);
+            
+            for (var checkedTile = bottomLeft; ; checkedTile.X -= Map.TileSize.X)
+            {
+                checkedTile.X = Math.Min(checkedTile.X, bottomRight.X);
+
+                tileIndexX = Map.GetMapTileXAtPoint((int)checkedTile.X);
+                tileIndexY = Map.GetMapTileYAtPoint((int)checkedTile.Y);
+
+                groundY = (float)tileIndexY * Map.TileSize.Y;
+
+                if (Map.IsGround(tileIndexX, tileIndexY))
+                {
+                    return true;
+                }
+
+                if (Map.IsBounce(tileIndexX, tileIndexY) == true)
+                {
+                    Velocity.Y = -25f;
+                    return false;
+                }
+
+                if (checkedTile.X <= bottomRight.X)
                     break;
             }
 
             return false;
         }
 
+        //public bool OnGround(Vector2 velocity, Vector2 position, out float groundY)
+        //{
+        //    Vector2 bottomLeft = new Vector2(
+        //        Position.X - (CollisionRectangle.Width / 2), 
+        //        Position.Y + Velocity.Y + 1);
+
+        //    Vector2 bottomRight = new Vector2(
+        //        Position.X + (CollisionRectangle.Width / 2), 
+        //        Position.Y + Velocity.Y + 1);
+
+        //    int tileIndexX, tileIndexY;
+
+        //    for (var checkedTile = bottomLeft; ; checkedTile.X += Map.TileSize.X)
+        //    {
+        //        checkedTile.X = Math.Min(checkedTile.X, bottomRight.X);
+
+        //        tileIndexX = Map.GetMapTileXAtPoint((int)checkedTile.X);
+        //        tileIndexY = Map.GetMapTileYAtPoint((int)checkedTile.Y);
+
+        //        groundY = (float)tileIndexY * Map.TileSize.Y;
+
+        //        if (Map.IsGround(tileIndexX, tileIndexY))
+        //        {
+        //            return true;
+        //        }
+
+        //        if (Map.IsBounce(tileIndexX, tileIndexY) == true)
+        //        {
+        //            Velocity.Y = -25f;
+        //            return false;
+        //        }
+
+        //        if (checkedTile.X >= bottomRight.X)
+        //            break;
+        //    }
+
+        //    return false;
+        //}
+
         public bool OnCeiling(Vector2 velocity, Vector2 position, out float tPos)
         {
             Vector2 topLeft = new Vector2(
                 Position.X - (CollisionRectangle.Width / 2), 
-                Position.Y - CollisionRectangle.Height + Velocity.Y - 1);
+                Position.Y - CollisionRectangle.Height + Velocity.Y - 2);
 
             Vector2 topRight = new Vector2(
                 Position.X + (CollisionRectangle.Width / 2),
-                Position.Y - CollisionRectangle.Height + Velocity.Y - 1);
+                Position.Y - CollisionRectangle.Height + Velocity.Y - 2);
 
             int tileIndexX, tileIndexY;
 

@@ -7,7 +7,7 @@ using Microsoft.Xna.Framework;
 
 namespace ArenaPlatformer1
 {
-    class DoubleBuffer
+    public class DoubleBuffer
     {
         private ChangeBuffer[] buffers;
         private volatile int currentUpdateBuffer;

@@ -10,7 +10,7 @@ using System.Diagnostics;
 
 namespace ArenaPlatformer1
 {
-    class UpdateManager
+    public class UpdateManager
     {
         protected ChangeBuffer MessageBuffer;
         private GameTime GameTime;

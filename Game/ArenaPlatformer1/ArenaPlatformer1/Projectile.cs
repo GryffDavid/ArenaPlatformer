@@ -72,5 +72,179 @@ namespace ArenaPlatformer1
             }
             #endregion
         }
+
+        public bool CheckCollisions()
+        {
+            bool checkL = false;
+            bool checkR = false;
+            bool checkU = false;
+            bool checkD = false;
+
+            if (Velocity.X > 0)
+            {
+                checkR = CheckRight(out Vector2 rPos);
+
+                if (checkR == true)
+                    Position.X = rPos.X - DestinationRectangle.Width / 2 - 1;
+            }
+
+            if (Velocity.X < 0)
+            {
+                checkL = CheckLeft(out Vector2 lPos);
+
+                if (checkL == true)
+                    Position.X = lPos.X + 64 + DestinationRectangle.Width / 2;
+            }
+
+            if (Velocity.Y > 0)
+            {
+                checkD = OnGround(Velocity, Position, out float groundY);
+            }
+
+            if (Velocity.Y < 0)
+            {
+                checkU = OnCeiling(Velocity, Position, out float cPos);
+            }
+
+            if (checkL == true ||
+                checkR == true ||
+                checkD == true ||
+                checkU == true)
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        public bool CheckLeft(out Vector2 tPos)
+        {
+            Vector2 bottomLeft = new Vector2(
+                Position.X - (CollisionRectangle.Width / 2) + Velocity.X - 1,
+                Position.Y);
+
+            Vector2 topLeft = new Vector2(
+                Position.X - (CollisionRectangle.Width / 2) + Velocity.X - 1,
+                Position.Y - CollisionRectangle.Height);
+
+            int tileIndexX, tileIndexY;
+            tPos = Vector2.Zero;
+
+            for (var checkedTile = topLeft; ; checkedTile.Y += Map.TileSize.Y)
+            {
+                checkedTile.Y = Math.Min(checkedTile.Y, bottomLeft.Y);
+
+                tileIndexX = Map.GetMapTileXAtPoint((int)checkedTile.X);
+                tileIndexY = Map.GetMapTileYAtPoint((int)checkedTile.Y);
+
+                if (Map.IsObstacle(tileIndexX, tileIndexY))
+                {
+                    //Map.DrawTiles[tileIndexX, tileIndexY].Color = Color.Red;
+                    tPos = Map.DrawTiles[tileIndexX, tileIndexY].Position;
+                    return true;
+                }
+
+                if (checkedTile.Y >= bottomLeft.Y)
+                    break;
+            }
+
+            return false;
+        }
+
+        public bool CheckRight(out Vector2 tPos)
+        {
+            Vector2 bottomRight = new Vector2(
+                Position.X + (CollisionRectangle.Width / 2) + Velocity.X + 1,
+                Position.Y);
+
+            Vector2 topRight = new Vector2(
+                Position.X + (CollisionRectangle.Width / 2) + Velocity.X + 1,
+                Position.Y - CollisionRectangle.Height);
+
+            int tileIndexX, tileIndexY;
+            tPos = Vector2.Zero;
+
+            for (var checkedTile = topRight; ; checkedTile.Y += Map.TileSize.Y)
+            {
+                checkedTile.Y = Math.Min(checkedTile.Y, bottomRight.Y);
+
+                tileIndexX = Map.GetMapTileXAtPoint((int)checkedTile.X);
+                tileIndexY = Map.GetMapTileYAtPoint((int)checkedTile.Y);
+
+                if (Map.IsObstacle(tileIndexX, tileIndexY))
+                {
+                    //Map.DrawTiles[tileIndexX, tileIndexY].Color = Color.Yellow;
+                    tPos = Map.DrawTiles[tileIndexX, tileIndexY].Position;
+                    return true;
+                }
+
+                if (checkedTile.Y >= bottomRight.Y)
+                    break;
+            }
+
+            return false;
+        }
+
+        public bool OnGround(Vector2 velocity, Vector2 position, out float groundY)
+        {
+            Vector2 bottomLeft = new Vector2(
+                Position.X - (CollisionRectangle.Width / 2),
+                Position.Y + Velocity.Y + 1);
+
+            Vector2 bottomRight = new Vector2(
+                Position.X + (CollisionRectangle.Width / 2),
+                Position.Y + Velocity.Y + 1);
+
+            int tileIndexX, tileIndexY;
+
+            for (var checkedTile = bottomLeft; ; checkedTile.X += Map.TileSize.X)
+            {
+                checkedTile.X = Math.Min(checkedTile.X, bottomRight.X);
+
+                tileIndexX = Map.GetMapTileXAtPoint((int)checkedTile.X);
+                tileIndexY = Map.GetMapTileYAtPoint((int)checkedTile.Y);
+
+                groundY = (float)tileIndexY * Map.TileSize.Y;
+
+                if (Map.IsObstacle(tileIndexX, tileIndexY))
+                    return true;
+
+                if (checkedTile.X >= bottomRight.X)
+                    break;
+            }
+
+            return false;
+        }
+
+        public bool OnCeiling(Vector2 velocity, Vector2 position, out float tPos)
+        {
+            Vector2 topLeft = new Vector2(
+                Position.X - (CollisionRectangle.Width / 2),
+                Position.Y - CollisionRectangle.Height + Velocity.Y - 1);
+
+            Vector2 topRight = new Vector2(
+                Position.X + (CollisionRectangle.Width / 2),
+                Position.Y - CollisionRectangle.Height + Velocity.Y - 1);
+
+            int tileIndexX, tileIndexY;
+
+            for (var checkedTile = topLeft; ; checkedTile.X += Map.TileSize.X)
+            {
+                checkedTile.X = Math.Min(checkedTile.X, topRight.X);
+
+                tileIndexX = Map.GetMapTileXAtPoint((int)checkedTile.X);
+                tileIndexY = Map.GetMapTileYAtPoint((int)checkedTile.Y);
+
+                tPos = (float)tileIndexY * Map.TileSize.Y;
+
+                if (Map.IsObstacle(tileIndexX, tileIndexY))
+                    return true;
+
+                if (checkedTile.X >= topRight.X)
+                    break;
+            }
+
+            return false;
+        }
     }
 }

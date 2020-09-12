@@ -7,7 +7,7 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace ArenaPlatformer1
 {
-    class RenderData
+    public class RenderData
     {
         //What is needed to draw the objects
         public Texture2D Texture;

@@ -50,9 +50,9 @@ namespace ArenaPlatformer1
                 Tiles[x, (int)MapSize.Y - 1] = TileType.Solid;
             }
 
-            //for (int y = 6; y < MapSize.Y; y++)
+            for (int y = 0; y < MapSize.Y; y++)
             {
-                Tiles[0, 6] = TileType.Solid;
+                Tiles[0, y] = TileType.Solid;
             }
 
             for (int y = 0; y < MapSize.Y; y++)
@@ -60,6 +60,9 @@ namespace ArenaPlatformer1
                 Tiles[(int)MapSize.X - 1, y] = TileType.Solid;
             }
             #endregion
+
+            Tiles[3, 11] = TileType.Solid;
+            Tiles[4, 11] = TileType.BouncePad;
 
             for (int x = 10; x < 20; x++)
             {
@@ -106,6 +109,20 @@ namespace ArenaPlatformer1
                         
                         DrawTiles[x, y] = drawTile;
                     }
+
+                    if (Tiles[x, y] == TileType.BouncePad)
+                    {
+                        Tile drawTile = new Tile()
+                        {
+                            Size = TileSize,
+                            Position = new Vector2(x * TileSize.X, y * TileSize.Y),
+                            Color = Color.Red
+                        };
+                        drawTile.Index = new Vector2(x, y);
+                        drawTile.LoadContent(content);
+
+                        DrawTiles[x, y] = drawTile;
+                    }
                 }
             }
         }
@@ -137,7 +154,7 @@ namespace ArenaPlatformer1
             if (x < 0 || x >= MapSize.X || y < 0 || y >= MapSize.Y)
                 return true;
 
-            return (Tiles[x, y] == TileType.Solid);
+            return (Tiles[x, y] == TileType.Solid || Tiles[x,y] == TileType.BouncePad);
         }
 
         //The player can stand on these types of blocks.
@@ -156,6 +173,11 @@ namespace ArenaPlatformer1
                 return false;
 
             return (Tiles[x, y] == TileType.Empty);
+        }
+
+        public bool IsBounce(int x, int y)
+        {
+            return (Tiles[x, y] == TileType.BouncePad);
         }
         
         /// <summary>
