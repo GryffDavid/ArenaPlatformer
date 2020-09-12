@@ -10,8 +10,10 @@ namespace ArenaPlatformer1
 {
     public abstract class Trap
     {
+        public static Map Map;
         public Texture2D Texture;
-        public Vector2 Position;
+        public Vector2 Position, Velocity;
+        public float Gravity = 0.6f;
 
         public int DetonationLimit;
 
@@ -58,9 +60,27 @@ namespace ArenaPlatformer1
                     Active = true;
                 }
             }
+            
+
+
+            bool thing = OnGround(Velocity, Position, out float groundY);
+
+            if (Velocity.Y >= 0)
+            {
+                if (thing == true)
+                {
+                    Velocity.Y = 0;
+                    Position.Y = groundY - CollisionRectangle.Height;
+                }
+            }
+
+            if (thing == false)
+                Velocity.Y += Gravity;
+
+            Position += Velocity * ((float)gameTime.ElapsedGameTime.TotalSeconds * 60f);
 
             foreach (Emitter emitter in EmitterList)
-            {
+            {                
                 emitter.Update(gameTime);
             }
         }
@@ -139,6 +159,142 @@ namespace ArenaPlatformer1
                 Active = false;
                 Exists = false;
             }
+        }
+
+        public bool CheckLeft(out Vector2 tPos)
+        {
+            Vector2 bottomLeft = new Vector2(
+                Position.X - (CollisionRectangle.Width / 2) + Velocity.X - 1,
+                Position.Y);
+
+            Vector2 topLeft = new Vector2(
+                Position.X - (CollisionRectangle.Width / 2) + Velocity.X - 1,
+                Position.Y - CollisionRectangle.Height);
+
+            int tileIndexX, tileIndexY;
+            tPos = Vector2.Zero;
+
+            for (var checkedTile = topLeft; ; checkedTile.Y += Map.TileSize.Y)
+            {
+                checkedTile.Y = Math.Min(checkedTile.Y, bottomLeft.Y);
+
+                tileIndexX = Map.GetMapTileXAtPoint((int)checkedTile.X);
+                tileIndexY = Map.GetMapTileYAtPoint((int)checkedTile.Y);
+
+                if (Map.IsObstacle(tileIndexX, tileIndexY))
+                {
+                    //Map.DrawTiles[tileIndexX, tileIndexY].Color = Color.Red;
+                    tPos = Map.DrawTiles[tileIndexX, tileIndexY].Position;
+                    return true;
+                }
+
+                if (checkedTile.Y >= bottomLeft.Y)
+                    break;
+            }
+
+            return false;
+        }
+
+        public bool CheckRight(out Vector2 tPos)
+        {
+            Vector2 bottomRight = new Vector2(
+                Position.X + (CollisionRectangle.Width / 2) + Velocity.X + 1,
+                Position.Y);
+
+            Vector2 topRight = new Vector2(
+                Position.X + (CollisionRectangle.Width / 2) + Velocity.X + 1,
+                Position.Y - CollisionRectangle.Height);
+
+            int tileIndexX, tileIndexY;
+            tPos = Vector2.Zero;
+
+            for (var checkedTile = topRight; ; checkedTile.Y += Map.TileSize.Y)
+            {
+                checkedTile.Y = Math.Min(checkedTile.Y, bottomRight.Y);
+
+                tileIndexX = Map.GetMapTileXAtPoint((int)checkedTile.X);
+                tileIndexY = Map.GetMapTileYAtPoint((int)checkedTile.Y);
+
+                if (Map.IsObstacle(tileIndexX, tileIndexY))
+                {
+                    //Map.DrawTiles[tileIndexX, tileIndexY].Color = Color.Yellow;
+                    tPos = Map.DrawTiles[tileIndexX, tileIndexY].Position;
+                    return true;
+                }
+
+                if (checkedTile.Y >= bottomRight.Y)
+                    break;
+            }
+
+            return false;
+        }
+
+        public bool OnGround(Vector2 velocity, Vector2 position, out float groundY)
+        {
+            Vector2 bottomLeft = new Vector2(
+                Position.X - (CollisionRectangle.Width / 2),
+                Position.Y + Velocity.Y + (CollisionRectangle.Height) + 1);
+
+            Vector2 bottomRight = new Vector2(
+                Position.X + (CollisionRectangle.Width / 2),
+                Position.Y + Velocity.Y + (CollisionRectangle.Height) + 1);
+
+            int tileIndexX, tileIndexY;
+
+            for (var checkedTile = bottomLeft; ; checkedTile.X += Map.TileSize.X)
+            {
+                checkedTile.X = Math.Min(checkedTile.X, bottomRight.X);
+
+                tileIndexX = Map.GetMapTileXAtPoint((int)checkedTile.X);
+                tileIndexY = Map.GetMapTileYAtPoint((int)checkedTile.Y);
+
+                groundY = (float)tileIndexY * Map.TileSize.Y;
+
+                //if (Map.IsBounce(tileIndexX, tileIndexY))
+                //{
+                //    Velocity.Y -= 25f;
+                //    return false;
+                //}
+
+                if (Map.IsObstacle(tileIndexX, tileIndexY))
+                    return true;
+
+                if (checkedTile.X >= bottomRight.X)
+                    break;
+            }
+
+            return false;
+        }
+
+        public bool OnCeiling(Vector2 velocity, Vector2 position, out float tPos)
+        {
+            Vector2 topLeft = new Vector2(
+                Position.X - (CollisionRectangle.Width / 2),
+                Position.Y - CollisionRectangle.Height + Velocity.Y - 1);
+
+            Vector2 topRight = new Vector2(
+                Position.X + (CollisionRectangle.Width / 2),
+                Position.Y - CollisionRectangle.Height + Velocity.Y - 1);
+
+            int tileIndexX, tileIndexY;
+
+            for (var checkedTile = topLeft; ; checkedTile.X += Map.TileSize.X)
+            {
+                checkedTile.X = Math.Min(checkedTile.X, topRight.X);
+
+                tileIndexX = Map.GetMapTileXAtPoint((int)checkedTile.X);
+                tileIndexY = Map.GetMapTileYAtPoint((int)checkedTile.Y);
+
+                tPos = (float)tileIndexY * Map.TileSize.Y;
+
+                if (Map.IsObstacle(tileIndexX, tileIndexY))
+                    return true;
+
+                if (checkedTile.X >= topRight.X)
+                    break;
+            }
+
+            return false;
         }
     }
 }

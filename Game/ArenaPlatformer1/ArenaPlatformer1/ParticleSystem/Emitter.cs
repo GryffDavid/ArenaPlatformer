@@ -298,6 +298,7 @@ namespace ArenaPlatformer1
             StartColor = startColor;
             EndColor = endColor;
             Position = position;
+            PreviousPosition = position;
             AngleRange = angleRange;
             Gravity = gravity;
             ActiveSeconds = activeSeconds;
@@ -573,10 +574,14 @@ namespace ArenaPlatformer1
                     }
                     #endregion
 
+                    Vector2 offset = (PreviousPosition - Position) / Burst;
+
+                    //Vector2 offset = Vector2.Zero;
+
                     for (int i = 0; i < Burst; i++)
                     {
                         UpdateManager.AddParticle(
-                                Texture, Position, AngleRange, SpeedRange, ScaleRange, StartColor, EndColor,
+                                Texture, Position + offset * i, AngleRange, SpeedRange, ScaleRange, StartColor, EndColor,
                                 Gravity, Shrink, Fade, StartingRotationRange, RotationIncrementRange,
                                 Transparency, TimeRange, Grow, RotateVelocity, Friction, Orientation, FadeDelay,
                                 YRange, CanBounce, StopBounce, HardBounce, DrawDepth, Emissive, Lit,
@@ -653,6 +658,7 @@ namespace ArenaPlatformer1
             }
             #endregion
 
+            PreviousPosition = Position;
             CollisionRectangle = new Rectangle((int)Position.X - 1, (int)Position.Y - 1, 2, 2);
         }
 
@@ -764,6 +770,12 @@ namespace ArenaPlatformer1
                 tileIndexY = Map.GetMapTileYAtPoint((int)checkedTile.Y);
 
                 groundY = (float)tileIndexY * Map.TileSize.Y;
+
+                if (Map.IsBounce(tileIndexX, tileIndexY))
+                {
+                    EmitterVelocity.Y -= 25f;
+                    return false;
+                }
 
                 if (Map.IsObstacle(tileIndexX, tileIndexY))
                     return true;

@@ -262,6 +262,12 @@ namespace ArenaPlatformer1
 
                 groundY = (float)tileIndexY * Map.TileSize.Y;
 
+                if (Map.IsBounce(tileIndexX, tileIndexY))
+                {
+                    Velocity.Y -= 25f;
+                    return false;
+                }
+
                 if (Map.IsObstacle(tileIndexX, tileIndexY))
                     return true;
 

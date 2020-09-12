@@ -379,11 +379,11 @@ namespace ArenaPlatformer1
                     switch (CurrentFacing)
                     {
                         case Facing.Left:
-                            CreatePlayerShoot(new Vector2(-25, 0));
+                            CreatePlayerShoot(new Vector2(-35, 0));
                             break;
 
                         case Facing.Right:
-                            CreatePlayerShoot(new Vector2(25, 0));
+                            CreatePlayerShoot(new Vector2(35, 0));
                             break;
                     }
 
@@ -547,6 +547,11 @@ namespace ArenaPlatformer1
                     }
                 });
 
+            if (Health.X <= 0)
+            {
+                Deaths++;
+                CreatePlayerDied();
+            }
 
             PrevPosition = Position;
             PreviousPose = CurrentPose;

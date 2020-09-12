@@ -85,6 +85,7 @@
     <Compile Include="Lighting\PolygonShadow.cs" />
     <Compile Include="Lighting\Solid.cs" />
     <Compile Include="Map.cs" />
+    <Compile Include="MovingObject.cs" />
     <Compile Include="MovingPlatform.cs" />
     <Compile Include="ParticleSystem\Buffers\ChangeBuffer.cs" />
     <Compile Include="ParticleSystem\Buffers\ChangeMessage.cs" />
@@ -106,6 +107,7 @@
     <Compile Include="TrapPickup.cs" />
     <Compile Include="Traps\Mine.cs" />
     <Compile Include="UI\PlayerJoin.cs" />
+    <Compile Include="_2DCamera.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="aOtherStuff\Game.ico" />

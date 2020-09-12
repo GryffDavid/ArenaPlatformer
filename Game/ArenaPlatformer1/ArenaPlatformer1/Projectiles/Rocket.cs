@@ -11,6 +11,8 @@ namespace ArenaPlatformer1
     class Rocket : Projectile
     {
         public static Texture2D Texture;
+        Vector2 myVel;
+
 
         public Rocket()
         {
@@ -26,8 +28,10 @@ namespace ArenaPlatformer1
 
         public override void Update(GameTime gameTime)
         {
+            myVel = Vector2.Lerp(myVel, Velocity, 0.1f);
+
             Velocity.Y += Gravity;
-            Position += Velocity;
+            Position += myVel;
 
             CollisionRectangle = new Rectangle((int)(Position.X - Texture.Width / 2), (int)(Position.Y - Texture.Height / 2), Texture.Width, Texture.Height);
         }

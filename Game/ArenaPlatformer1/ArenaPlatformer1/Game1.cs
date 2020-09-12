@@ -183,16 +183,45 @@ namespace ArenaPlatformer1
         List<Grenade> GrenadeList;
         List<Projectile> ProjectileList;
 
+        List<MovingPlatform> MovingPlatformList;
+
         Rectangle ScreenRectangle = new Rectangle(0, 0, 1920, 1080);
-        
+
+        _2DCamera Camera = new _2DCamera();
+
         public void OnPlayerShoot(object source, PlayerShootEventArgs e)
         {
-            ProjectileList.Add(new Bullet()
+            //ProjectileList.Add(new Bullet()
+            //{
+            //    Position = e.Player.Position + new Vector2(0, -60),
+            //    PlayerIndex = e.Player.PlayerIndex,
+            //    Velocity = e.Velocity
+            //});
+
+            Rocket rocket = new Rocket()
             {
                 Position = e.Player.Position + new Vector2(0, -60),
                 PlayerIndex = e.Player.PlayerIndex,
                 Velocity = e.Velocity
-            });
+            };
+
+            Vector2 rang = new Vector2(
+                                        MathHelper.ToDegrees(-(float)Math.Atan2(rocket.Velocity.Y, rocket.Velocity.X)) - 180 - 60,
+                                        MathHelper.ToDegrees(-(float)Math.Atan2(rocket.Velocity.Y, rocket.Velocity.X)) - 180 + 60);
+
+
+            Emitter emitter = new Emitter(
+                ToonSmoke3, new Vector2(rocket.Position.X, rocket.Position.Y), rang,
+                new Vector2(0.5f, 1f), new Vector2(640, 960), 1f, false, new Vector2(-35, 35), new Vector2(-0.5f, 0.5f),
+                new Vector2(0.025f, 0.05f), Color.DarkGray, Color.Gray, -0.00f, -1, 1, 3, false, new Vector2(0, 720), true, 0,
+                null, null, null, null, null, true, new Vector2(0.00f, 0.05f), false, false, 150f,
+                false, false, false, false, true);
+
+            ProjectileList.Add(rocket);
+
+            rocket.EmitterList.Add(emitter);
+
+
         }
 
         public void OnPlaceTrap(object source, PlaceTrapEventArgs e)
@@ -369,6 +398,31 @@ namespace ArenaPlatformer1
             //Camera.Shake(15, 1.5f);
             #endregion
 
+            foreach (Player player in Players.Where(Player => Player != null))
+            {
+                float dist = Vector2.Distance(new Vector2(player.DestinationRectangle.Center.X, player.DestinationRectangle.Center.Y), explosion.Position);
+
+                Camera.Shake(30, 2);
+
+
+                if (dist < explosion.BlastRadius)
+                {
+                    player.Health.X -= 50;
+
+
+                    //if (e.Explosion.Source == player)
+                    //{
+                    //    //player.Score--;
+                    //}
+                    //else
+                    //{
+                    //    (e.Explosion.Source as Player).Score++;
+                    //}
+
+                    //player.MakeRumble(250, new Vector2(0.9f, 0.1f));
+                }
+            }
+
         }
 
         public void OnPlayerGrenade(object source, PlayerGrenadeEventArgs e)
@@ -408,6 +462,17 @@ namespace ArenaPlatformer1
         {
             GrenadeList = new List<Grenade>();
             ProjectileList = new List<Projectile>();
+            MovingPlatformList = new List<MovingPlatform>();
+
+
+            MovingPlatform platform = new MovingPlatform(new Vector2(2, 0))
+            {
+                Position = new Vector2(200, 200),
+                Texture = Block,
+                Size = new Vector2(64,64)
+            };
+
+            MovingPlatformList.Add(platform);
 
             TrapList = new List<Trap>();
             Player.TrapList = TrapList;
@@ -428,8 +493,6 @@ namespace ArenaPlatformer1
 
             ParticleTexture = Content.Load<Texture2D>("Particles/diamond");
 
-
-
             //Emitter newEmitter4 = new Emitter(ParticleTexture, new Vector2(800, 200), new Vector2(-40, 40), new Vector2(6, 10),
             //        new Vector2(1000, 1000), 0.99f, true, new Vector2(0, 360), new Vector2(-3, 3), new Vector2(0.25f, 0.5f),
             //        new Color(Color.Orange.R, Color.Orange.G, Color.Orange.B, 100),
@@ -447,46 +510,46 @@ namespace ArenaPlatformer1
             //EmitterList.Add(newEmitter5);
 
 
-            Emitter emitter = new Emitter(ParticleTexture, new Vector2(70, 1080 / 2),
-                    new Vector2(0, 360), new Vector2(0, 0.5f),
-                    new Vector2(500, 1500), 1f, true, Vector2.Zero, new Vector2(-3, 3), new Vector2(0.5f, 1f),
-                    new Color(Color.LimeGreen.R, Color.LimeGreen.G, Color.LimeGreen.B, 20),
-                    new Color(Color.Lime.R, Color.Lime.G, Color.Lime.B, 50),
-                    -0.0f, -1f, 15, 10, true, new Vector2(1080 - 64, 1080 - 64),
-                    false, 0, true, true, null, null, 0.0f,
-                    false, new Vector2(0.05f, 0.08f), null, null, null, true, null, null, true, false);
+            //Emitter emitter = new Emitter(ParticleTexture, new Vector2(70, 1080 / 2),
+            //        new Vector2(0, 360), new Vector2(0, 0.5f),
+            //        new Vector2(500, 1500), 1f, true, Vector2.Zero, new Vector2(-3, 3), new Vector2(0.5f, 1f),
+            //        new Color(Color.LimeGreen.R, Color.LimeGreen.G, Color.LimeGreen.B, 20),
+            //        new Color(Color.Lime.R, Color.Lime.G, Color.Lime.B, 50),
+            //        -0.0f, -1f, 15, 10, true, new Vector2(1080 - 64, 1080 - 64),
+            //        false, 0, true, true, null, null, 0.0f,
+            //        false, new Vector2(0.05f, 0.08f), null, null, null, true, null, null, true, false);
 
-            emitter.CurrentChange = new Emitter.ChangeEmitter()
-            {
-                Active = false,
-                ChangeTime = new Vector2(0, 3000),
-                startColor = Color.DeepSkyBlue,
-                endColor = Color.Blue
-            };
+            //emitter.CurrentChange = new Emitter.ChangeEmitter()
+            //{
+            //    Active = false,
+            //    ChangeTime = new Vector2(0, 3000),
+            //    startColor = Color.DeepSkyBlue,
+            //    endColor = Color.Blue
+            //};
 
-            EmitterList.Add(emitter);
+            //EmitterList.Add(emitter);
 
 
-            Emitter emitter2 = new Emitter(ParticleTexture, new Vector2(70, 1080/2),
-                    new Vector2(0, 360), new Vector2(0, 0.5f),
-                    new Vector2(500, 1500), 1f, true, Vector2.Zero, new Vector2(-3, 3), new Vector2(0.5f, 1f),
-                    new Color(Color.HotPink.R, Color.HotPink.G, Color.HotPink.B, 20),
-                    new Color(Color.Fuchsia.R, Color.Fuchsia.G, Color.Fuchsia.B, 50),
-                    0.0f, -1f, 15, 10, true, new Vector2(1080 - 64, 1080 - 64),
-                    false, 0, true, true, null, null, 0.0f,
-                    false, new Vector2(0.05f, 0.08f), null, null, null, true, null, null, true, false);
+            //Emitter emitter2 = new Emitter(ParticleTexture, new Vector2(70, 1080/2),
+            //        new Vector2(0, 360), new Vector2(0, 0.5f),
+            //        new Vector2(500, 1500), 1f, true, Vector2.Zero, new Vector2(-3, 3), new Vector2(0.5f, 1f),
+            //        new Color(Color.HotPink.R, Color.HotPink.G, Color.HotPink.B, 20),
+            //        new Color(Color.Fuchsia.R, Color.Fuchsia.G, Color.Fuchsia.B, 50),
+            //        0.0f, -1f, 15, 10, true, new Vector2(1080 - 64, 1080 - 64),
+            //        false, 0, true, true, null, null, 0.0f,
+            //        false, new Vector2(0.05f, 0.08f), null, null, null, true, null, null, true, false);
 
-            emitter2.CurrentChange = new Emitter.ChangeEmitter()
-            {
-                Active = false,
-                ChangeTime = new Vector2(0, 1500),
-                startColor = Color.Red,
-                endColor = Color.OrangeRed
-            };
+            //emitter2.CurrentChange = new Emitter.ChangeEmitter()
+            //{
+            //    Active = false,
+            //    ChangeTime = new Vector2(0, 1500),
+            //    startColor = Color.Red,
+            //    endColor = Color.OrangeRed
+            //};
 
-            EmitterList.Add(emitter2);
+            //EmitterList.Add(emitter2);
 
-            
+
 
             LightList.Add(new Light()
             {
@@ -501,12 +564,15 @@ namespace ArenaPlatformer1
             });
 
 
-            //foreach (Tile tile in CurrentMap.TileList)
-            //{
-            //    Solid solid = new Solid(Block, tile.Position, new Vector2(64, 64));
-            //    solid.LoadContent(GameContentManager);
-            //    SolidList.Add(solid);
-            //}
+            foreach (Tile tile in CurrentMap.DrawTiles)
+            {
+                if (tile != null)
+                {
+                    Solid solid = new Solid(Block, tile.Position, new Vector2(64, 64));
+                    solid.LoadContent(GameContentManager);
+                    SolidList.Add(solid);
+                }
+            }
 
             RocketLauncher.Texture = Content.Load<Texture2D>("Gun");
             RocketLauncher launcher = new RocketLauncher();
@@ -527,6 +593,7 @@ namespace ArenaPlatformer1
 
             Emitter.Map = CurrentMap;
             MovingPlatform.Map = CurrentMap;
+            Trap.Map = CurrentMap;
 
             Texture = Content.Load<Texture2D>("Backgrounds/Texture");
             NormalTexture = Content.Load<Texture2D>("Backgrounds/NormalTexture");
@@ -796,6 +863,13 @@ namespace ArenaPlatformer1
                             }
                         }
 
+                        foreach (MovingPlatform platform in MovingPlatformList)
+                        {
+                            platform.Update(gameTime);
+                        }
+
+                        Camera.Update(gameTime);
+
                         GrenadeList.RemoveAll(Grenade => Grenade.Active == false);
 
                         ProjectileList.RemoveAll(Projectile => !ScreenRectangle.Contains(new Point((int)Projectile.Position.X, (int)Projectile.Position.Y)));
@@ -834,9 +908,11 @@ namespace ArenaPlatformer1
                         foreach (Projectile projectile in ProjectileList)
                         {
                             projectile.Update(gameTime);
-
+                            projectile.UpdateEmitters(gameTime);
+                            
                             if (projectile.CheckCollisions() == true)
                             {
+
                                 for (int i = 0; i < 10; i++)
                                 {
                                     Vector2 rang = new Vector2(
@@ -848,8 +924,8 @@ namespace ArenaPlatformer1
                                         new Vector2(500, 1500), 1f, true, Vector2.Zero, new Vector2(-3, 3), new Vector2(0.5f, 1f),
                                         new Color(Color.HotPink.R, Color.HotPink.G, Color.HotPink.B, 80),
                                         new Color(Color.HotPink.R, Color.HotPink.G, Color.HotPink.B, 20), 
-                                        0f, (float)DoubleRange(0.5d, 1.5d), 15, 3, true, new Vector2(1080 - 64, 1080 - 64),
-                                        false, 0, true, true, new Vector2(5, 7), rang, 0.2f,
+                                        0f, (float)DoubleRange(0.5d, 1.5d), 1, 3, true, new Vector2(1080 - 64, 1080 - 64),
+                                        false, 0, true, true, new Vector2(3, 5), rang, 0.2f,
                                         true, null, null, null, null, true, null, null, true, false);
 
                                     EmitterList.Add(emitter);
@@ -861,8 +937,8 @@ namespace ArenaPlatformer1
 
                         ProjectileList.RemoveAll(Projectile => Projectile.Active == false);
 
-                        EmitterList[0].Position = new Vector2(EmitterList[0].Position.X + 3, 1080 / 2) + new Vector2(0, 7 * (float)Math.Sin((float)gameTime.TotalGameTime.TotalSeconds * 7));
-                        EmitterList[1].Position = new Vector2(EmitterList[1].Position.X + 3, 1080 / 2) + new Vector2(0, -7 * (float)Math.Sin((float)gameTime.TotalGameTime.TotalSeconds * 7));
+                        //EmitterList[0].Position = new Vector2(EmitterList[0].Position.X + 3, 1080 / 2) + new Vector2(0, 7 * (float)Math.Sin((float)gameTime.TotalGameTime.TotalSeconds * 7));
+                        //EmitterList[1].Position = new Vector2(EmitterList[1].Position.X + 3, 1080 / 2) + new Vector2(0, -7 * (float)Math.Sin((float)gameTime.TotalGameTime.TotalSeconds * 7));
 
                         foreach (Emitter emitter in EmitterList)
                         {
@@ -994,6 +1070,11 @@ namespace ArenaPlatformer1
                         foreach (Grenade grenade in GrenadeList)
                         {
                             grenade.Draw(spriteBatch);
+                        }
+
+                        foreach (MovingPlatform platform in MovingPlatformList)
+                        {
+                            platform.Draw(spriteBatch);
                         }
 
                         spriteBatch.Draw(EmissiveMap, EmissiveMap.Bounds, Color.White);
@@ -1225,7 +1306,7 @@ namespace ArenaPlatformer1
             #region Draw to the backbuffer
             GraphicsDevice.SetRenderTarget(null);
             GraphicsDevice.Clear(Color.Black);
-            spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Additive);
+            spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Additive, null, null, null, null, Camera.Transform);
 
             if (GameState != GameState.Playing && GameState != GameState.LevelCreator)
             {
@@ -1236,11 +1317,13 @@ namespace ArenaPlatformer1
                 spriteBatch.Draw(FinalMap, FinalMap.Bounds, Color.White);
                 //spriteBatch.Draw(ColorMap, ColorMap.Bounds, Color.White);
                 spriteBatch.Draw(BlurMap, BlurMap.Bounds, Color.White);
-
-                spriteBatch.Draw(UIRenderTarget, UIRenderTarget.Bounds, Color.White);
             }
 
-            spriteBatch.End(); 
+            spriteBatch.End();
+            
+            spriteBatch.Begin();
+            spriteBatch.Draw(UIRenderTarget, UIRenderTarget.Bounds, Color.White);
+            spriteBatch.End();
             #endregion
 
             base.Draw(gameTime);

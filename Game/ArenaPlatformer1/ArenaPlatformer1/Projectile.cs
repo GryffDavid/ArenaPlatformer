@@ -16,9 +16,12 @@ namespace ArenaPlatformer1
         public float Rotation, Angle, Gravity;
         public static Map Map;
         public bool Active;
+        public bool PlayedSound = false;
         public Rectangle DestinationRectangle, CollisionRectangle;
         public abstract void Draw(SpriteBatch spriteBatch);
         public abstract void Update(GameTime gameTime);
+
+        public List<Emitter> EmitterList = new List<Emitter>();
 
         public void DrawInfo(GraphicsDevice graphics, BasicEffect basicEffect)
         {
@@ -71,6 +74,15 @@ namespace ArenaPlatformer1
                 graphics.DrawUserIndexedPrimitives(PrimitiveType.LineStrip, Vertices, 0, 4, Indices, 0, 6, VertexPositionColorTexture.VertexDeclaration);
             }
             #endregion
+        }
+
+        public void UpdateEmitters(GameTime gameTime)
+        {
+            foreach (Emitter emitter in EmitterList)
+            {
+                emitter.Position = Position;
+                emitter.Update(gameTime);
+            }
         }
 
         public bool CheckCollisions()
@@ -245,6 +257,6 @@ namespace ArenaPlatformer1
             }
 
             return false;
-        }
+        }        
     }
 }

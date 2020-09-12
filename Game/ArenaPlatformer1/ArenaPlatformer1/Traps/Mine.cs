@@ -27,6 +27,11 @@ namespace ArenaPlatformer1
             DestinationRectangle = new Rectangle((int)Position.X, (int)Position.Y, 32, 16);
             CollisionRectangle = new Rectangle((int)Position.X, (int)Position.Y, 32, 16);
 
+            foreach (Emitter emitter in EmitterList)
+            {
+                emitter.Position = Position;
+            }
+
             base.Update(gameTime);
         }
 
