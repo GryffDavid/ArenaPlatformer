@@ -25,6 +25,11 @@ namespace ArenaPlatformer1
         //The size of the map in tiles
         public Vector2 MapSize = new Vector2(30, 17);
 
+        public int TreeGridWidth = 64;
+        public int TreeGridHeight = 64;
+
+        public List<MovingObject>[,] ObjectsInArea;
+
         public Map()
         {
             Tiles = new TileType[(int)MapSize.X, (int)MapSize.Y];
@@ -88,7 +93,18 @@ namespace ArenaPlatformer1
 
         public void Initialize()
         {
+            int HorizontalAreasCount = (int)Math.Ceiling((float)1920 / (float)TreeGridWidth);
+            int VerticalAreasCount = (int)Math.Ceiling((float)1080 / (float)TreeGridHeight);
 
+            ObjectsInArea = new List<MovingObject>[HorizontalAreasCount, VerticalAreasCount];
+
+            for (int y = 0; y < VerticalAreasCount; y++)
+            {
+                for (var x = 0; x < HorizontalAreasCount; x++)
+                {
+                    ObjectsInArea[x, y] = new List<MovingObject>();
+                }
+            }
         }
 
         public void LoadContent(ContentManager content)
@@ -212,6 +228,139 @@ namespace ArenaPlatformer1
         public int GetMapTileYAtPoint(int yPos)
         {
             return (int)(yPos / TileSize.Y);
+        }
+
+        public Vector2 GetMapTileAtPoint(Vector2 position)
+        {
+            return new Vector2((int)(position.X / TileSize.X), (int)(position.Y / TileSize.Y));
+        }
+
+        public void UpdateAreas(MovingObject movingObject)
+        {
+            List<Vector2> OverlappingAreas = new List<Vector2>();
+
+            Vector2 topLeft = GetMapTileAtPoint(
+                new Vector2(
+                movingObject.CollisionRectangle.Left,
+                movingObject.CollisionRectangle.Top)
+                );
+
+            Vector2 topRight = GetMapTileAtPoint(
+                new Vector2(
+                movingObject.CollisionRectangle.Right,
+                movingObject.CollisionRectangle.Top)
+                );
+
+            Vector2 bottomLeft = GetMapTileAtPoint(
+                new Vector2(
+                movingObject.CollisionRectangle.Left,
+                movingObject.CollisionRectangle.Bottom)
+                );
+
+            Vector2 bottomRight = GetMapTileAtPoint(new Vector2(
+                movingObject.CollisionRectangle.Right,
+                movingObject.CollisionRectangle.Bottom
+                ));
+
+            topLeft.X /= TreeGridWidth;
+            topLeft.Y /= TreeGridHeight;
+
+            topRight.X /= TreeGridWidth;
+            topRight.Y /= TreeGridHeight;
+
+            bottomLeft.X /= TreeGridWidth;
+            bottomLeft.Y /= TreeGridHeight;
+
+            bottomRight.X /= TreeGridWidth;
+            bottomRight.Y /= TreeGridHeight;
+
+            if (topLeft.X == topRight.X && topLeft.Y == bottomLeft.Y)
+            {
+                OverlappingAreas.Add(topLeft * 64);
+            }
+            else if (topLeft.X == topRight.X)
+            {
+                OverlappingAreas.Add(topLeft * 64);
+                OverlappingAreas.Add(bottomLeft * 64);
+            }
+            else if (topLeft.Y == bottomLeft.Y)
+            {
+                OverlappingAreas.Add(topLeft * 64);
+                OverlappingAreas.Add(topRight * 64);
+            }
+            else
+            {
+                OverlappingAreas.Add(topLeft * 64);
+                OverlappingAreas.Add(bottomLeft * 64);
+                OverlappingAreas.Add(topRight * 64);
+                OverlappingAreas.Add(bottomRight * 64);
+            }
+
+            var areas = movingObject.Areas;
+            var IDs = movingObject.IDsInAreas;
+
+            for (int i = 0; i < areas.Count; i++)
+            {
+                if (!OverlappingAreas.Contains(areas[i]))
+                {
+                    RemoveObjectFromArea(areas[i], IDs[i], movingObject);
+                    areas.RemoveAt(i);
+                    IDs.RemoveAt(i);
+                    i--;
+                }
+            }
+
+            for (var i = 0; i < OverlappingAreas.Count; i++)
+            {
+                var area = OverlappingAreas[i];
+                if (!areas.Contains(area))
+                    AddObjectToArea(area, movingObject);
+            }
+
+            OverlappingAreas.Clear();
+        }
+
+        public void AddObjectToArea(Vector2 areaIndex, MovingObject movingObject)
+        {
+            var area = ObjectsInArea[(int)areaIndex.X, (int)areaIndex.Y];
+
+            movingObject.Areas.Add(areaIndex);
+            movingObject.IDsInAreas.Add(area.Count);
+
+            area.Add(movingObject);
+        }
+
+        public void RemoveObjectFromArea(Vector2 areaIndex, int objectIndex, MovingObject movingObject)
+        {
+            var area = ObjectsInArea[(int)areaIndex.X, (int)areaIndex.Y];
+
+            //Swap the last item with the one we are removing
+            var temp = area[area.Count - 1];
+            area[area.Count - 1] = movingObject;
+            area[objectIndex] = temp;
+
+            var tempIDs = temp.IDsInAreas;
+            var tempAreas = temp.Areas;
+
+            for (int i = 0; i < tempAreas.Count; i++)
+            {
+                if (tempAreas[i] == areaIndex)
+                {
+                    tempIDs[i] = objectIndex;
+                    break;
+                }
+            }
+
+            //Remove last item
+            area.RemoveAt(area.Count - 1);
+        }
+
+        /// <summary>
+        /// Check collisions between all MovingObjects 
+        /// </summary>
+        public void CheckCollisions()
+        {
+
         }
     }
 }

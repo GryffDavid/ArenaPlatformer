@@ -183,11 +183,13 @@ namespace ArenaPlatformer1
         List<Grenade> GrenadeList;
         List<Projectile> ProjectileList;
 
-        List<MovingPlatform> MovingPlatformList;
-
         Rectangle ScreenRectangle = new Rectangle(0, 0, 1920, 1080);
 
+        List<MovingObject> MovingObjectList;
+
         _2DCamera Camera = new _2DCamera();
+
+        bool didDraw = false;
 
         public void OnPlayerShoot(object source, PlayerShootEventArgs e)
         {
@@ -462,23 +464,23 @@ namespace ArenaPlatformer1
         {
             GrenadeList = new List<Grenade>();
             ProjectileList = new List<Projectile>();
-            MovingPlatformList = new List<MovingPlatform>();
-
-
-            MovingPlatform platform = new MovingPlatform(new Vector2(2, 0))
-            {
-                Position = new Vector2(200, 200),
-                Texture = Block,
-                Size = new Vector2(64,64)
-            };
-
-            MovingPlatformList.Add(platform);
 
             TrapList = new List<Trap>();
             Player.TrapList = TrapList;
 
             ItemList = new List<Item>();
             Player.ItemList = ItemList;
+
+            MovingObjectList = new List<MovingObject>();
+            MovingObject platform = new MovingObject()
+            {
+                Position = new Vector2(234, 234),
+                Size = new Vector2(32, 32),
+                Velocity = new Vector2(2, 0)
+            };
+            platform.Initialize();
+
+            MovingObjectList.Add(platform);
 
             DoubleBuffer = new DoubleBuffer();
             RenderManager = new RenderManager(DoubleBuffer);
@@ -592,11 +594,20 @@ namespace ArenaPlatformer1
             Grenade.Map = CurrentMap;
 
             Emitter.Map = CurrentMap;
-            MovingPlatform.Map = CurrentMap;
             Trap.Map = CurrentMap;
 
             Texture = Content.Load<Texture2D>("Backgrounds/Texture");
             NormalTexture = Content.Load<Texture2D>("Backgrounds/NormalTexture");
+
+            //MovingObject movingObject = new MovingObject()
+            //{
+            //    Position = new Vector2(260, 260),
+            //    Size = new Vector2(32, 32)
+            //};
+
+            //movingObject.LoadContent();
+
+            //CurrentMap.UpdateAreas(movingObject);
         }
 
         protected override void LoadContent()
@@ -665,6 +676,7 @@ namespace ArenaPlatformer1
             Font1 = Content.Load<SpriteFont>("Font1");
 
             CurrentMap = new Map();
+            CurrentMap.Initialize();
             CurrentMap.LoadContent(Content);
 
             Texture2D ButtonTexture = Content.Load<Texture2D>("Blank");
@@ -833,8 +845,14 @@ namespace ArenaPlatformer1
                         {
                             trap.Update(gameTime);
                         }
-
                         TrapList.RemoveAll(Trap => Trap.Exists == false);
+
+
+                        foreach (MovingObject movingObject in MovingObjectList)
+                        {
+                            movingObject.Update(gameTime);
+                            CurrentMap.UpdateAreas(movingObject);
+                        }
 
                         foreach (Solid solid in SolidList)
                         {
@@ -861,11 +879,6 @@ namespace ArenaPlatformer1
 
                                 CreateExplosion(explosion, grenade);
                             }
-                        }
-
-                        foreach (MovingPlatform platform in MovingPlatformList)
-                        {
-                            platform.Update(gameTime);
                         }
 
                         Camera.Update(gameTime);
@@ -1041,6 +1054,8 @@ namespace ArenaPlatformer1
                         GraphicsDevice.Clear(Color.Gray);
                         spriteBatch.Begin(SpriteSortMode.BackToFront, BlendState.AlphaBlend);
 
+                        
+
                         foreach (Player player in Players.Where(Player => Player != null))
                         {
                             player.Draw(spriteBatch);
@@ -1048,6 +1063,10 @@ namespace ArenaPlatformer1
 
                         spriteBatch.Draw(Texture, new Rectangle(0, 0, 1920, 1080), null, Color.White, 0, Vector2.Zero, SpriteEffects.None, 1);
 
+                        foreach (MovingObject movingObject in MovingObjectList)
+                        {
+                            spriteBatch.Draw(Block, movingObject.CollisionRectangle, Color.White);
+                        }
                         //spriteBatch.Draw(Block, new Rectangle(0, 750, 1920, 80), null, Color.Red, 0, Vector2.Zero, SpriteEffects.None, 0.15f);
 
                         foreach (Projectile projectile in ProjectileList)
@@ -1070,11 +1089,6 @@ namespace ArenaPlatformer1
                         foreach (Grenade grenade in GrenadeList)
                         {
                             grenade.Draw(spriteBatch);
-                        }
-
-                        foreach (MovingPlatform platform in MovingPlatformList)
-                        {
-                            platform.Draw(spriteBatch);
                         }
 
                         spriteBatch.Draw(EmissiveMap, EmissiveMap.Bounds, Color.White);
@@ -1233,8 +1247,63 @@ namespace ArenaPlatformer1
                 }
             }
 
-            if (DebugBoxes == true)
+            //if (DebugBoxes == true)
+            if (GameState == GameState.Playing)
             {
+                for (int x = 0; x < 30; x++)
+                {
+                    for (int y = 0; y < 17; y++)
+                    {
+                        VertexPositionColorTexture[] Vertices = new VertexPositionColorTexture[4];
+                        int[] Indices = new int[8];
+
+                        Vertices[0] = new VertexPositionColorTexture()
+                        {
+                            Color = Color.White,
+                            Position = new Vector3(x * 64, y * 64, 0),
+                            TextureCoordinate = new Vector2(0, 0)
+                        };
+
+                        Vertices[1] = new VertexPositionColorTexture()
+                        {
+                            Color = Color.White,
+                            Position = new Vector3((x * 64) + 64, (y * 64), 0),
+                            TextureCoordinate = new Vector2(1, 0)
+                        };
+
+                        Vertices[2] = new VertexPositionColorTexture()
+                        {
+                            Color = Color.White,
+                            Position = new Vector3((x * 64) + 64, (y * 64) + 64, 0),
+                            TextureCoordinate = new Vector2(1, 1)
+                        };
+
+                        Vertices[3] = new VertexPositionColorTexture()
+                        {
+                            Color = Color.White,
+                            Position = new Vector3((x * 64), (y * 64) + 64, 0),
+                            TextureCoordinate = new Vector2(0, 1)
+                        };
+
+                        Indices[0] = 0;
+                        Indices[1] = 1;
+
+                        Indices[2] = 2;
+                        Indices[3] = 3;
+
+                        Indices[4] = 0;
+
+                        Indices[5] = 2;
+                        Indices[6] = 0;
+
+                        foreach (EffectPass pass in BasicEffect.CurrentTechnique.Passes)
+                        {
+                            pass.Apply();
+                            GraphicsDevice.DrawUserIndexedPrimitives(PrimitiveType.LineStrip, Vertices, 0, 4, Indices, 0, 6, VertexPositionColorTexture.VertexDeclaration);
+                        }
+                    }
+                }
+
                 foreach (Player player in Players.Where(Player => Player != null))
                 {
                     player.DrawInfo(spriteBatch, GraphicsDevice, BasicEffect);
@@ -1261,7 +1330,8 @@ namespace ArenaPlatformer1
                 }
             }
 
-            if (TileBoxes == true)
+            //if (TileBoxes == true)
+            if (GameState == GameState.Playing)
             {
                 foreach (Tile tile in CurrentMap.DrawTiles)
                 {
@@ -1325,6 +1395,8 @@ namespace ArenaPlatformer1
             spriteBatch.Draw(UIRenderTarget, UIRenderTarget.Bounds, Color.White);
             spriteBatch.End();
             #endregion
+
+            didDraw = true;
 
             base.Draw(gameTime);
         }
