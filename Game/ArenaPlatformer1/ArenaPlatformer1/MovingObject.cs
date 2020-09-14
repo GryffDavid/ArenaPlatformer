@@ -102,6 +102,8 @@ namespace ArenaPlatformer1
 
         public void Update(GameTime gameTime)
         {
+            CheckPhysics();
+
             Position += Velocity;
             CollisionRectangle = new Rectangle((int)Position.X, (int)Position.Y, (int)Size.X, (int)Size.Y);
             HalfSize = new Vector2(CollisionRectangle.Width / 2, CollisionRectangle.Height / 2);
@@ -115,6 +117,8 @@ namespace ArenaPlatformer1
             {
                 Color = Color.White;
             }
+
+
 
             PreviousPosition = Position;
         }
@@ -133,7 +137,123 @@ namespace ArenaPlatformer1
             PushesRightObject = false;
             PushesLeftObject = false;
             PushesTopObject = false;
-            
+
+            Vector2 offsetSum = Vector2.Zero;
+
+            for (int i = 0; i < CollisionDataList.Count; i++)
+            {
+                var other = CollisionDataList[i].Other;
+                var data = CollisionDataList[i];
+                Vector2 Overlap = data.Overlap - offsetSum;
+
+                if (Overlap.X == 0f)
+                {
+                    if (other.Center.X > Center.X)
+                    {
+                        PushesRightObject = true;
+                        Velocity.X = Math.Min(Velocity.X, 0f);
+                    }
+                    else
+                    {
+                        PushesLeftObject = true;
+                        Velocity.X = Math.Max(Velocity.X, 0.0f);
+                    }
+                    continue;
+                }
+                else if (Overlap.Y == 0f)
+                {
+                    if (other.Center.Y > Center.Y)
+                    {
+                        PushesTopObject = true;
+                        Velocity.Y = Math.Min(Velocity.Y, 0f);
+                    }
+                    else
+                    {
+                        PushesBottomObject = true;
+                        Velocity.Y = Math.Max(Velocity.Y, 0f);
+                    }
+                    continue;
+                }
+
+                Vector2 absSpeed1 = new Vector2(Math.Abs(data.Position1.X - data.PreviousPosition1.X),
+                                                Math.Abs(data.Position1.Y - data.PreviousPosition1.Y));
+
+                Vector2 absSpeed2 = new Vector2(Math.Abs(data.Position2.X - data.PreviousPosition2.X),
+                                                Math.Abs(data.Position2.Y - data.PreviousPosition2.Y));
+
+                Vector2 speedSum = absSpeed1 + absSpeed2;
+
+
+                Vector2 speedRatio;
+
+                if (other.IsKinematic)
+                {
+                    speedRatio.X = speedRatio.Y = 1.0f;
+                }
+                else
+                {
+                    if (speedSum.X == 0 && speedSum.Y == 0)
+                    {
+                        speedRatio.X = speedRatio.Y = 0.5f;
+                    }
+                    else if (speedSum.X == 0)
+                    {
+                        speedRatio.X = 0.5f;
+                        speedRatio.Y = absSpeed1.Y / speedSum.Y;
+                    }
+                    else if (speedSum.Y == 0)
+                    {
+                        speedRatio.Y = 0.5f;
+                        speedRatio.X = absSpeed1.X / speedSum.X;
+                    }
+                    else
+                    {
+                        speedRatio.X = absSpeed1.X / speedSum.X;
+                        speedRatio.Y = absSpeed1.Y / speedSum.Y;
+                    }
+                }
+
+                Vector2 Offset = Overlap * speedRatio;
+                
+                bool overlappedLastFrameX = Math.Abs(data.PreviousPosition1.X - data.PreviousPosition2.X) < (other.HalfSize.X + HalfSize.X);
+                bool overlappedLastFrameY = Math.Abs(data.PreviousPosition1.Y - data.PreviousPosition2.Y) < (other.HalfSize.Y + HalfSize.Y);
+
+                offsetSum = Vector2.Zero;
+
+                if ((!overlappedLastFrameX && overlappedLastFrameY)
+                || (!overlappedLastFrameX && !overlappedLastFrameY && Math.Abs(Overlap.X) <= Math.Abs(Overlap.Y)))
+                {
+                    Position.X += Offset.X;
+                    offsetSum.X += Offset.X;
+
+                    if (Overlap.X < 0.0f)
+                    {
+                        PushesRightObject = true;
+                        Velocity.X = Math.Min(Velocity.X, 0.0f);
+                    }
+                    else
+                    {
+                        PushesLeftObject = true;
+                        Velocity.X = Math.Max(Velocity.X, 0.0f);
+                    }
+                }
+                else
+                {
+                    Position.Y += Offset.Y;
+                    offsetSum.Y += Offset.Y;
+
+                    if (Overlap.Y < 0.0f)
+                    {
+                        PushesTopObject = true;
+                        Velocity.Y = Math.Min(Velocity.Y, 0.0f);
+                    }
+                    else
+                    {
+                        PushesBottomObject = true;
+                        Velocity.Y = Math.Max(Velocity.Y, 0.0f);
+                    }
+                }
+            }
         }
 
         public bool OverlapsSigned(MovingObject other, out Vector2 overlap)

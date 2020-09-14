@@ -1,0 +1,3 @@
+This version has moving object collisions implemented now. I'm not completely happy with the results yet, but it is a big step towards what I need. 
+
+https://gamedevelopment.tutsplus.com/tutorials/basic-platformer-physics-part-6-object-vs-object-collision-response--cms-27604 

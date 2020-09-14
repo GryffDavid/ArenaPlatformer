@@ -474,17 +474,18 @@ namespace ArenaPlatformer1
             MovingObjectList = new List<MovingObject>();
             MovingObject platform = new MovingObject()
             {
-                Position = new Vector2(80, 234),
+                Position = new Vector2(300, 234),
                 Size = new Vector2(32, 32),
-                Velocity = new Vector2(2, 0)
+                Velocity = new Vector2(2f, 0)
             };
             platform.Initialize();
 
             MovingObject platform2 = new MovingObject()
             {
-                Position = new Vector2(260, 234),
+                Position = new Vector2(480, 236),
                 Size = new Vector2(32, 32),
-                Velocity = new Vector2(0, 0)
+                Velocity = new Vector2(1f, 0),
+                //IsKinematic = true
             };
             platform2.Initialize();
 
@@ -861,13 +862,11 @@ namespace ArenaPlatformer1
 
                         foreach (MovingObject movingObject in MovingObjectList)
                         {
-                            movingObject.Update(gameTime);                            
+                            movingObject.Update(gameTime);
                             CurrentMap.UpdateAreas(movingObject);
 
                             movingObject.CollisionDataList.Clear();
-                        }
-
-                        
+                        }                        
 
                         foreach (Solid solid in SolidList)
                         {
