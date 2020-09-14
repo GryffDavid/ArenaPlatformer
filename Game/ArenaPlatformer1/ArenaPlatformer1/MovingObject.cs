@@ -51,7 +51,7 @@ namespace ArenaPlatformer1
 
         public List<CollisionData> CollisionDataList = new List<CollisionData>();
 
-        Vector2 HalfSize, Center;
+        public Vector2 HalfSize, Center;
 
         public Color Color = Color.White;
         
@@ -117,8 +117,6 @@ namespace ArenaPlatformer1
             {
                 Color = Color.White;
             }
-
-
 
             PreviousPosition = Position;
         }
@@ -255,6 +253,18 @@ namespace ArenaPlatformer1
                 }
             }
         }
+
+        //public void CheckPhysics2()
+        //{
+        //    CheckPhysics();
+
+        //    PushesBottom = PushesBottomTile || PushesBottomObject;
+        //    PushesRight = PushesRightTile || PushesRightObject;
+        //    PushesLeft = PushesLeftTile || PushesLeftObject;
+        //    PushesTop = PushesTopTile || PushesTopObject;
+
+        //    //Center = new Vector2(CollisionRectangle.Center.X, CollisionRectangle.Center.Y);
+        //}
 
         public bool OverlapsSigned(MovingObject other, out Vector2 overlap)
         {

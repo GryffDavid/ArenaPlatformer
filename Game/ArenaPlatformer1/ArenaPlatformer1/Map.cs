@@ -240,92 +240,95 @@ namespace ArenaPlatformer1
 
         public void UpdateAreas(MovingObject movingObject)
         {
-            List<Vector2> OverlappingAreas = new List<Vector2>();
-
-            Vector2 topLeft = GetMapTileAtPoint(
-                new Vector2(
-                movingObject.CollisionRectangle.Left,
-                movingObject.CollisionRectangle.Top)
-                );
-
-            Vector2 topRight = GetMapTileAtPoint(
-                new Vector2(
-                movingObject.CollisionRectangle.Right,
-                movingObject.CollisionRectangle.Top)
-                );
-
-            Vector2 bottomLeft = GetMapTileAtPoint(
-                new Vector2(
-                movingObject.CollisionRectangle.Left,
-                movingObject.CollisionRectangle.Bottom)
-                );
-
-            Vector2 bottomRight = GetMapTileAtPoint(new Vector2(
-                movingObject.CollisionRectangle.Right,
-                movingObject.CollisionRectangle.Bottom
-                ));
-
-            topLeft.X /= TreeGridWidth;
-            topLeft.Y /= TreeGridHeight;
-
-            topRight.X /= TreeGridWidth;
-            topRight.Y /= TreeGridHeight;
-
-            bottomLeft.X /= TreeGridWidth;
-            bottomLeft.Y /= TreeGridHeight;
-
-            bottomRight.X /= TreeGridWidth;
-            bottomRight.Y /= TreeGridHeight;
-
-            if (topLeft.X == topRight.X && topLeft.Y == bottomLeft.Y)
+            if (new Rectangle(0, 0, 1920, 1080).Contains(new Point(movingObject.CollisionRectangle.Right, (int)movingObject.Center.Y)))
             {
-                OverlappingAreas.Add(topLeft * 64);
-            }
-            else if (topLeft.X == topRight.X)
-            {
-                OverlappingAreas.Add(topLeft * 64);
-                OverlappingAreas.Add(bottomLeft * 64);
-            }
-            else if (topLeft.Y == bottomLeft.Y)
-            {
-                OverlappingAreas.Add(topLeft * 64);
-                OverlappingAreas.Add(topRight * 64);
-            }
-            else
-            {
-                OverlappingAreas.Add(topLeft * 64);
-                OverlappingAreas.Add(bottomLeft * 64);
-                OverlappingAreas.Add(topRight * 64);
-                OverlappingAreas.Add(bottomRight * 64);
-            }
+                List<Vector2> OverlappingAreas = new List<Vector2>();
 
-            var areas = movingObject.Areas;
-            var IDs = movingObject.IDsInAreas;
+                Vector2 topLeft = GetMapTileAtPoint(
+                    new Vector2(
+                    movingObject.CollisionRectangle.Left,
+                    movingObject.CollisionRectangle.Top)
+                    );
 
-            for (int i = 0; i < areas.Count; i++)
-            {
-                if (!OverlappingAreas.Contains(areas[i]))
+                Vector2 topRight = GetMapTileAtPoint(
+                    new Vector2(
+                    movingObject.CollisionRectangle.Right,
+                    movingObject.CollisionRectangle.Top)
+                    );
+
+                Vector2 bottomLeft = GetMapTileAtPoint(
+                    new Vector2(
+                    movingObject.CollisionRectangle.Left,
+                    movingObject.CollisionRectangle.Bottom)
+                    );
+
+                Vector2 bottomRight = GetMapTileAtPoint(new Vector2(
+                    movingObject.CollisionRectangle.Right,
+                    movingObject.CollisionRectangle.Bottom
+                    ));
+
+                topLeft.X /= TreeGridWidth;
+                topLeft.Y /= TreeGridHeight;
+
+                topRight.X /= TreeGridWidth;
+                topRight.Y /= TreeGridHeight;
+
+                bottomLeft.X /= TreeGridWidth;
+                bottomLeft.Y /= TreeGridHeight;
+
+                bottomRight.X /= TreeGridWidth;
+                bottomRight.Y /= TreeGridHeight;
+
+                if (topLeft.X == topRight.X && topLeft.Y == bottomLeft.Y)
                 {
-                    RemoveObjectFromArea(areas[i], IDs[i], movingObject);
-                    areas.RemoveAt(i);
-                    IDs.RemoveAt(i);
-                    i--;
+                    OverlappingAreas.Add(topLeft * 64);
                 }
-            }
+                else if (topLeft.X == topRight.X)
+                {
+                    OverlappingAreas.Add(topLeft * 64);
+                    OverlappingAreas.Add(bottomLeft * 64);
+                }
+                else if (topLeft.Y == bottomLeft.Y)
+                {
+                    OverlappingAreas.Add(topLeft * 64);
+                    OverlappingAreas.Add(topRight * 64);
+                }
+                else
+                {
+                    OverlappingAreas.Add(topLeft * 64);
+                    OverlappingAreas.Add(bottomLeft * 64);
+                    OverlappingAreas.Add(topRight * 64);
+                    OverlappingAreas.Add(bottomRight * 64);
+                }
 
-            for (var i = 0; i < OverlappingAreas.Count; i++)
-            {
-                var area = OverlappingAreas[i];
-                if (!areas.Contains(area))
-                    AddObjectToArea(area, movingObject);
-            }
+                var areas = movingObject.Areas;
+                var IDs = movingObject.IDsInAreas;
 
-            OverlappingAreas.Clear();
+                for (int i = 0; i < areas.Count; i++)
+                {
+                    if (!OverlappingAreas.Contains(areas[i]))
+                    {
+                        RemoveObjectFromArea(areas[i], IDs[i], movingObject);
+                        areas.RemoveAt(i);
+                        IDs.RemoveAt(i);
+                        i--;
+                    }
+                }
+
+                for (var i = 0; i < OverlappingAreas.Count; i++)
+                {
+                    var area = OverlappingAreas[i];
+                    if (!areas.Contains(area))
+                        AddObjectToArea(area, movingObject);
+                }
+
+                OverlappingAreas.Clear();
+            }
         }
 
         public void AddObjectToArea(Vector2 areaIndex, MovingObject movingObject)
         {
-             var area = ObjectsInArea[(int)areaIndex.X, (int)areaIndex.Y];
+            var area = ObjectsInArea[(int)areaIndex.X, (int)areaIndex.Y];
 
             movingObject.Areas.Add(areaIndex);
             movingObject.IDsInAreas.Add(area.Count);

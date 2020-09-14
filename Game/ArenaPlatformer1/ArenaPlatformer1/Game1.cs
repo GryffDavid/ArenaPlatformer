@@ -472,19 +472,19 @@ namespace ArenaPlatformer1
             Player.ItemList = ItemList;
 
             MovingObjectList = new List<MovingObject>();
-            MovingObject platform = new MovingObject()
+            MovingPlatform platform = new MovingPlatform()
             {
                 Position = new Vector2(300, 234),
-                Size = new Vector2(32, 32),
-                Velocity = new Vector2(2f, 0)
+                //Size = new Vector2(32, 32),
+                //Velocity = new Vector2(2f, 0)
             };
             platform.Initialize();
 
-            MovingObject platform2 = new MovingObject()
+            MovingPlatform platform2 = new MovingPlatform()
             {
                 Position = new Vector2(480, 236),
-                Size = new Vector2(32, 32),
-                Velocity = new Vector2(1f, 0),
+                //Size = new Vector2(32, 32),
+                //Velocity = new Vector2(1f, 0),
                 //IsKinematic = true
             };
             platform2.Initialize();
@@ -860,13 +860,20 @@ namespace ArenaPlatformer1
 
                         CurrentMap.CheckCollisions();
 
-                        foreach (MovingObject movingObject in MovingObjectList)
+                        foreach (MovingPlatform movingObject in MovingObjectList)
                         {
                             movingObject.Update(gameTime);
                             CurrentMap.UpdateAreas(movingObject);
 
                             movingObject.CollisionDataList.Clear();
-                        }                        
+                        }
+
+                        
+
+                        //foreach (MovingObject movingObject in MovingObjectList)
+                        //{
+                        //    movingObject.CheckPhysics2();
+                        //}
 
                         foreach (Solid solid in SolidList)
                         {
@@ -1077,7 +1084,7 @@ namespace ArenaPlatformer1
 
                         spriteBatch.Draw(Texture, new Rectangle(0, 0, 1920, 1080), null, Color.White, 0, Vector2.Zero, SpriteEffects.None, 1);
 
-                        foreach (MovingObject movingObject in MovingObjectList)
+                        foreach (MovingPlatform movingObject in MovingObjectList)
                         {
                             spriteBatch.Draw(Block, movingObject.CollisionRectangle, movingObject.Color);
                         }
