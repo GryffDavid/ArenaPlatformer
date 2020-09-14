@@ -11,7 +11,7 @@ namespace ArenaPlatformer1
     public class MovingObject
     {
         public Rectangle CollisionRectangle, DestinationRectangle;
-        public Vector2 Position, Velocity, Size;
+        public Vector2 Position, PreviousPosition, Velocity, Size;
         public float Gravity;
 
         public struct CollisionData
@@ -51,6 +51,10 @@ namespace ArenaPlatformer1
 
         public List<CollisionData> CollisionDataList = new List<CollisionData>();
 
+        Vector2 HalfSize, Center;
+
+        public Color Color = Color.White;
+        
         /// <summary>
         /// If true, the object will not budge when collided with. The other object will resolve the collision
         /// If false, then this object will also account for collisions with other objects
@@ -100,6 +104,19 @@ namespace ArenaPlatformer1
         {
             Position += Velocity;
             CollisionRectangle = new Rectangle((int)Position.X, (int)Position.Y, (int)Size.X, (int)Size.Y);
+            HalfSize = new Vector2(CollisionRectangle.Width / 2, CollisionRectangle.Height / 2);
+            Center = new Vector2(CollisionRectangle.Center.X, CollisionRectangle.Center.Y);
+
+            if (CollisionDataList.Count > 0)
+            {
+                Color = Color.White * 0.5f;
+            }
+            else
+            {
+                Color = Color.White;
+            }
+
+            PreviousPosition = Position;
         }
 
         private void CheckPhysics()
@@ -117,6 +134,33 @@ namespace ArenaPlatformer1
             PushesLeftObject = false;
             PushesTopObject = false;
             
+        }
+
+        public bool OverlapsSigned(MovingObject other, out Vector2 overlap)
+        {
+            overlap = Vector2.Zero;
+
+            if (HalfSize.X == 0.0f || HalfSize.Y == 0.0f || other.HalfSize.X == 0.0f || other.HalfSize.Y == 0.0f
+                || Math.Abs(Center.X - other.Center.X) > HalfSize.X + other.HalfSize.X
+                || Math.Abs(Center.Y - other.Center.Y) > HalfSize.Y + other.HalfSize.Y)
+                return false;
+
+            overlap = new Vector2(
+                Math.Sign(Center.X - other.Center.X) * ((other.HalfSize.X + HalfSize.X) - Math.Abs(Center.X - other.Center.X)),
+                Math.Sign(Center.Y - other.Center.Y) * ((other.HalfSize.Y + HalfSize.Y) - Math.Abs(Center.Y - other.Center.Y)));
+
+            return true;
+        }
+
+        public bool HasCollisionDataFor(MovingObject other)
+        {
+            for (int i = 0; i < CollisionDataList.Count; i++)
+            {
+                if (CollisionDataList[i].Other == other)
+                    return true;
+            }
+
+            return false;
         }
     }
 }

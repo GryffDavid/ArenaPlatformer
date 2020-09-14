@@ -30,6 +30,9 @@ namespace ArenaPlatformer1
 
         public List<MovingObject>[,] ObjectsInArea;
 
+        int HorizontalAreasCount;
+        int VerticalAreasCount;
+
         public Map()
         {
             Tiles = new TileType[(int)MapSize.X, (int)MapSize.Y];
@@ -93,8 +96,8 @@ namespace ArenaPlatformer1
 
         public void Initialize()
         {
-            int HorizontalAreasCount = (int)Math.Ceiling((float)1920 / (float)TreeGridWidth);
-            int VerticalAreasCount = (int)Math.Ceiling((float)1080 / (float)TreeGridHeight);
+            HorizontalAreasCount = (int)Math.Ceiling((float)1920 / (float)TreeGridWidth);
+            VerticalAreasCount = (int)Math.Ceiling((float)1080 / (float)TreeGridHeight);
 
             ObjectsInArea = new List<MovingObject>[HorizontalAreasCount, VerticalAreasCount];
 
@@ -322,7 +325,7 @@ namespace ArenaPlatformer1
 
         public void AddObjectToArea(Vector2 areaIndex, MovingObject movingObject)
         {
-            var area = ObjectsInArea[(int)areaIndex.X, (int)areaIndex.Y];
+             var area = ObjectsInArea[(int)areaIndex.X, (int)areaIndex.Y];
 
             movingObject.Areas.Add(areaIndex);
             movingObject.IDsInAreas.Add(area.Count);
@@ -360,7 +363,44 @@ namespace ArenaPlatformer1
         /// </summary>
         public void CheckCollisions()
         {
+            for (int y = 0; y < VerticalAreasCount; y++)
+            {
+                for (int x = 0; x < HorizontalAreasCount; x++)
+                {
+                    var objectsInArea = ObjectsInArea[x, y];
+                    
+                    for (int i = 0; i < objectsInArea.Count - 1; i++)
+                    {
+                        var object1 = objectsInArea[i];
 
+                        for (int j = i + 1; j < objectsInArea.Count; j++)
+                        {
+                            var object2 = objectsInArea[j];
+
+                            Vector2 overlap;
+
+                            if (object1.OverlapsSigned(object2, out overlap) && !object1.HasCollisionDataFor(object2))
+                            {
+                                object1.CollisionDataList.Add(
+                                    new MovingObject.CollisionData(
+                                        object2, overlap,
+                                        object1.Velocity, object2.Velocity,
+                                        object1.PreviousPosition, object2.PreviousPosition,
+                                        object1.Position, object2.Position));
+
+                                object2.CollisionDataList.Add(
+                                    new MovingObject.CollisionData(
+                                        object1, -overlap,
+                                        object2.Velocity, object1.Velocity,
+                                        object2.PreviousPosition, object1.PreviousPosition,
+                                        object2.Position, object1.Position));
+                            }
+                        }
+                    }
+                }
+            }
         }
+
+        
     }
 }

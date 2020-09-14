@@ -474,13 +474,22 @@ namespace ArenaPlatformer1
             MovingObjectList = new List<MovingObject>();
             MovingObject platform = new MovingObject()
             {
-                Position = new Vector2(234, 234),
+                Position = new Vector2(80, 234),
                 Size = new Vector2(32, 32),
                 Velocity = new Vector2(2, 0)
             };
             platform.Initialize();
 
+            MovingObject platform2 = new MovingObject()
+            {
+                Position = new Vector2(260, 234),
+                Size = new Vector2(32, 32),
+                Velocity = new Vector2(0, 0)
+            };
+            platform2.Initialize();
+
             MovingObjectList.Add(platform);
+            MovingObjectList.Add(platform2);
 
             DoubleBuffer = new DoubleBuffer();
             RenderManager = new RenderManager(DoubleBuffer);
@@ -848,11 +857,17 @@ namespace ArenaPlatformer1
                         TrapList.RemoveAll(Trap => Trap.Exists == false);
 
 
+                        CurrentMap.CheckCollisions();
+
                         foreach (MovingObject movingObject in MovingObjectList)
                         {
-                            movingObject.Update(gameTime);
+                            movingObject.Update(gameTime);                            
                             CurrentMap.UpdateAreas(movingObject);
+
+                            movingObject.CollisionDataList.Clear();
                         }
+
+                        
 
                         foreach (Solid solid in SolidList)
                         {
@@ -1065,7 +1080,7 @@ namespace ArenaPlatformer1
 
                         foreach (MovingObject movingObject in MovingObjectList)
                         {
-                            spriteBatch.Draw(Block, movingObject.CollisionRectangle, Color.White);
+                            spriteBatch.Draw(Block, movingObject.CollisionRectangle, movingObject.Color);
                         }
                         //spriteBatch.Draw(Block, new Rectangle(0, 750, 1920, 80), null, Color.Red, 0, Vector2.Zero, SpriteEffects.None, 0.15f);
 
@@ -1247,8 +1262,8 @@ namespace ArenaPlatformer1
                 }
             }
 
-            //if (DebugBoxes == true)
-            if (GameState == GameState.Playing)
+            if (DebugBoxes == true)
+                if (GameState == GameState.Playing)
             {
                 for (int x = 0; x < 30; x++)
                 {
@@ -1330,8 +1345,8 @@ namespace ArenaPlatformer1
                 }
             }
 
-            //if (TileBoxes == true)
-            if (GameState == GameState.Playing)
+            if (TileBoxes == true)
+                if (GameState == GameState.Playing)
             {
                 foreach (Tile tile in CurrentMap.DrawTiles)
                 {
