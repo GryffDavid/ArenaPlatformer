@@ -211,7 +211,7 @@ namespace ArenaPlatformer1
             CrouchLeftAnimation = new Animation(CrouchLeftTexture, 1, 50);
 
             CurrentAnimation = StandRightAnimation;
-
+            
             //DestinationRectangle = new Rectangle((int)Position.X, (int)Position.Y, Texture.Width, Texture.Height);
             //CollisionRectangle = new Rectangle((int)(Position.X - 30), (int)(Position.Y - 90 + Velocity.Y), 60, 90);
         }
@@ -256,17 +256,7 @@ namespace ArenaPlatformer1
             }
             #endregion
 
-            #region Move stick down
-            if (MoveStick.Y < -0.75f)
-            {
-                Velocity.X = 0;
-                CurrentPose = Pose.Crouching;
-            }
-            else
-            {
-                CurrentPose = Pose.Standing;
-            }
-            #endregion
+
 
 
             leftCol = CheckLeft(out lPos);
@@ -299,7 +289,7 @@ namespace ArenaPlatformer1
                     InAir = false;
                     DoubleJumped = false;
                     Velocity.Y = 0;
-                    Position.Y = gPos - 1;
+                    Position.Y = gPos - (CollisionRectangle.Height / 2);
                 }
                 else
                 {
@@ -331,9 +321,31 @@ namespace ArenaPlatformer1
                 if (upCol == true)
                 {
                     Velocity.Y = 0;
-                    Position.Y = cPos + 64 + CollisionRectangle.Height + 1;
+                    Position.Y = cPos + 64 + (CollisionRectangle.Height / 2) + 1;
                 }
             }
+
+            #region Move stick down
+            if (MoveStick.Y < -0.75f)
+            {
+                Velocity.X = 0;
+                CurrentPose = Pose.Crouching;
+
+                if (PreviousPose == Pose.Standing)
+                {
+                    Position.Y += 12;
+                }
+            }
+            else
+            {
+                if (PreviousPose == Pose.Crouching)
+                {
+                    Position.Y -= 12;
+                }
+
+                CurrentPose = Pose.Standing;
+            }
+            #endregion
 
 
             //Handle horizontal control+movement
@@ -477,14 +489,14 @@ namespace ArenaPlatformer1
 
        
             DestinationRectangle = new Rectangle((int)(Position.X - CurrentAnimation.FrameSize.X/2), 
-                                                 (int)(Position.Y - CurrentAnimation.FrameSize.Y + 1), 
+                                                 (int)(Position.Y - CurrentAnimation.FrameSize.Y/2), 
                                                  (int)CurrentAnimation.FrameSize.X, 
                                                  (int)CurrentAnimation.FrameSize.Y);
 
             if (CurrentPose == Pose.Standing)
-                CollisionRectangle = new Rectangle((int)(Position.X - 30), (int)(Position.Y - 90), 60, 90);
+                CollisionRectangle = new Rectangle((int)(Position.X - 30), (int)(Position.Y - 45), 60, 90);
             else
-                CollisionRectangle = new Rectangle((int)(Position.X - 30), (int)(Position.Y - 45), 60, 45);
+                CollisionRectangle = new Rectangle((int)(Position.X - 30), (int)(Position.Y - 33), 60, 66);
 
             if (CurrentAnimation != null)
             {
@@ -642,11 +654,11 @@ namespace ArenaPlatformer1
         {
             Vector2 bottomLeft = new Vector2(
                 Position.X - (CollisionRectangle.Width / 2) + Velocity.X - 1,
-                Position.Y);
+                Position.Y + (CollisionRectangle.Height / 2) - 1);
 
             Vector2 topLeft = new Vector2(
                 Position.X - (CollisionRectangle.Width / 2) + Velocity.X - 1, 
-                Position.Y - CollisionRectangle.Height);
+                Position.Y - (CollisionRectangle.Height / 2) + 1);
 
             int tileIndexX, tileIndexY;
             tPos = Vector2.Zero;
@@ -676,11 +688,11 @@ namespace ArenaPlatformer1
         {
             Vector2 bottomRight = new Vector2(
                 Position.X + (CollisionRectangle.Width / 2) + Velocity.X + 1, 
-                Position.Y);
+                Position.Y + (CollisionRectangle.Height / 2) - 1);
 
             Vector2 topRight = new Vector2(
                 Position.X + (CollisionRectangle.Width / 2) + Velocity.X + 1, 
-                Position.Y - CollisionRectangle.Height);
+                Position.Y - (CollisionRectangle.Height/2) + 1);
 
             int tileIndexX, tileIndexY;
             tPos = Vector2.Zero;
@@ -710,11 +722,11 @@ namespace ArenaPlatformer1
         {
             Vector2 bottomLeft = new Vector2(
                 Position.X,
-                Position.Y + Velocity.Y + 1);
+                Position.Y + (CollisionRectangle.Height / 2) + Velocity.Y + 1);
 
             Vector2 bottomRight = new Vector2(
                 Position.X + (CollisionRectangle.Width / 2),
-                Position.Y + Velocity.Y + 1);
+                Position.Y + (CollisionRectangle.Height/2) + Velocity.Y + 1);
 
             int tileIndexX, tileIndexY;
 
@@ -745,11 +757,11 @@ namespace ArenaPlatformer1
 
             bottomLeft = new Vector2(
                 Position.X,
-                Position.Y + Velocity.Y + 1);
+                Position.Y + +(CollisionRectangle.Height / 2) + Velocity.Y + 1);
 
             bottomRight = new Vector2(
                 Position.X - (CollisionRectangle.Width / 2),
-                Position.Y + Velocity.Y + 1);
+                Position.Y + +(CollisionRectangle.Height / 2) + Velocity.Y + 1);
             
             for (var checkedTile = bottomLeft; ; checkedTile.X -= Map.TileSize.X)
             {
@@ -776,56 +788,17 @@ namespace ArenaPlatformer1
             }
 
             return false;
-        }
+        }        
 
-        //public bool OnGround(Vector2 velocity, Vector2 position, out float groundY)
-        //{
-        //    Vector2 bottomLeft = new Vector2(
-        //        Position.X - (CollisionRectangle.Width / 2), 
-        //        Position.Y + Velocity.Y + 1);
-
-        //    Vector2 bottomRight = new Vector2(
-        //        Position.X + (CollisionRectangle.Width / 2), 
-        //        Position.Y + Velocity.Y + 1);
-
-        //    int tileIndexX, tileIndexY;
-
-        //    for (var checkedTile = bottomLeft; ; checkedTile.X += Map.TileSize.X)
-        //    {
-        //        checkedTile.X = Math.Min(checkedTile.X, bottomRight.X);
-
-        //        tileIndexX = Map.GetMapTileXAtPoint((int)checkedTile.X);
-        //        tileIndexY = Map.GetMapTileYAtPoint((int)checkedTile.Y);
-
-        //        groundY = (float)tileIndexY * Map.TileSize.Y;
-
-        //        if (Map.IsGround(tileIndexX, tileIndexY))
-        //        {
-        //            return true;
-        //        }
-
-        //        if (Map.IsBounce(tileIndexX, tileIndexY) == true)
-        //        {
-        //            Velocity.Y = -25f;
-        //            return false;
-        //        }
-
-        //        if (checkedTile.X >= bottomRight.X)
-        //            break;
-        //    }
-
-        //    return false;
-        //}
-
-        public bool OnCeiling(Vector2 velocity, Vector2 position, out float tPos)
+        public bool OnCeiling(Vector2 velocity, Vector2 position, out float ceilingY)
         {
             Vector2 topLeft = new Vector2(
                 Position.X - (CollisionRectangle.Width / 2), 
-                Position.Y - CollisionRectangle.Height + Velocity.Y - 2);
+                Position.Y - (CollisionRectangle.Height / 2) + Velocity.Y - 2);
 
             Vector2 topRight = new Vector2(
                 Position.X + (CollisionRectangle.Width / 2),
-                Position.Y - CollisionRectangle.Height + Velocity.Y - 2);
+                Position.Y - (CollisionRectangle.Height / 2) + Velocity.Y - 2);
 
             int tileIndexX, tileIndexY;
 
@@ -836,7 +809,7 @@ namespace ArenaPlatformer1
                 tileIndexX = Map.GetMapTileXAtPoint((int)checkedTile.X);
                 tileIndexY = Map.GetMapTileYAtPoint((int)checkedTile.Y);
 
-                tPos = (float)tileIndexY * Map.TileSize.Y;
+                ceilingY = (float)tileIndexY * Map.TileSize.Y;
 
                 if (Map.IsObstacle(tileIndexX, tileIndexY))
                     return true;

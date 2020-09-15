@@ -193,16 +193,11 @@ namespace ArenaPlatformer1
 
         public void OnPlayerShoot(object source, PlayerShootEventArgs e)
         {
-            //ProjectileList.Add(new Bullet()
-            //{
-            //    Position = e.Player.Position + new Vector2(0, -60),
-            //    PlayerIndex = e.Player.PlayerIndex,
-            //    Velocity = e.Velocity
-            //});
+            //e.Player.Velocity.X += (-e.Velocity.X/2);
 
             Rocket rocket = new Rocket()
             {
-                Position = e.Player.Position + new Vector2(0, -60),
+                Position = e.Player.Position,
                 PlayerIndex = e.Player.PlayerIndex,
                 Velocity = e.Velocity
             };
@@ -429,7 +424,7 @@ namespace ArenaPlatformer1
 
         public void OnPlayerGrenade(object source, PlayerGrenadeEventArgs e)
         {
-            Grenade grenade = new Grenade(e.Player.Position + new Vector2(0, -45), new Vector2(8, 0) * e.Player.AimDirection, 2, e.Player);
+            Grenade grenade = new Grenade(e.Player.Position, new Vector2(8, 0) * e.Player.AimDirection, 2, e.Player);
             GrenadeList.Add(grenade);
         }
 
