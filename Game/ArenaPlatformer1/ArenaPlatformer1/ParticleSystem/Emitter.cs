@@ -682,6 +682,7 @@ namespace ArenaPlatformer1
             _changeEmitter.Deactivate();
         }
 
+
         public bool CheckLeft(out Vector2 tPos)
         {
             Vector2 bottomLeft = new Vector2(

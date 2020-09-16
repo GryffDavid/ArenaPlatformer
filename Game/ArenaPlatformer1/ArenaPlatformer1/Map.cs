@@ -91,6 +91,11 @@ namespace ArenaPlatformer1
             {
                 Tiles[x, 12] = TileType.Solid;
             }
+            
+            Tiles[6, (int)MapSize.Y - 1] = TileType.BouncePad;
+            Tiles[5, (int)MapSize.Y - 1] = TileType.BouncePad;
+
+
             #endregion
         }
 

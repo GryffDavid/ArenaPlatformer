@@ -103,13 +103,6 @@ namespace ArenaPlatformer1
                 }
             }
 
-            if (Math.Abs(Velocity.X) >= 1 || Math.Abs(Velocity.Y) >= 1)
-            {
-                float dir = (float)Math.Atan2(-Velocity.Y, -Velocity.X);
-                RotationIncrement = MathHelper.ToRadians(Random.Next(0, 4)) * (Velocity.X + Velocity.Y);
-                Rotation += RotationIncrement;
-            }
-
             DestinationRectangle = new Rectangle((int)Position.X, (int)Position.Y, GrenadeTexture.Width, GrenadeTexture.Height);
             CollisionRectangle = new Rectangle((int)(Position.X - GrenadeTexture.Width / 2), (int)(Position.Y - GrenadeTexture.Height / 2), GrenadeTexture.Width, GrenadeTexture.Height);
 

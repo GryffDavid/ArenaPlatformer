@@ -14,6 +14,8 @@ namespace ArenaPlatformer1
 
     public class Player
     {
+        public PlayerIndex PlayerIndex;
+    
         #region Events
         public event PlayerShootHappenedEventHandler PlayerShootHappened;
         public void CreatePlayerShoot(Vector2 velocity)
@@ -127,19 +129,20 @@ namespace ArenaPlatformer1
         Pose PreviousPose = Pose.Standing;
         #endregion
         
-        public Rectangle DestinationRectangle, CollisionRectangle;
-
-        public Vector2 Health = new Vector2(100, 100);
-
-        public PlayerIndex PlayerIndex;
-        public GunType CurrentGun;
-        public TrapType CurrentTrap;
-
+        #region Gameplay Variables
         public int Deaths = 0;
         public int GunAmmo = 15;
         public int TrapAmmo = 0;
         public int GrenadeAmmo = 0;
-                
+
+        public GunType CurrentGun;
+        public TrapType CurrentTrap;
+
+        public Vector2 Health = new Vector2(100, 100);
+        #endregion
+
+        public Rectangle DestinationRectangle, CollisionRectangle;
+        
         public Player(PlayerIndex playerIndex)
         {
             PlayerIndex = playerIndex;
@@ -223,13 +226,15 @@ namespace ArenaPlatformer1
 
         public void Update(GameTime gameTime)
         {
+            #region Control States
             CurrentGamePadState = GamePad.GetState(PlayerIndex);
             CurrentKeyboardState = Keyboard.GetState();
             CurrentMouseState = Mouse.GetState();
 
             Sticks = CurrentGamePadState.ThumbSticks;
             MoveStick = Sticks.Left;
-            AimStick = Sticks.Right;
+            AimStick = Sticks.Right; 
+            #endregion
 
             Velocity.Y += Gravity * ((float)gameTime.ElapsedGameTime.TotalSeconds * 60f);
 
@@ -353,8 +358,6 @@ namespace ArenaPlatformer1
                 CurrentPose = Pose.Standing;
             }
             #endregion
-            
-
 
             #region Stop Moving
             if (MoveStick.X == 0)
@@ -431,69 +434,59 @@ namespace ArenaPlatformer1
                 }
             }
             #endregion
-            
+
+            #region Change Animation Direction
             switch (CurrentFacing)
             {
+                #region Left
                 case Facing.Left:
                     {
-                        if (Velocity.X != 0)
+                        AimDirection = new Vector2(-1, 0);
+
+                        if (InAir == false)
                         {
-                            if (InAir == false)
-                            {
+                            if (Velocity.X != 0)
                                 CurrentAnimation = RunLeftAnimation;
+                            else
+                            {
+                                if (CurrentPose == Pose.Standing)
+                                    CurrentAnimation = StandLeftAnimation;
+                                else
+                                    CurrentAnimation = CrouchLeftAnimation;
                             }
                         }
-
-                        if (InAir == true)
-                        {
+                        else
                             CurrentAnimation = JumpLeftAnimation;
-                        }
                     }
                     break;
+                #endregion
 
+                #region Right
                 case Facing.Right:
                     {
-                        if (Velocity.X != 0)
+                        AimDirection = new Vector2(1, 0);
+
+                        if (InAir == false)
                         {
-                            if (InAir == false)
-                            {
+                            if (Velocity.X != 0)
                                 CurrentAnimation = RunRightAnimation;
+                            else
+                            {
+                                if (CurrentPose == Pose.Standing)
+                                    CurrentAnimation = StandRightAnimation;
+                                else
+                                    CurrentAnimation = CrouchRightAnimation;
                             }
                         }
-
-                        if (InAir == true)
-                        {
+                        else
                             CurrentAnimation = JumpRightAnimation;
-                        }
                     }
-                    break;
-            }
-
-            #region Player has stopped moving - Display Stand/Crouch animation
-            if (Velocity.X > -2f &&
-                Velocity.X < 2f)
-            {
-                switch (CurrentFacing)
-                {
-                    case Facing.Left:
-                        if (CurrentPose == Pose.Standing)
-                            CurrentAnimation = StandLeftAnimation;
-                        else
-                            CurrentAnimation = CrouchLeftAnimation;
-                        break;
-
-                    case Facing.Right:
-                        if (CurrentPose == Pose.Standing)
-                            CurrentAnimation = StandRightAnimation;
-                        else
-                            CurrentAnimation = CrouchRightAnimation;
-                        break;
-                }
-            }
+                    break; 
+                    #endregion
+            } 
             #endregion
-            
-            if (upCol== false &&
-                downCol == false)
+
+            if (upCol== false && downCol == false)
             {
                 Position.Y += Velocity.Y * ((float)gameTime.ElapsedGameTime.TotalSeconds * 60f);
             }
@@ -509,7 +502,6 @@ namespace ArenaPlatformer1
             {
                 Velocity.X = 0f;
             }
-
        
             DestinationRectangle = new Rectangle((int)(Position.X - CurrentAnimation.FrameSize.X/2), 
                                                  (int)(Position.Y - CurrentAnimation.FrameSize.Y/2), 
@@ -531,22 +523,7 @@ namespace ArenaPlatformer1
                 CurrentAnimation.Position = Position;
                 CurrentAnimation.Update(gameTime, DestinationRectangle);
             }
-            #endregion
-
-            switch (CurrentFacing)
-            {
-                case Facing.Left:
-                    {
-                        AimDirection = new Vector2(-1, 0);
-                    }
-                    break;
-
-                case Facing.Right:
-                    {
-                        AimDirection = new Vector2(1, 0);
-                    }
-                    break;
-            }
+            #endregion            
 
             #region Item Collisions
             if (ItemList != null)
