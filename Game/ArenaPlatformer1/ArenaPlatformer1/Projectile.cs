@@ -11,17 +11,17 @@ namespace ArenaPlatformer1
 
     abstract class Projectile
     {
+        public abstract void Draw(SpriteBatch spriteBatch);
+        public abstract void Update(GameTime gameTime);
+
+        public List<Emitter> EmitterList = new List<Emitter>();
+
         public PlayerIndex PlayerIndex;
         public Vector2 Velocity, Position, Direction;
         public float Rotation, Angle, Gravity;
         public static Map Map;
         public bool Active;
-        public bool PlayedSound = false;
-        public Rectangle DestinationRectangle, CollisionRectangle;
-        public abstract void Draw(SpriteBatch spriteBatch);
-        public abstract void Update(GameTime gameTime);
-
-        public List<Emitter> EmitterList = new List<Emitter>();
+        public Rectangle DestinationRectangle, CollisionRectangle;  
 
         public void DrawInfo(GraphicsDevice graphics, BasicEffect basicEffect)
         {
@@ -92,6 +92,7 @@ namespace ArenaPlatformer1
             bool checkU = false;
             bool checkD = false;
 
+            #region Right
             if (Velocity.X > 0)
             {
                 checkR = CheckRight(out Vector2 rPos);
@@ -99,7 +100,9 @@ namespace ArenaPlatformer1
                 if (checkR == true)
                     Position.X = rPos.X - DestinationRectangle.Width / 2 - 1;
             }
+            #endregion
 
+            #region Left
             if (Velocity.X < 0)
             {
                 checkL = CheckLeft(out Vector2 lPos);
@@ -107,16 +110,21 @@ namespace ArenaPlatformer1
                 if (checkL == true)
                     Position.X = lPos.X + 64 + DestinationRectangle.Width / 2;
             }
+            #endregion
 
+            #region Down
             if (Velocity.Y > 0)
             {
                 checkD = OnGround(Velocity, Position, out float groundY);
             }
+            #endregion
 
+            #region Up
             if (Velocity.Y < 0)
             {
                 checkU = OnCeiling(Velocity, Position, out float cPos);
-            }
+            } 
+            #endregion
 
             if (checkL == true ||
                 checkR == true ||

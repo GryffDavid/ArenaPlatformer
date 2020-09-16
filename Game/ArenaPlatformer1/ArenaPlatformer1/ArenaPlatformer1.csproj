@@ -106,7 +106,7 @@
     <Compile Include="TrapPickup.cs" />
     <Compile Include="Traps\Mine.cs" />
     <Compile Include="UI\PlayerJoin.cs" />
-    <Compile Include="_2DCamera.cs" />
+    <Compile Include="Camera.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="aOtherStuff\Game.ico" />

@@ -239,9 +239,7 @@ namespace ArenaPlatformer1
             Velocity.Y += Gravity * ((float)gameTime.ElapsedGameTime.TotalSeconds * 60f);
 
             bool leftCol, rightCol;
-            bool upCol, downCol;
-            Vector2 lPos, rPos;
-            
+            bool upCol, downCol;            
 
             #region Move stick left
             if (MoveStick.X < 0f)
@@ -263,8 +261,8 @@ namespace ArenaPlatformer1
             }
             #endregion
             
-            leftCol = CheckLeft(out lPos);
-            rightCol = CheckRight(out rPos);            
+            leftCol = CheckLeft(out Vector2 lPos);
+            rightCol = CheckRight(out Vector2 rPos);            
             downCol = OnGround(Velocity, Position, out float gPos);
 
             #region Left Collisions
@@ -510,11 +508,11 @@ namespace ArenaPlatformer1
 
             if (CurrentPose == Pose.Standing)
             {
-                CollisionRectangle = new Rectangle((int)(Position.X - 30), (int)(Position.Y - 45), 60, 90);
+                CollisionRectangle = new Rectangle((int)(Position.X - 29), (int)(Position.Y - 49), 59, 98);
             }
             else
             {
-                CollisionRectangle = new Rectangle((int)(Position.X - 30), (int)(Position.Y - 33), 60, 66);
+                CollisionRectangle = new Rectangle((int)(Position.X - 29), (int)(Position.Y - 37), 59, 74);
             }
 
             #region Update Animations
@@ -667,7 +665,6 @@ namespace ArenaPlatformer1
 
                 if (Map.IsObstacle(tileIndexX, tileIndexY))
                 {
-                    //Map.DrawTiles[tileIndexX, tileIndexY].Color = Color.Red;
                     tPos = Map.DrawTiles[tileIndexX, tileIndexY].Position;
                     return true;
                 }
@@ -701,7 +698,6 @@ namespace ArenaPlatformer1
 
                 if (Map.IsObstacle(tileIndexX, tileIndexY))
                 {
-                    //Map.DrawTiles[tileIndexX, tileIndexY].Color = Color.Yellow;
                     tPos = Map.DrawTiles[tileIndexX, tileIndexY].Position;
                     return true;
                 }

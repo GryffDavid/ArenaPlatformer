@@ -10,12 +10,12 @@ namespace ArenaPlatformer1
 {
     public abstract class Item
     {
-        public Texture2D Texture;
-        public bool Exists = true;
-        public Vector2 Position;
-        public Rectangle DestinationRectangle, CollisionRectangle;
         public abstract void Update(GameTime gameTime);
         public abstract void Draw(SpriteBatch spriteBatch);
+
+        public bool Exists = true;
+        public Vector2 Position;
+        public Rectangle DestinationRectangle, CollisionRectangle;        
 
         /// <summary>
         /// Draw the collision box and other useful debug info

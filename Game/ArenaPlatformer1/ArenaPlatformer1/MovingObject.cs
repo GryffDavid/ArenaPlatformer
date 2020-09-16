@@ -10,10 +10,7 @@ namespace ArenaPlatformer1
 {
     public class MovingObject
     {
-        public Rectangle CollisionRectangle, DestinationRectangle;
-        public Vector2 Position, PreviousPosition, Velocity, Size;
-        public float Gravity;
-
+        #region CollisionData Struct
         public struct CollisionData
         {
             public CollisionData(
@@ -25,7 +22,7 @@ namespace ArenaPlatformer1
 
                 Vector2 oldPos1 = default(Vector2),
                 Vector2 oldPos2 = default(Vector2),
-                
+
                 Vector2 pos1 = default(Vector2),
                 Vector2 pos2 = default(Vector2))
             {
@@ -44,23 +41,22 @@ namespace ArenaPlatformer1
 
             public MovingObject Other;
             public Vector2 Overlap;
-            public Vector2 Speed1, Speed2, 
-                           Position1, Position2, 
+            public Vector2 Speed1, Speed2,
+                           Position1, Position2,
                            PreviousPosition1, PreviousPosition2;
         }
+        #endregion
 
         public List<CollisionData> CollisionDataList = new List<CollisionData>();
 
-        public Vector2 HalfSize, Center;
-
-        public Color Color = Color.White;
-        
-        /// <summary>
-        /// If true, the object will not budge when collided with. The other object will resolve the collision
-        /// If false, then this object will also account for collisions with other objects
-        /// </summary>
+        public Rectangle CollisionRectangle, DestinationRectangle;
+        public Vector2 Position, PreviousPosition, Velocity, Size, HalfSize, Center;
+        public float Gravity;
         public bool IsKinematic = false;
 
+        public Color Color = Color.White;
+
+        #region Push Directions
         public bool PushesRight = false;
         public bool PushesLeft = false;
         public bool PushesBottom = false;
@@ -89,7 +85,8 @@ namespace ArenaPlatformer1
         public bool PushedTopTile = false;
         public bool PushedBottomTile = false;
         public bool PushedRightTile = false;
-        public bool PushedLeftTile = false;
+        public bool PushedLeftTile = false; 
+        #endregion
 
         public List<Vector2> Areas = new List<Vector2>();
         public List<int> IDsInAreas = new List<int>();
@@ -97,6 +94,7 @@ namespace ArenaPlatformer1
         public void Initialize()
         {
             CollisionRectangle = new Rectangle((int)Position.X, (int)Position.Y, (int)Size.X, (int)Size.Y);
+            HalfSize = Size / 2;
         }
 
         public void Update(GameTime gameTime)
@@ -104,19 +102,10 @@ namespace ArenaPlatformer1
             PreviousPosition = Position;
 
             CheckPhysics();
-            Position += Velocity;
-            CollisionRectangle = new Rectangle((int)Position.X, (int)Position.Y, (int)Size.X, (int)Size.Y);
-            HalfSize = new Vector2(CollisionRectangle.Width / 2, CollisionRectangle.Height / 2);
-            Center = new Vector2(CollisionRectangle.Center.X, CollisionRectangle.Center.Y);
 
-            if (CollisionDataList.Count > 0)
-            {
-                Color = Color.White * 0.5f;
-            }
-            else
-            {
-                Color = Color.White;
-            }
+            Position += Velocity;
+            CollisionRectangle = new Rectangle((int)Position.X, (int)Position.Y, (int)Size.X, (int)Size.Y);            
+            Center = new Vector2(CollisionRectangle.Center.X, CollisionRectangle.Center.Y);
         }
 
         private void CheckPhysics()
@@ -216,8 +205,8 @@ namespace ArenaPlatformer1
 
                 offsetSum = Vector2.Zero;
 
-                if ((!overlappedLastFrameX && overlappedLastFrameY)
-                || (!overlappedLastFrameX && !overlappedLastFrameY && Math.Abs(Overlap.X) <= Math.Abs(Overlap.Y)))
+                if ((!overlappedLastFrameX && overlappedLastFrameY) || 
+                    (!overlappedLastFrameX && !overlappedLastFrameY && Math.Abs(Overlap.X) <= Math.Abs(Overlap.Y)))
                 {
                     Position.X += Offset.X;
                     offsetSum.X += Offset.X;
@@ -256,7 +245,10 @@ namespace ArenaPlatformer1
         {
             overlap = Vector2.Zero;
 
-            if (HalfSize.X == 0.0f || HalfSize.Y == 0.0f || other.HalfSize.X == 0.0f || other.HalfSize.Y == 0.0f
+            if (HalfSize.X == 0.0f || 
+                HalfSize.Y == 0.0f || 
+                other.HalfSize.X == 0.0f || 
+                other.HalfSize.Y == 0.0f
                 || Math.Abs(Center.X - other.Center.X) > HalfSize.X + other.HalfSize.X
                 || Math.Abs(Center.Y - other.Center.Y) > HalfSize.Y + other.HalfSize.Y)
                 return false;

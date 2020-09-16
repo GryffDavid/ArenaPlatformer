@@ -20,9 +20,9 @@ namespace ArenaPlatformer1
         /// </summary>
         public Vector2 Time;
 
-        public float Speed, Rotation, RotationIncrement;
-        public bool Active = true;
         public object Source;
+        public float Speed, Rotation, RotationIncrement;
+        public bool Active = true;        
         public int BlastRadius = 200;
 
         public Rectangle DestinationRectangle, CollisionRectangle;

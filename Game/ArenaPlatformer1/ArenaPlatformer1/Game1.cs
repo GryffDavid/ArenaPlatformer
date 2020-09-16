@@ -11,6 +11,7 @@ using Microsoft.Xna.Framework.Media;
 
 namespace ArenaPlatformer1
 {
+    #region Enums
     public enum ChangeMessageType
     {
         UpdateParticle,
@@ -41,8 +42,9 @@ namespace ArenaPlatformer1
         ModeSelect,
         Playing,
         LevelCreator
-    };
-    
+    }; 
+    #endregion
+
     #region Events
     //A player is shooting
     public delegate void PlayerShootHappenedEventHandler(object source, PlayerShootEventArgs e);
@@ -80,6 +82,7 @@ namespace ArenaPlatformer1
 
     public class Game1 : Microsoft.Xna.Framework.Game
     {
+        #region Explosion Event
         public EventHandler<ExplosionEventArgs> ExplosionHappenedEvent;
         public class ExplosionEventArgs : EventArgs
         {
@@ -90,48 +93,32 @@ namespace ArenaPlatformer1
             if (ExplosionHappenedEvent != null)
                 OnExplosionHappened(source, new ExplosionEventArgs() { Explosion = explosion });
         }
+        #endregion
+
+        static Random Random = new Random();
 
         ContentManager GameContentManager;
-
         GraphicsDeviceManager graphics;
         SpriteBatch spriteBatch;
+
+        RenderTarget2D UIRenderTarget, GameRenderTarget, MenuRenderTarget;
+
         GameState GameState;
         
-        RenderTarget2D UIRenderTarget, GameRenderTarget, MenuRenderTarget;        
-
-        bool DrawDiagnostics = false;
-        bool DebugBoxes = false;
-        bool TileBoxes = false;
-
+        #region Control States
         KeyboardState CurrentKeyboardState, PreviousKeyboardState;
-        SpriteFont Font1;
-
-        Map CurrentMap;
-
-        Player[] Players = new Player[4];
-        PlayerJoin[] PlayerJoinButtons = new PlayerJoin[4];
-
-        MouseState CurrentMouseState, PreviousMouseState;
-
-        //Specifically for menu interactions before the Player objects have been created
         GamePadState[] CurrentGamePadStates = new GamePadState[4];
         GamePadState[] PreviousGamePadStates = new GamePadState[4];
-        
-
-        Vector2 PlaceTilePosition = new Vector2(64, 64);
-
-        Texture2D Block;
-        static Random Random = new Random();
+        MouseState CurrentMouseState, PreviousMouseState;
+        #endregion
 
         #region Particle System
         DoubleBuffer DoubleBuffer;
         RenderManager RenderManager;
         UpdateManager UpdateManager;
-                
+
         List<Emitter> EmitterList = new List<Emitter>();
         #endregion
-
-        Texture2D Texture, NormalTexture, ParticleTexture;
 
         #region Particle Textures
         Texture2D ExplosionParticle2, BOOMParticle, SplodgeParticle, HitEffectParticle, ToonSmoke2, ToonSmoke3;
@@ -178,18 +165,34 @@ namespace ArenaPlatformer1
         Effect RaysEffect, DepthEffect;
         #endregion
 
+        #region Lists
         List<Trap> TrapList;
         List<Item> ItemList;
         List<Grenade> GrenadeList;
         List<Projectile> ProjectileList;
+        List<MovingObject> MovingObjectList;
+        #endregion
+
+        #region Debugging
+        bool DrawDiagnostics = false;
+        bool DebugBoxes = false;
+        bool TileBoxes = false;
+        bool didDraw = false; 
+        #endregion
+
+        SpriteFont Font1;
+        Texture2D Block, Texture, NormalTexture, ParticleTexture;
+
+        Map CurrentMap;
+
+        Player[] Players = new Player[4];
+        PlayerJoin[] PlayerJoinButtons = new PlayerJoin[4];
+        
+        Vector2 PlaceTilePosition = new Vector2(64, 64);
+        
+        Camera Camera = new Camera();
 
         Rectangle ScreenRectangle = new Rectangle(0, 0, 1920, 1080);
-
-        List<MovingObject> MovingObjectList;
-
-        _2DCamera Camera = new _2DCamera();
-
-        bool didDraw = false;
 
         public void OnPlayerShoot(object source, PlayerShootEventArgs e)
         {
@@ -438,6 +441,7 @@ namespace ArenaPlatformer1
             };
 
             Content.RootDirectory = "Content";
+            GameContentManager = new ContentManager(Content.ServiceProvider, Content.RootDirectory);
 
             graphics.SynchronizeWithVerticalRetrace = true;
             this.IsMouseVisible = true;
@@ -454,7 +458,6 @@ namespace ArenaPlatformer1
         }
 
 
-
         protected void LoadGameContent()
         {
             GrenadeList = new List<Grenade>();
@@ -468,9 +471,10 @@ namespace ArenaPlatformer1
 
             MovingObjectList = new List<MovingObject>();
 
+            #region Particle System
             DoubleBuffer = new DoubleBuffer();
             RenderManager = new RenderManager(DoubleBuffer);
-            RenderManager.LoadContent(Content);
+            RenderManager.LoadContent(GameContentManager);
 
             UpdateManager = new UpdateManager(DoubleBuffer);
 
@@ -479,15 +483,16 @@ namespace ArenaPlatformer1
             Emitter.UpdateManager = UpdateManager;
             Emitter.RenderManager = RenderManager;
 
-            ParticleTexture = Content.Load<Texture2D>("Particles/diamond");
-            
+            ParticleTexture = GameContentManager.Load<Texture2D>("Particles/diamond");
+            #endregion
+
             LightList.Add(new Light()
             {
                 Color = Color.Plum,
                 Active = true,
                 Power = 1.7f,
                 Position = new Vector3(100, 100, 100),
-                Size = 800                
+                Size = 800
             });
 
             foreach (Tile tile in CurrentMap.DrawTiles)
@@ -500,29 +505,34 @@ namespace ArenaPlatformer1
                 }
             }
 
-            RocketLauncher.Texture = Content.Load<Texture2D>("Gun");
-            RocketLauncher launcher = new RocketLauncher();
-            launcher.Position = new Vector2(200, 200);
+            #region Guns
+            RocketLauncher.Texture = GameContentManager.Load<Texture2D>("Gun");
+            RocketLauncher launcher = new RocketLauncher()
+            {
+                Position = new Vector2(200, 200)
+            };
             launcher.LoadContent(Content);
-            ItemList.Add(launcher);
+            ItemList.Add(launcher); 
+            #endregion
 
-            MinePickup.Texture = Content.Load<Texture2D>("Blank");
+            #region Traps
+            MinePickup.Texture = GameContentManager.Load<Texture2D>("Blank");
             MinePickup mine = new MinePickup()
             {
                 Position = new Vector2(500, 500)
             };
-            mine.LoadContent(Content);
-            ItemList.Add(mine);
+            mine.LoadContent(GameContentManager);
+            ItemList.Add(mine); 
+            #endregion
 
-            Grenade.GrenadeTexture = Content.Load<Texture2D>("GrenadeTexture");
+            Grenade.GrenadeTexture = GameContentManager.Load<Texture2D>("GrenadeTexture");
             Grenade.Map = CurrentMap;
                         
             Emitter.Map = CurrentMap;
             Trap.Map = CurrentMap;
 
-            Texture = Content.Load<Texture2D>("Backgrounds/Texture");
-            NormalTexture = Content.Load<Texture2D>("Backgrounds/NormalTexture");
-            
+            Texture = GameContentManager.Load<Texture2D>("Backgrounds/Texture");
+            NormalTexture = GameContentManager.Load<Texture2D>("Backgrounds/NormalTexture");            
         }
 
         protected override void LoadContent()
@@ -1366,11 +1376,6 @@ namespace ArenaPlatformer1
 
                 for (int i = 0; i < solid.vertices.Count(); i++)
                 {
-                    if (CurrentKeyboardState.IsKeyDown(Keys.P) &&
-                        PreviousKeyboardState.IsKeyUp(Keys.P))
-                    {
-                        int stop = 10;
-                    }
 
                     lightVector = solid.vertices[i].Position - new Vector3(SourcePosition, 0);
                     //lightVector.Normalize();
@@ -1511,11 +1516,9 @@ namespace ArenaPlatformer1
         }
         #endregion
 
-
         public double DoubleRange(double one, double two)
         {
             return one + Random.NextDouble() * (two - one);
         }
-
     }
 }
