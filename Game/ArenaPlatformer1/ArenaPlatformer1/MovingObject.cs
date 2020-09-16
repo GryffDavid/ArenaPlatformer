@@ -94,7 +94,6 @@ namespace ArenaPlatformer1
         public List<Vector2> Areas = new List<Vector2>();
         public List<int> IDsInAreas = new List<int>();
 
-
         public void Initialize()
         {
             CollisionRectangle = new Rectangle((int)Position.X, (int)Position.Y, (int)Size.X, (int)Size.Y);
@@ -102,8 +101,9 @@ namespace ArenaPlatformer1
 
         public void Update(GameTime gameTime)
         {
-            CheckPhysics();
+            PreviousPosition = Position;
 
+            CheckPhysics();
             Position += Velocity;
             CollisionRectangle = new Rectangle((int)Position.X, (int)Position.Y, (int)Size.X, (int)Size.Y);
             HalfSize = new Vector2(CollisionRectangle.Width / 2, CollisionRectangle.Height / 2);
@@ -117,8 +117,6 @@ namespace ArenaPlatformer1
             {
                 Color = Color.White;
             }
-
-            PreviousPosition = Position;
         }
 
         private void CheckPhysics()
@@ -252,19 +250,7 @@ namespace ArenaPlatformer1
                     }
                 }
             }
-        }
-
-        //public void CheckPhysics2()
-        //{
-        //    CheckPhysics();
-
-        //    PushesBottom = PushesBottomTile || PushesBottomObject;
-        //    PushesRight = PushesRightTile || PushesRightObject;
-        //    PushesLeft = PushesLeftTile || PushesLeftObject;
-        //    PushesTop = PushesTopTile || PushesTopObject;
-
-        //    //Center = new Vector2(CollisionRectangle.Center.X, CollisionRectangle.Center.Y);
-        //}
+        }        
 
         public bool OverlapsSigned(MovingObject other, out Vector2 overlap)
         {

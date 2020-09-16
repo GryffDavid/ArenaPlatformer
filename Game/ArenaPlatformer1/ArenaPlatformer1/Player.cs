@@ -72,9 +72,16 @@ namespace ArenaPlatformer1
                 {
                     Player = this
                 });
-        } 
+        }
         #endregion
 
+        #region Shared Static
+        public static Map Map;
+        public static List<Item> ItemList;
+        public static List<Trap> TrapList;
+        #endregion
+
+        #region Animations
         public Animation RunRightAnimation, RunRightUpAnimation, RunRightDownAnimation,
                          RunLeftAnimation, RunLeftUpAnimation, RunLeftDownAnimation,
                          StandRightAnimation, StandRightUpAnimation, StandRightDownAnimation,
@@ -83,56 +90,55 @@ namespace ArenaPlatformer1
                          JumpLeftAnimation, JumpLeftUpAnimation, JumpLeftDownAnimation,
                          CrouchRightAnimation, CrouchLeftAnimation;
 
-        public Animation CurrentAnimation;
+        public Animation CurrentAnimation; 
+        #endregion
 
+        #region Textures
         public Texture2D RunRightTexture, RunRightUpTexture, RunRightDownTexture,
-                         RunLeftTexture, RunLeftUpTexture, RunLeftDownTexture,
-                         StandRightTexture, StandRightUpTexture, StandRightDownTexture,
-                         StandLeftTexture, StandLeftUpTexture, StandLeftDownTexture,
-                         JumpRightTexture, JumpRightUpTexture, JumpRightDownTexture,
-                         JumpLeftTexture, JumpLeftUpTexture, JumpLeftDownTexture,
-                         CrouchRightTexture, CrouchLeftTexture,
-                         HeadTexture;
+                        RunLeftTexture, RunLeftUpTexture, RunLeftDownTexture,
+                        StandRightTexture, StandRightUpTexture, StandRightDownTexture,
+                        StandLeftTexture, StandLeftUpTexture, StandLeftDownTexture,
+                        JumpRightTexture, JumpRightUpTexture, JumpRightDownTexture,
+                        JumpLeftTexture, JumpLeftUpTexture, JumpLeftDownTexture,
+                        CrouchRightTexture, CrouchLeftTexture,
+                        HeadTexture;
+        #endregion
 
-        bool Active = true;
-        bool InAir;
-        bool DoubleJumped = false;
-        public Texture2D Texture;
-        public Vector2 Position, PrevPosition, Velocity, MoveStick, AimStick, RumbleValues, AimDirection;
-        Vector2 MaxSpeed;
-        Vector2 CurrentFriction = new Vector2(0.9999f, 1f);
+        #region Controls
+        GamePadThumbSticks Sticks;
+        Buttons JumpButton, ShootButton, GrenadeButton, TrapButton;
         public GamePadState CurrentGamePadState, PreviousGamePadState;
         public KeyboardState CurrentKeyboardState, PreviousKeyboardState;
         public MouseState CurrentMouseState, PreviousMouseState;
-        public Rectangle DestinationRectangle, CollisionRectangle;
+        public Vector2 MoveStick, AimStick, RumbleValues, RumbleTime;
+        #endregion
+
+        #region Movement
+        bool InAir = true;
+        bool DoubleJumped = false;
+
+        public Vector2 Position, PrevPosition, Velocity, AimDirection, MaxSpeed;
         public float Gravity;
-        public PlayerIndex PlayerIndex;
-
-        //Current health, Max health
-        public Vector2 Health = new Vector2(100, 100);
-
-        GamePadThumbSticks Sticks;
-        Buttons JumpButton, ShootButton, GrenadeButton, TrapButton;
 
         Facing CurrentFacing = Facing.Right;
         Facing PreviousFacing = Facing.Right;
 
         Pose CurrentPose = Pose.Standing;
         Pose PreviousPose = Pose.Standing;
+        #endregion
+        
+        public Rectangle DestinationRectangle, CollisionRectangle;
 
+        public Vector2 Health = new Vector2(100, 100);
+
+        public PlayerIndex PlayerIndex;
         public GunType CurrentGun;
         public TrapType CurrentTrap;
-
-        float RumbleTime, MaxRumbleTime;
 
         public int Deaths = 0;
         public int GunAmmo = 15;
         public int TrapAmmo = 0;
         public int GrenadeAmmo = 0;
-        
-        public static Map Map;
-        public static List<Item> ItemList;
-        public static List<Trap> TrapList;
                 
         public Player(PlayerIndex playerIndex)
         {
@@ -149,13 +155,12 @@ namespace ArenaPlatformer1
 
         public void LoadContent(ContentManager content)
         {
-            Texture = content.Load<Texture2D>("Blank");
-
             JumpButton = Buttons.A;
             ShootButton = Buttons.X;
             GrenadeButton = Buttons.B;
             TrapButton = Buttons.Y;
-            
+
+            #region Load Textures
             RunRightTexture = content.Load<Texture2D>("Player" + ((int)PlayerIndex + 1) + "/Running/RunRight");
             RunRightUpTexture = content.Load<Texture2D>("Player" + ((int)PlayerIndex + 1) + "/Running/RunRightUp");
             RunRightDownTexture = content.Load<Texture2D>("Player" + ((int)PlayerIndex + 1) + "/Running/RunRightDown");
@@ -182,7 +187,9 @@ namespace ArenaPlatformer1
 
             CrouchRightTexture = content.Load<Texture2D>("Player" + ((int)PlayerIndex + 1) + "/CrouchRight");
             CrouchLeftTexture = content.Load<Texture2D>("Player" + ((int)PlayerIndex + 1) + "/CrouchLeft");
+            #endregion
 
+            #region Set up animations
             RunRightAnimation = new Animation(RunRightTexture, 8, 50);
             RunRightUpAnimation = new Animation(RunRightUpTexture, 8, 50);
             RunRightDownAnimation = new Animation(RunRightDownTexture, 8, 50);
@@ -208,12 +215,10 @@ namespace ArenaPlatformer1
             JumpRightDownAnimation = new Animation(JumpRightDownTexture, 1, 50);
 
             CrouchRightAnimation = new Animation(CrouchRightTexture, 1, 50);
-            CrouchLeftAnimation = new Animation(CrouchLeftTexture, 1, 50);
+            CrouchLeftAnimation = new Animation(CrouchLeftTexture, 1, 50); 
+            #endregion
 
             CurrentAnimation = StandRightAnimation;
-            
-            //DestinationRectangle = new Rectangle((int)Position.X, (int)Position.Y, Texture.Width, Texture.Height);
-            //CollisionRectangle = new Rectangle((int)(Position.X - 30), (int)(Position.Y - 90 + Velocity.Y), 60, 90);
         }
 
         public void Update(GameTime gameTime)
@@ -231,10 +236,7 @@ namespace ArenaPlatformer1
             bool leftCol, rightCol;
             bool upCol, downCol;
             Vector2 lPos, rPos;
-
-            //Ceiling, Ground
-            //float cPos, gPos;
-
+            
 
             #region Move stick left
             if (MoveStick.X < 0f)
@@ -255,15 +257,12 @@ namespace ArenaPlatformer1
                 Velocity.X += (MoveStick.X * 3f);
             }
             #endregion
-
-
-
-
-            leftCol = CheckLeft(out lPos);
-            rightCol = CheckRight(out rPos);
             
+            leftCol = CheckLeft(out lPos);
+            rightCol = CheckRight(out rPos);            
             downCol = OnGround(Velocity, Position, out float gPos);
 
+            #region Left Collisions
             if (Velocity.X < 0)
             {
                 if (leftCol == true)
@@ -271,8 +270,10 @@ namespace ArenaPlatformer1
                     Velocity.X = 0;
                     Position.X = lPos.X + 64 + (CollisionRectangle.Width / 2) + 1;
                 }
-            }
+            } 
+            #endregion
 
+            #region Right Collisions
             if (Velocity.X > 0)
             {
                 if (rightCol == true)
@@ -281,8 +282,10 @@ namespace ArenaPlatformer1
                     Position.X = rPos.X - (CollisionRectangle.Width / 2) - 1;
                 }
             }
+            #endregion
 
-            if (Velocity.Y >= 0)
+            #region Down Collisions
+            if (Velocity.Y != 0)
             {
                 if (downCol == true)
                 {
@@ -296,12 +299,13 @@ namespace ArenaPlatformer1
                     InAir = true;
                 }
             }
+            #endregion
 
-           
+            #region Jump
             if (CurrentGamePadState.IsButtonDown(JumpButton) &&
-                PreviousGamePadState.IsButtonUp(JumpButton) &&
-                Velocity.Y >= 0 &&
-                DoubleJumped == false)
+                    PreviousGamePadState.IsButtonUp(JumpButton) &&
+                    Velocity.Y >= 0 &&
+                    DoubleJumped == false)
             {
                 if (InAir == true)
                 {
@@ -311,11 +315,13 @@ namespace ArenaPlatformer1
                 else
                 {
                     Velocity.Y = -15f;
-                }                
-            }
+                }
+            } 
+            #endregion
 
             upCol = OnCeiling(Velocity, Position, out float cPos);
 
+            #region Up Collisions
             if (Velocity.Y <= 0)
             {
                 if (upCol == true)
@@ -323,7 +329,8 @@ namespace ArenaPlatformer1
                     Velocity.Y = 0;
                     Position.Y = cPos + 64 + (CollisionRectangle.Height / 2) + 1;
                 }
-            }
+            } 
+            #endregion
 
             #region Move stick down
             if (MoveStick.Y < -0.75f)
@@ -346,9 +353,8 @@ namespace ArenaPlatformer1
                 CurrentPose = Pose.Standing;
             }
             #endregion
+            
 
-
-            //Handle horizontal control+movement
 
             #region Stop Moving
             if (MoveStick.X == 0)
@@ -425,22 +431,42 @@ namespace ArenaPlatformer1
                 }
             }
             #endregion
-
-            if (Velocity.X != 0)
+            
+            switch (CurrentFacing)
             {
-                if (InAir == false)
-                {
-                    switch (CurrentFacing)
+                case Facing.Left:
                     {
-                        case Facing.Left:
-                            CurrentAnimation = RunLeftAnimation;
-                            break;
+                        if (Velocity.X != 0)
+                        {
+                            if (InAir == false)
+                            {
+                                CurrentAnimation = RunLeftAnimation;
+                            }
+                        }
 
-                        case Facing.Right:
-                            CurrentAnimation = RunRightAnimation;
-                            break;
+                        if (InAir == true)
+                        {
+                            CurrentAnimation = JumpLeftAnimation;
+                        }
                     }
-                }
+                    break;
+
+                case Facing.Right:
+                    {
+                        if (Velocity.X != 0)
+                        {
+                            if (InAir == false)
+                            {
+                                CurrentAnimation = RunRightAnimation;
+                            }
+                        }
+
+                        if (InAir == true)
+                        {
+                            CurrentAnimation = JumpRightAnimation;
+                        }
+                    }
+                    break;
             }
 
             #region Player has stopped moving - Display Stand/Crouch animation
@@ -465,10 +491,7 @@ namespace ArenaPlatformer1
                 }
             }
             #endregion
-
-
-            //Handle Collisions 
-
+            
             if (upCol== false &&
                 downCol == false)
             {
@@ -494,15 +517,21 @@ namespace ArenaPlatformer1
                                                  (int)CurrentAnimation.FrameSize.Y);
 
             if (CurrentPose == Pose.Standing)
+            {
                 CollisionRectangle = new Rectangle((int)(Position.X - 30), (int)(Position.Y - 45), 60, 90);
+            }
             else
+            {
                 CollisionRectangle = new Rectangle((int)(Position.X - 30), (int)(Position.Y - 33), 60, 66);
+            }
 
+            #region Update Animations
             if (CurrentAnimation != null)
             {
                 CurrentAnimation.Position = Position;
                 CurrentAnimation.Update(gameTime, DestinationRectangle);
             }
+            #endregion
 
             switch (CurrentFacing)
             {
@@ -519,6 +548,7 @@ namespace ArenaPlatformer1
                     break;
             }
 
+            #region Item Collisions
             if (ItemList != null)
                 ItemList.ForEach(Item =>
                 {
@@ -547,8 +577,10 @@ namespace ArenaPlatformer1
 
                         ItemList.Remove(Item);
                     }
-                });
+                }); 
+            #endregion
 
+            #region Trap Collisions
             if (TrapList != null)
                 TrapList.ForEach(Trap =>
                 {
@@ -557,13 +589,16 @@ namespace ArenaPlatformer1
                         Health.X -= 20;
                         Trap.Reset();
                     }
-                });
+                }); 
+            #endregion
 
+            #region Player Died
             if (Health.X <= 0)
             {
                 Deaths++;
                 CreatePlayerDied();
-            }
+            } 
+            #endregion
 
             PrevPosition = Position;
             PreviousPose = CurrentPose;
@@ -575,22 +610,12 @@ namespace ArenaPlatformer1
 
         public void Draw(SpriteBatch spriteBatch)
         {
-            //spriteBatch.Draw(Texture, DestinationRectangle, null, Color.White, 0, new Vector2(Texture.Width / 2, Texture.Height), SpriteEffects.None, 0);
-
             if (CurrentAnimation != null)
                 CurrentAnimation.Draw(spriteBatch, Position);
         }
-
-        /// <summary>
-        /// Draw the collision box and other useful debug info
-        /// </summary>
-        /// <param name="graphics"></param>
-        /// <param name="basicEffect"></param>
+        
         public void DrawInfo(SpriteBatch spriteBatch, GraphicsDevice graphics, BasicEffect basicEffect)
         {
-            //Mark the Position of the player
-            spriteBatch.Draw(Texture, new Rectangle((int)Position.X - 1, (int)Position.Y - 4, 2, 8), Color.Red);
-
             #region Draw the collision box for debugging
             VertexPositionColorTexture[] Vertices = new VertexPositionColorTexture[4];
             int[] Indices = new int[8];
@@ -641,14 +666,7 @@ namespace ArenaPlatformer1
             } 
             #endregion
         }
-
-        public void MakeRumble(float time, Vector2 value)
-        {
-            GamePad.SetVibration(PlayerIndex, value.X, value.Y);            
-            RumbleTime = 0;
-            MaxRumbleTime = time;
-        }
-
+        
 
         public bool CheckLeft(out Vector2 tPos)
         {

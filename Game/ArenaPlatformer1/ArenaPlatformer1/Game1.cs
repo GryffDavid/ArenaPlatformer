@@ -467,25 +467,6 @@ namespace ArenaPlatformer1
             Player.ItemList = ItemList;
 
             MovingObjectList = new List<MovingObject>();
-            MovingPlatform platform = new MovingPlatform()
-            {
-                Position = new Vector2(300, 234),
-                //Size = new Vector2(32, 32),
-                //Velocity = new Vector2(2f, 0)
-            };
-            platform.Initialize();
-
-            MovingPlatform platform2 = new MovingPlatform()
-            {
-                Position = new Vector2(480, 236),
-                //Size = new Vector2(32, 32),
-                //Velocity = new Vector2(1f, 0),
-                //IsKinematic = true
-            };
-            platform2.Initialize();
-
-            MovingObjectList.Add(platform);
-            MovingObjectList.Add(platform2);
 
             DoubleBuffer = new DoubleBuffer();
             RenderManager = new RenderManager(DoubleBuffer);
@@ -499,77 +480,15 @@ namespace ArenaPlatformer1
             Emitter.RenderManager = RenderManager;
 
             ParticleTexture = Content.Load<Texture2D>("Particles/diamond");
-
-            //Emitter newEmitter4 = new Emitter(ParticleTexture, new Vector2(800, 200), new Vector2(-40, 40), new Vector2(6, 10),
-            //        new Vector2(1000, 1000), 0.99f, true, new Vector2(0, 360), new Vector2(-3, 3), new Vector2(0.25f, 0.5f),
-            //        new Color(Color.Orange.R, Color.Orange.G, Color.Orange.B, 100),
-            //        new Color(Color.OrangeRed.R, Color.OrangeRed.G, Color.OrangeRed.B, 20),
-            //        0.03f, -2f, 60, 1, false, new Vector2(1080, 1080), false,
-            //        null, true, true, new Vector2(0, 0), new Vector2(0, 0), 0, true, new Vector2(0, 0), true, true, 2000, null, null, false);
-            //EmitterList.Add(newEmitter4);
-
-            //Emitter newEmitter5 = new Emitter(ParticleTexture, new Vector2(800, 200), new Vector2(-40, 40), new Vector2(6, 10),
-            //        new Vector2(1000, 1000), 0.99f, true, new Vector2(0, 360), new Vector2(-3, 3), new Vector2(0.25f, 0.5f),
-            //        new Color(Color.Orange.R, Color.Orange.G, Color.Orange.B, 35),
-            //        new Color(Color.OrangeRed.R, Color.OrangeRed.G, Color.OrangeRed.B, 5),
-            //        -0.008f, -2f, 150, 2, false, new Vector2(1080, 1080), true,
-            //        null, true, true, new Vector2(0, 0), new Vector2(0, 0), 0, true, new Vector2(0, 0), true, true, 1500, null, null, false);
-            //EmitterList.Add(newEmitter5);
-
-
-            //Emitter emitter = new Emitter(ParticleTexture, new Vector2(70, 1080 / 2),
-            //        new Vector2(0, 360), new Vector2(0, 0.5f),
-            //        new Vector2(500, 1500), 1f, true, Vector2.Zero, new Vector2(-3, 3), new Vector2(0.5f, 1f),
-            //        new Color(Color.LimeGreen.R, Color.LimeGreen.G, Color.LimeGreen.B, 20),
-            //        new Color(Color.Lime.R, Color.Lime.G, Color.Lime.B, 50),
-            //        -0.0f, -1f, 15, 10, true, new Vector2(1080 - 64, 1080 - 64),
-            //        false, 0, true, true, null, null, 0.0f,
-            //        false, new Vector2(0.05f, 0.08f), null, null, null, true, null, null, true, false);
-
-            //emitter.CurrentChange = new Emitter.ChangeEmitter()
-            //{
-            //    Active = false,
-            //    ChangeTime = new Vector2(0, 3000),
-            //    startColor = Color.DeepSkyBlue,
-            //    endColor = Color.Blue
-            //};
-
-            //EmitterList.Add(emitter);
-
-
-            //Emitter emitter2 = new Emitter(ParticleTexture, new Vector2(70, 1080/2),
-            //        new Vector2(0, 360), new Vector2(0, 0.5f),
-            //        new Vector2(500, 1500), 1f, true, Vector2.Zero, new Vector2(-3, 3), new Vector2(0.5f, 1f),
-            //        new Color(Color.HotPink.R, Color.HotPink.G, Color.HotPink.B, 20),
-            //        new Color(Color.Fuchsia.R, Color.Fuchsia.G, Color.Fuchsia.B, 50),
-            //        0.0f, -1f, 15, 10, true, new Vector2(1080 - 64, 1080 - 64),
-            //        false, 0, true, true, null, null, 0.0f,
-            //        false, new Vector2(0.05f, 0.08f), null, null, null, true, null, null, true, false);
-
-            //emitter2.CurrentChange = new Emitter.ChangeEmitter()
-            //{
-            //    Active = false,
-            //    ChangeTime = new Vector2(0, 1500),
-            //    startColor = Color.Red,
-            //    endColor = Color.OrangeRed
-            //};
-
-            //EmitterList.Add(emitter2);
-
-
-
+            
             LightList.Add(new Light()
             {
-                //Color = new Color(141, 38, 10, 42),
-                //Color = new Color(10, 25, 70, 5),
-                //Color = Color.LightGreen,
                 Color = Color.Plum,
                 Active = true,
                 Power = 1.7f,
                 Position = new Vector3(100, 100, 100),
                 Size = 800                
             });
-
 
             foreach (Tile tile in CurrentMap.DrawTiles)
             {
@@ -597,22 +516,13 @@ namespace ArenaPlatformer1
 
             Grenade.GrenadeTexture = Content.Load<Texture2D>("GrenadeTexture");
             Grenade.Map = CurrentMap;
-
+                        
             Emitter.Map = CurrentMap;
             Trap.Map = CurrentMap;
 
             Texture = Content.Load<Texture2D>("Backgrounds/Texture");
             NormalTexture = Content.Load<Texture2D>("Backgrounds/NormalTexture");
-
-            //MovingObject movingObject = new MovingObject()
-            //{
-            //    Position = new Vector2(260, 260),
-            //    Size = new Vector2(32, 32)
-            //};
-
-            //movingObject.LoadContent();
-
-            //CurrentMap.UpdateAreas(movingObject);
+            
         }
 
         protected override void LoadContent()
@@ -855,13 +765,13 @@ namespace ArenaPlatformer1
 
                         CurrentMap.CheckCollisions();
 
-                        foreach (MovingPlatform movingObject in MovingObjectList)
-                        {
-                            movingObject.Update(gameTime);
-                            CurrentMap.UpdateAreas(movingObject);
+                        //foreach (MovingPlatform movingObject in MovingObjectList)
+                        //{
+                        //    movingObject.Update(gameTime);
+                        //    CurrentMap.UpdateAreas(movingObject);
 
-                            movingObject.CollisionDataList.Clear();
-                        }
+                        //    movingObject.CollisionDataList.Clear();
+                        //}
 
                         
 
@@ -1069,9 +979,7 @@ namespace ArenaPlatformer1
                         GraphicsDevice.SetRenderTarget(ColorMap);
                         GraphicsDevice.Clear(Color.Gray);
                         spriteBatch.Begin(SpriteSortMode.BackToFront, BlendState.AlphaBlend);
-
                         
-
                         foreach (Player player in Players.Where(Player => Player != null))
                         {
                             player.Draw(spriteBatch);
@@ -1079,10 +987,10 @@ namespace ArenaPlatformer1
 
                         spriteBatch.Draw(Texture, new Rectangle(0, 0, 1920, 1080), null, Color.White, 0, Vector2.Zero, SpriteEffects.None, 1);
 
-                        foreach (MovingPlatform movingObject in MovingObjectList)
-                        {
-                            spriteBatch.Draw(Block, movingObject.CollisionRectangle, movingObject.Color);
-                        }
+                        //foreach (MovingPlatform movingObject in MovingObjectList)
+                        //{
+                        //    spriteBatch.Draw(Block, movingObject.CollisionRectangle, movingObject.Color);
+                        //}
                         //spriteBatch.Draw(Block, new Rectangle(0, 750, 1920, 80), null, Color.Red, 0, Vector2.Zero, SpriteEffects.None, 0.15f);
 
                         foreach (Projectile projectile in ProjectileList)
