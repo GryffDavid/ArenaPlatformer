@@ -427,7 +427,7 @@ namespace ArenaPlatformer1
 
         public void OnPlayerGrenade(object source, PlayerGrenadeEventArgs e)
         {
-            Grenade grenade = new Grenade(e.Player.Position, new Vector2(8, 0) * e.Player.AimDirection, 2, e.Player);
+            Grenade grenade = new Grenade(e.Player.Position, new Vector2(16, 0) * e.Player.AimDirection, e.Player);
             GrenadeList.Add(grenade);
         }
 
@@ -525,7 +525,7 @@ namespace ArenaPlatformer1
             ItemList.Add(mine); 
             #endregion
 
-            Grenade.GrenadeTexture = GameContentManager.Load<Texture2D>("GrenadeTexture");
+            Grenade.Texture = GameContentManager.Load<Texture2D>("GrenadeTexture");            
             Grenade.Map = CurrentMap;
                         
             Emitter.Map = CurrentMap;
