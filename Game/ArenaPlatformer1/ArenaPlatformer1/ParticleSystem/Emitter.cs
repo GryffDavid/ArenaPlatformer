@@ -12,34 +12,27 @@ namespace ArenaPlatformer1
     {
         static Random Random = new Random();
         public static Map Map;
-
-        Texture2D Texture;
-        public Vector2 PreviousPosition, AngleRange;
-        public Vector2 Position, ScaleRange, TimeRange, RotationIncrementRange, SpeedRange, 
-                       StartingRotationRange, EmitterDirection, EmitterVelocity, YRange, Friction;
-        public float Transparency, Gravity, ActiveSeconds, Interval, EmitterSpeed,
-                     EmitterAngle, EmitterGravity, FadeDelay, StartingInterval;
-        public Color StartColor, EndColor;
-        public bool Fade, CanBounce, AddMore, Shrink, StopBounce, HardBounce, BouncedOnGround,
-                    RotateVelocity, FlipHor, FlipVer, ReduceDensity, SortParticles;
-        public bool Grow, Active, Emissive, Lit;
-        public int Burst;
-        public double IntervalTime, CurrentTime, MaxTime;
-        //public SpriteEffects Orientation = SpriteEffects.None;
-        public int Orientation = 0;
-        public object Tether;
-        public float BounceY;
-        public float DrawDepth;
-
+        public static UpdateManager UpdateManager;
+        public static RenderManager RenderManager;
 
         RenderData renderData;
         ParticleData gameData;
 
-        public static UpdateManager UpdateManager;
-        public static RenderManager RenderManager;
-
+        Texture2D Texture;
         Rectangle CollisionRectangle;
-
+        public Color StartColor, EndColor;
+        public Vector2 PreviousPosition, AngleRange, Position, ScaleRange, TimeRange, 
+                       RotationIncrementRange, SpeedRange, StartingRotationRange, EmitterDirection, 
+                       Velocity, YRange, Friction;
+        public float Transparency, Gravity, ActiveSeconds, Interval, EmitterSpeed,
+                     EmitterAngle, EmitterGravity, FadeDelay, StartingInterval, BounceY, DrawDepth;        
+        public bool Fade, CanBounce, AddMore, Shrink, StopBounce, HardBounce, BouncedOnGround,
+                    RotateVelocity, FlipHor, FlipVer, ReduceDensity, SortParticles, Grow, Active, Emissive, Lit;
+        public double IntervalTime, CurrentTime, MaxTime;
+        public object Tether;
+        public int Burst;
+        public int Orientation = 0;
+        
         private ChangeEmitter _changeEmitter;
         public ChangeEmitter CurrentChange
         {
@@ -236,6 +229,7 @@ namespace ArenaPlatformer1
             }
         }
 
+        #region ChangeEmitter Struct
         public struct ChangeEmitter
         {
             /// <summary>
@@ -244,8 +238,8 @@ namespace ArenaPlatformer1
             /// </summary>
             public Vector2 ChangeTime;
             public bool Active;
-            public bool? shrink, grow, fade, reduceDensity, 
-                        rotateVelocity, canBounce, stopBounce, 
+            public bool? shrink, grow, fade, reduceDensity,
+                        rotateVelocity, canBounce, stopBounce,
                         hardBounce, flipVer, flipHor, emissive, lit;
             public Vector2? angleRange, timeRange, speedRange, friction,
                            scaleRange, rotationIncrement, startingRotation, yRange;
@@ -274,10 +268,9 @@ namespace ArenaPlatformer1
             {
                 Active = false;
             }
-        }
-
+        } 
+        #endregion
         
-
         public Emitter(Texture2D texture, Vector2 position, Vector2 angleRange, Vector2 speedRange, Vector2 timeRange,
                        float startingTransparency, bool fade, Vector2 startingRotationRange, Vector2 rotationIncrement, Vector2 scaleRange,
                        Color startColor, Color endColor, float gravity, float activeSeconds, float interval, int burst, bool canBounce,
@@ -381,10 +374,10 @@ namespace ArenaPlatformer1
             {
                 EmitterDirection.X = (float)Math.Cos(EmitterAngle);
                 EmitterDirection.Y = (float)Math.Sin(EmitterAngle);
-                EmitterVelocity = EmitterDirection * EmitterSpeed;
+                Velocity = EmitterDirection * EmitterSpeed;
                 AngleRange = new Vector2(
-                                -(MathHelper.ToDegrees((float)Math.Atan2(-EmitterVelocity.Y, -EmitterVelocity.X))) - 20,
-                                -(MathHelper.ToDegrees((float)Math.Atan2(-EmitterVelocity.Y, -EmitterVelocity.X))) + 20);
+                                -(MathHelper.ToDegrees((float)Math.Atan2(-Velocity.Y, -Velocity.X))) - 20,
+                                -(MathHelper.ToDegrees((float)Math.Atan2(-Velocity.Y, -Velocity.X))) + 20);
             }
 
             if (rotateVelocity != null)
@@ -446,18 +439,18 @@ namespace ArenaPlatformer1
             #region Emitter motion
             if (EmitterSpeed != 0)
             {
-                EmitterVelocity.Y += EmitterGravity * ((float)gameTime.ElapsedGameTime.TotalSeconds * 60.0f);
-                Position += EmitterVelocity * ((float)gameTime.ElapsedGameTime.TotalSeconds * 60.0f);
+                Velocity.Y += EmitterGravity * ((float)gameTime.ElapsedGameTime.TotalSeconds * 60.0f);
+                Position += Velocity * ((float)gameTime.ElapsedGameTime.TotalSeconds * 60.0f);
 
                 #region Emitter bouncing
                 if (CanBounce == true)
                     if (Position.Y >= BounceY && BouncedOnGround == false)
                     {
                         if (HardBounce == true)
-                            Position.Y -= EmitterVelocity.Y * ((float)gameTime.ElapsedGameTime.TotalSeconds * 60.0f);
+                            Position.Y -= Velocity.Y * ((float)gameTime.ElapsedGameTime.TotalSeconds * 60.0f);
 
-                        EmitterVelocity.Y = (-EmitterVelocity.Y / 3) * ((float)gameTime.ElapsedGameTime.TotalSeconds * 60.0f);
-                        EmitterVelocity.X = (EmitterVelocity.X / 3) * ((float)gameTime.ElapsedGameTime.TotalSeconds * 60.0f);
+                        Velocity.Y = (-Velocity.Y / 3) * ((float)gameTime.ElapsedGameTime.TotalSeconds * 60.0f);
+                        Velocity.X = (Velocity.X / 3) * ((float)gameTime.ElapsedGameTime.TotalSeconds * 60.0f);
                         BouncedOnGround = true;
                     }
 
@@ -466,74 +459,74 @@ namespace ArenaPlatformer1
                             BouncedOnGround == true &&
                             Position.Y > BounceY)
                 {
-                    EmitterVelocity.Y = (-EmitterVelocity.Y / 2) * ((float)gameTime.ElapsedGameTime.TotalSeconds * 60.0f);
+                    Velocity.Y = (-Velocity.Y / 2) * ((float)gameTime.ElapsedGameTime.TotalSeconds * 60.0f);
 
-                    EmitterVelocity.X *= 0.9f * ((float)gameTime.ElapsedGameTime.TotalSeconds * 60.0f);
+                    Velocity.X *= 0.9f * ((float)gameTime.ElapsedGameTime.TotalSeconds * 60.0f);
 
-                    if (EmitterVelocity.Y < 0.2f && EmitterVelocity.Y > 0)
+                    if (Velocity.Y < 0.2f && Velocity.Y > 0)
                     {
-                        EmitterVelocity.Y = 0;
+                        Velocity.Y = 0;
                     }
 
-                    if (EmitterVelocity.Y > -0.2f && EmitterVelocity.Y < 0)
+                    if (Velocity.Y > -0.2f && Velocity.Y < 0)
                     {
-                        EmitterVelocity.Y = 0;
+                        Velocity.Y = 0;
                     }
 
-                    if (EmitterVelocity.X < 0.2f && EmitterVelocity.X > 0)
+                    if (Velocity.X < 0.2f && Velocity.X > 0)
                     {
-                        EmitterVelocity.X = 0;
+                        Velocity.X = 0;
                     }
 
-                    if (EmitterVelocity.X > -0.2f && EmitterVelocity.X < 0)
+                    if (Velocity.X > -0.2f && Velocity.X < 0)
                     {
-                        EmitterVelocity.X = 0;
+                        Velocity.X = 0;
                     }
                 }
                 #endregion
 
                 //#region Emitter collisions
-                if (EmitterVelocity != Vector2.Zero)
+                if (Velocity != Vector2.Zero)
                 {
 
-                    if (EmitterVelocity.X > 0)
+                    if (Velocity.X > 0)
                     {
-                        if (CheckRight(out Vector2 rPos) == true)
+                        if (CheckRight(out float rPos) == true)
                         {
-                            EmitterVelocity.X = -EmitterVelocity.X * 0.5f;
-                            Position.X = rPos.X - CollisionRectangle.Width / 2 - 1;
+                            Velocity.X = -Velocity.X * 0.5f;
+                            Position.X = rPos - CollisionRectangle.Width / 2 - 1;
                         }
 
                     }
 
-                    if (EmitterVelocity.X < 0)
+                    if (Velocity.X < 0)
                     {
-                        if (CheckLeft(out Vector2 lPos) == true)
+                        if (CheckLeft(out float lPos) == true)
                         {
-                            EmitterVelocity.X = -EmitterVelocity.X * 0.65f;
-                            Position.X = lPos.X + 64 + CollisionRectangle.Width / 2;
+                            Velocity.X = -Velocity.X * 0.65f;
+                            Position.X = lPos + 64 + CollisionRectangle.Width / 2;
                         }
                     }
 
-                    if (EmitterVelocity.Y > 0)
+                    if (Velocity.Y > 0)
                     {
-                        bool thing = OnGround(EmitterVelocity, Position, out float groundY);
+                        bool thing = OnGround(out float groundY);
 
                         if (thing == true)
                         {
-                            EmitterVelocity.Y = -EmitterVelocity.Y * 0.65f;
-                            EmitterVelocity.X *= 0.5f;
+                            Velocity.Y = -Velocity.Y * 0.65f;
+                            Velocity.X *= 0.5f;
                             Position.Y = groundY - CollisionRectangle.Height / 2;
                         }
                     }
 
-                    if (EmitterVelocity.Y < 0)
+                    if (Velocity.Y < 0)
                     {
-                        if (OnCeiling(EmitterVelocity, Position, out float cPos) == true)
+                        if (OnCeiling(out float cPos) == true)
                         {
                             Position.Y = cPos + 64;
-                            EmitterVelocity.X *= 0.5f;
-                            EmitterVelocity.Y = -EmitterVelocity.Y * 0.65f;
+                            Velocity.X *= 0.5f;
+                            Velocity.Y = -Velocity.Y * 0.65f;
                             //Position.Y = cPos + CollisionRectangle.Height / 2;
                         }
                     }
@@ -541,8 +534,6 @@ namespace ArenaPlatformer1
                 //#endregion
             }
             #endregion
-
-            
 
             #region Add particle
             if (CurrentChange.Active == false)
@@ -683,18 +674,18 @@ namespace ArenaPlatformer1
         }
 
 
-        public bool CheckLeft(out Vector2 tPos)
+        public bool CheckLeft(out float tPos)
         {
             Vector2 bottomLeft = new Vector2(
-                Position.X - (CollisionRectangle.Width / 2) + EmitterVelocity.X - 1,
-                Position.Y);
+                Position.X - (CollisionRectangle.Width / 2) + Velocity.X - 1,
+                Position.Y + (CollisionRectangle.Height / 2) - 1);
 
             Vector2 topLeft = new Vector2(
-                Position.X - (CollisionRectangle.Width / 2) + EmitterVelocity.X - 1,
-                Position.Y - CollisionRectangle.Height);
+                Position.X - (CollisionRectangle.Width / 2) + Velocity.X - 1,
+                Position.Y - (CollisionRectangle.Height / 2) + 1);
 
             int tileIndexX, tileIndexY;
-            tPos = Vector2.Zero;
+            tPos = 0;
 
             for (var checkedTile = topLeft; ; checkedTile.Y += Map.TileSize.Y)
             {
@@ -705,8 +696,7 @@ namespace ArenaPlatformer1
 
                 if (Map.IsObstacle(tileIndexX, tileIndexY))
                 {
-                    //Map.DrawTiles[tileIndexX, tileIndexY].Color = Color.Red;
-                    tPos = Map.DrawTiles[tileIndexX, tileIndexY].Position;
+                    tPos = Map.DrawTiles[tileIndexX, tileIndexY].Position.X;
                     return true;
                 }
 
@@ -717,18 +707,18 @@ namespace ArenaPlatformer1
             return false;
         }
 
-        public bool CheckRight(out Vector2 tPos)
+        public bool CheckRight(out float tPos)
         {
             Vector2 bottomRight = new Vector2(
-                Position.X + (CollisionRectangle.Width / 2) + EmitterVelocity.X + 1,
-                Position.Y);
+                Position.X + (CollisionRectangle.Width / 2) + Velocity.X + 1,
+                Position.Y + (CollisionRectangle.Height / 2) - 1);
 
             Vector2 topRight = new Vector2(
-                Position.X + (CollisionRectangle.Width / 2) + EmitterVelocity.X + 1,
-                Position.Y - CollisionRectangle.Height);
+                Position.X + (CollisionRectangle.Width / 2) + Velocity.X + 1,
+                Position.Y - (CollisionRectangle.Height / 2) + 1);
 
             int tileIndexX, tileIndexY;
-            tPos = Vector2.Zero;
+            tPos = 0f;
 
             for (var checkedTile = topRight; ; checkedTile.Y += Map.TileSize.Y)
             {
@@ -739,8 +729,7 @@ namespace ArenaPlatformer1
 
                 if (Map.IsObstacle(tileIndexX, tileIndexY))
                 {
-                    //Map.DrawTiles[tileIndexX, tileIndexY].Color = Color.Yellow;
-                    tPos = Map.DrawTiles[tileIndexX, tileIndexY].Position;
+                    tPos = Map.DrawTiles[tileIndexX, tileIndexY].Position.X;
                     return true;
                 }
 
@@ -751,15 +740,15 @@ namespace ArenaPlatformer1
             return false;
         }
 
-        public bool OnGround(Vector2 velocity, Vector2 position, out float groundY)
+        public bool OnGround(out float groundY)
         {
             Vector2 bottomLeft = new Vector2(
-                Position.X - (CollisionRectangle.Width / 2),
-                Position.Y + EmitterVelocity.Y + 1);
+                Position.X,
+                Position.Y + (CollisionRectangle.Height / 2) + Velocity.Y + 1);
 
             Vector2 bottomRight = new Vector2(
                 Position.X + (CollisionRectangle.Width / 2),
-                Position.Y + EmitterVelocity.Y + 1);
+                Position.Y + (CollisionRectangle.Height / 2) + Velocity.Y + 1);
 
             int tileIndexX, tileIndexY;
 
@@ -772,31 +761,66 @@ namespace ArenaPlatformer1
 
                 groundY = (float)tileIndexY * Map.TileSize.Y;
 
-                if (Map.IsBounce(tileIndexX, tileIndexY))
+                if (Map.IsGround(tileIndexX, tileIndexY))
                 {
-                    EmitterVelocity.Y -= 25f;
+                    return true;
+                }
+
+                if (Map.IsBounce(tileIndexX, tileIndexY) == true)
+                {
+                    Velocity.Y = -25f;
                     return false;
                 }
 
-                if (Map.IsObstacle(tileIndexX, tileIndexY))
-                    return true;
-
                 if (checkedTile.X >= bottomRight.X)
+                    break;
+            }
+
+
+            bottomLeft = new Vector2(
+                Position.X,
+                Position.Y + +(CollisionRectangle.Height / 2) + Velocity.Y + 1);
+
+            bottomRight = new Vector2(
+                Position.X - (CollisionRectangle.Width / 2),
+                Position.Y + +(CollisionRectangle.Height / 2) + Velocity.Y + 1);
+
+            for (var checkedTile = bottomLeft; ; checkedTile.X -= Map.TileSize.X)
+            {
+                checkedTile.X = Math.Min(checkedTile.X, bottomRight.X);
+
+                tileIndexX = Map.GetMapTileXAtPoint((int)checkedTile.X);
+                tileIndexY = Map.GetMapTileYAtPoint((int)checkedTile.Y);
+
+                groundY = (float)tileIndexY * Map.TileSize.Y;
+
+                if (Map.IsGround(tileIndexX, tileIndexY))
+                {
+                    return true;
+                }
+
+                if (Map.IsBounce(tileIndexX, tileIndexY) == true)
+                {
+                    Velocity.Y = -25f;
+                    return false;
+                }
+
+                if (checkedTile.X <= bottomRight.X)
                     break;
             }
 
             return false;
         }
 
-        public bool OnCeiling(Vector2 velocity, Vector2 position, out float tPos)
+        public bool OnCeiling(out float ceilingY)
         {
             Vector2 topLeft = new Vector2(
                 Position.X - (CollisionRectangle.Width / 2),
-                Position.Y - CollisionRectangle.Height + EmitterVelocity.Y - 1);
+                Position.Y - (CollisionRectangle.Height / 2) + Velocity.Y - 2);
 
             Vector2 topRight = new Vector2(
                 Position.X + (CollisionRectangle.Width / 2),
-                Position.Y - CollisionRectangle.Height + EmitterVelocity.Y - 1);
+                Position.Y - (CollisionRectangle.Height / 2) + Velocity.Y - 2);
 
             int tileIndexX, tileIndexY;
 
@@ -807,7 +831,7 @@ namespace ArenaPlatformer1
                 tileIndexX = Map.GetMapTileXAtPoint((int)checkedTile.X);
                 tileIndexY = Map.GetMapTileYAtPoint((int)checkedTile.Y);
 
-                tPos = (float)tileIndexY * Map.TileSize.Y;
+                ceilingY = (float)tileIndexY * Map.TileSize.Y;
 
                 if (Map.IsObstacle(tileIndexX, tileIndexY))
                     return true;

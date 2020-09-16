@@ -261,9 +261,9 @@ namespace ArenaPlatformer1
             }
             #endregion
             
-            leftCol = CheckLeft(out Vector2 lPos);
-            rightCol = CheckRight(out Vector2 rPos);            
-            downCol = OnGround(Velocity, Position, out float gPos);
+            leftCol = CheckLeft(out float lPos);
+            rightCol = CheckRight(out float rPos);            
+            downCol = OnGround(out float gPos);
 
             #region Left Collisions
             if (Velocity.X < 0)
@@ -271,7 +271,7 @@ namespace ArenaPlatformer1
                 if (leftCol == true)
                 {
                     Velocity.X = 0;
-                    Position.X = lPos.X + 64 + (CollisionRectangle.Width / 2) + 1;
+                    Position.X = lPos + 64 + (CollisionRectangle.Width / 2) + 1;
                 }
             } 
             #endregion
@@ -282,7 +282,7 @@ namespace ArenaPlatformer1
                 if (rightCol == true)
                 {
                     Velocity.X = 0;
-                    Position.X = rPos.X - (CollisionRectangle.Width / 2) - 1;
+                    Position.X = rPos - (CollisionRectangle.Width / 2) - 1;
                 }
             }
             #endregion
@@ -322,7 +322,7 @@ namespace ArenaPlatformer1
             } 
             #endregion
 
-            upCol = OnCeiling(Velocity, Position, out float cPos);
+            upCol = OnCeiling(out float cPos);
 
             #region Up Collisions
             if (Velocity.Y <= 0)
@@ -643,7 +643,7 @@ namespace ArenaPlatformer1
         }
         
 
-        public bool CheckLeft(out Vector2 tPos)
+        public bool CheckLeft(out float tPos)
         {
             Vector2 bottomLeft = new Vector2(
                 Position.X - (CollisionRectangle.Width / 2) + Velocity.X - 1,
@@ -654,7 +654,7 @@ namespace ArenaPlatformer1
                 Position.Y - (CollisionRectangle.Height / 2) + 1);
 
             int tileIndexX, tileIndexY;
-            tPos = Vector2.Zero;
+            tPos = 0;
 
             for (var checkedTile = topLeft; ; checkedTile.Y += Map.TileSize.Y)
             {
@@ -665,7 +665,7 @@ namespace ArenaPlatformer1
 
                 if (Map.IsObstacle(tileIndexX, tileIndexY))
                 {
-                    tPos = Map.DrawTiles[tileIndexX, tileIndexY].Position;
+                    tPos = Map.DrawTiles[tileIndexX, tileIndexY].Position.X;
                     return true;
                 }
 
@@ -676,7 +676,7 @@ namespace ArenaPlatformer1
             return false;
         }
 
-        public bool CheckRight(out Vector2 tPos)
+        public bool CheckRight(out float tPos)
         {
             Vector2 bottomRight = new Vector2(
                 Position.X + (CollisionRectangle.Width / 2) + Velocity.X + 1, 
@@ -687,7 +687,7 @@ namespace ArenaPlatformer1
                 Position.Y - (CollisionRectangle.Height/2) + 1);
 
             int tileIndexX, tileIndexY;
-            tPos = Vector2.Zero;
+            tPos = 0f;
 
             for (var checkedTile = topRight; ; checkedTile.Y += Map.TileSize.Y)
             {
@@ -698,7 +698,7 @@ namespace ArenaPlatformer1
 
                 if (Map.IsObstacle(tileIndexX, tileIndexY))
                 {
-                    tPos = Map.DrawTiles[tileIndexX, tileIndexY].Position;
+                    tPos = Map.DrawTiles[tileIndexX, tileIndexY].Position.X;
                     return true;
                 }
 
@@ -709,7 +709,7 @@ namespace ArenaPlatformer1
             return false;
         }
 
-        public bool OnGround(Vector2 velocity, Vector2 position, out float groundY)
+        public bool OnGround(out float groundY)
         {
             Vector2 bottomLeft = new Vector2(
                 Position.X,
@@ -781,7 +781,7 @@ namespace ArenaPlatformer1
             return false;
         }        
 
-        public bool OnCeiling(Vector2 velocity, Vector2 position, out float ceilingY)
+        public bool OnCeiling(out float ceilingY)
         {
             Vector2 topLeft = new Vector2(
                 Position.X - (CollisionRectangle.Width / 2), 

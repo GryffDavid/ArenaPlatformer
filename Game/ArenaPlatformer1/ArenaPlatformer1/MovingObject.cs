@@ -49,9 +49,8 @@ namespace ArenaPlatformer1
 
         public List<CollisionData> CollisionDataList = new List<CollisionData>();
 
-        public Rectangle CollisionRectangle, DestinationRectangle;
+        public Rectangle CollisionRectangle;
         public Vector2 Position, PreviousPosition, Velocity, Size, HalfSize, Center;
-        public float Gravity;
         public bool IsKinematic = false;
 
         public Color Color = Color.White;
@@ -239,7 +238,12 @@ namespace ArenaPlatformer1
                     }
                 }
             }
-        }        
+        }
+
+        private void CheckTiles()
+        {
+
+        }
 
         public bool OverlapsSigned(MovingObject other, out Vector2 overlap)
         {

@@ -52,65 +52,96 @@ namespace ArenaPlatformer1
                 Active = false;
             }
 
-            Position += Velocity * (float)(gameTime.ElapsedGameTime.TotalSeconds * 60f);
+            //Position += Velocity * (float)(gameTime.ElapsedGameTime.TotalSeconds * 60f);
             Velocity.Y += 0.6f;
 
-            
+            bool leftCol, rightCol;
+            bool upCol, downCol;
+
+            leftCol = CheckLeft(out float lPos);
+            rightCol = CheckRight(out float rPos);
+            downCol = OnGround(out float gPos);
+            upCol = OnCeiling(out float cPos);
+
+            #region Left Collisions
+            if (Velocity.X < 0)
+            {
+                if (leftCol == true)
+                {
+                    Velocity.X = -Velocity.X * 0.65f;
+                    Position.X = lPos + 64 + DestinationRectangle.Width / 2;
+                }
+            }
+            #endregion
+
+            #region Right Collisions
+            if (Velocity.X > 0)
+            {
+                if (rightCol == true)
+                {
+                    Velocity.X = -Velocity.X * 0.65f;
+                    Position.X = rPos - DestinationRectangle.Width / 2 - 1;
+                }
+            }
+            #endregion
+
+            #region Down Collisions
+            if (Velocity.Y > 0)
+            {
+                if (downCol == true)
+                {
+                    Velocity.Y = -Velocity.Y * 0.65f;
+                    Velocity.X *= 0.65f;
+                    Position.Y = gPos - (DestinationRectangle.Height / 2);
+                }
+            }
+            #endregion
+
+            #region Up Collisions
+            if (Velocity.Y < 0)
+            {
+                if (upCol == true)
+                {
+                    Position.Y = cPos + 64 + (DestinationRectangle.Height);
+                    Velocity.Y = -Velocity.Y * 0.65f;
+                }
+            }
+            #endregion
+
+            if (upCol == false && downCol == false)
+            {
+                Position.Y += Velocity.Y * ((float)gameTime.ElapsedGameTime.TotalSeconds * 60f);
+            }
+
+            if ((leftCol == false && Velocity.X < 0) ||
+                (rightCol == false && Velocity.X > 0))
+            {
+                Position.X += Velocity.X * ((float)gameTime.ElapsedGameTime.TotalSeconds * 60f);
+            }
+
+            #region Rotation
             if (Math.Abs(Velocity.X) >= 1 || Math.Abs(Velocity.Y) >= 1)
             {
                 float dir = (float)Math.Atan2(-Velocity.Y, -Velocity.X);
                 RotationIncrement = MathHelper.ToRadians(Random.Next(0, 4)) * (Velocity.X + Velocity.Y);
                 Rotation += RotationIncrement;
             }
+            #endregion
 
-            if (Velocity.X > 0)
-            {
-                if (CheckRight(out Vector2 rPos) == true)
-                {
-                    Velocity.X = -Velocity.X * 0.5f;
-                    Position.X = rPos.X - DestinationRectangle.Width/2 - 1;
-                }
+            DestinationRectangle = new Rectangle(
+                (int)Position.X,
+                (int)Position.Y,
+                GrenadeTexture.Width, GrenadeTexture.Height);
 
-            }
-
-            if (Velocity.X < 0)
-            {
-                if (CheckLeft(out Vector2 lPos) == true)
-                {
-                    Velocity.X = -Velocity.X * 0.65f;
-                    Position.X = lPos.X + 64 + DestinationRectangle.Width/2;
-                }
-            }
-
-            if (Velocity.Y > 0)
-            {
-                bool thing = OnGround(Velocity, Position, out float groundY);
-
-                if (thing == true)
-                {
-                    Velocity.Y = -Velocity.Y * 0.65f;
-                    Velocity.X *= 0.5f;
-                    Position.Y = groundY - (DestinationRectangle.Height / 2);
-                }
-            }
-
-            if (Velocity.Y < 0)
-            {
-                if (OnCeiling(Velocity, Position, out float cPos) == true)
-                {
-                    Position.Y = cPos + 64 + (DestinationRectangle.Height);
-                    Velocity.Y = -Velocity.Y * 0.65f;
-                }
-            }
-
-            DestinationRectangle = new Rectangle((int)Position.X, (int)Position.Y, GrenadeTexture.Width, GrenadeTexture.Height);
-            CollisionRectangle = new Rectangle((int)(Position.X - GrenadeTexture.Width / 2), (int)(Position.Y - GrenadeTexture.Height / 2), GrenadeTexture.Width, GrenadeTexture.Height);
-
+            CollisionRectangle = new Rectangle(
+                (int)(Position.X - (GrenadeTexture.Width / 2)), 
+                (int)(Position.Y - GrenadeTexture.Height / 2), 
+                GrenadeTexture.Width, GrenadeTexture.Height);
         }
 
         public void Draw(SpriteBatch spriteBatch)
         {
-            spriteBatch.Draw(GrenadeTexture, DestinationRectangle, null, Color.White, Rotation, new Vector2(GrenadeTexture.Width / 2, GrenadeTexture.Height / 2), SpriteEffects.None, 0);
+            spriteBatch.Draw(GrenadeTexture, DestinationRectangle, null, Color.White, Rotation, new Vector2(GrenadeTexture.Width/2, GrenadeTexture.Height/2), SpriteEffects.None, 0);
         }
 
         public void DrawInfo(GraphicsDevice graphics, BasicEffect basicEffect)
@@ -166,18 +197,19 @@ namespace ArenaPlatformer1
             #endregion
         }
 
-        public bool CheckLeft(out Vector2 tPos)
+
+        public bool CheckLeft(out float tPos)
         {
             Vector2 bottomLeft = new Vector2(
                 Position.X - (CollisionRectangle.Width / 2) + Velocity.X - 1,
-                Position.Y);
+                Position.Y + (CollisionRectangle.Height / 2) - 1);
 
             Vector2 topLeft = new Vector2(
                 Position.X - (CollisionRectangle.Width / 2) + Velocity.X - 1,
-                Position.Y - CollisionRectangle.Height);
+                Position.Y - (CollisionRectangle.Height / 2) + 1);
 
             int tileIndexX, tileIndexY;
-            tPos = Vector2.Zero;
+            tPos = 0;
 
             for (var checkedTile = topLeft; ; checkedTile.Y += Map.TileSize.Y)
             {
@@ -188,8 +220,7 @@ namespace ArenaPlatformer1
 
                 if (Map.IsObstacle(tileIndexX, tileIndexY))
                 {
-                    //Map.DrawTiles[tileIndexX, tileIndexY].Color = Color.Red;
-                    tPos = Map.DrawTiles[tileIndexX, tileIndexY].Position;
+                    tPos = Map.DrawTiles[tileIndexX, tileIndexY].Position.X;
                     return true;
                 }
 
@@ -200,18 +231,18 @@ namespace ArenaPlatformer1
             return false;
         }
 
-        public bool CheckRight(out Vector2 tPos)
+        public bool CheckRight(out float tPos)
         {
             Vector2 bottomRight = new Vector2(
                 Position.X + (CollisionRectangle.Width / 2) + Velocity.X + 1,
-                Position.Y);
+                Position.Y + (CollisionRectangle.Height / 2) - 1);
 
             Vector2 topRight = new Vector2(
                 Position.X + (CollisionRectangle.Width / 2) + Velocity.X + 1,
-                Position.Y - CollisionRectangle.Height);
+                Position.Y - (CollisionRectangle.Height / 2) + 1);
 
             int tileIndexX, tileIndexY;
-            tPos = Vector2.Zero;
+            tPos = 0f;
 
             for (var checkedTile = topRight; ; checkedTile.Y += Map.TileSize.Y)
             {
@@ -222,8 +253,7 @@ namespace ArenaPlatformer1
 
                 if (Map.IsObstacle(tileIndexX, tileIndexY))
                 {
-                    //Map.DrawTiles[tileIndexX, tileIndexY].Color = Color.Yellow;
-                    tPos = Map.DrawTiles[tileIndexX, tileIndexY].Position;
+                    tPos = Map.DrawTiles[tileIndexX, tileIndexY].Position.X;
                     return true;
                 }
 
@@ -234,15 +264,15 @@ namespace ArenaPlatformer1
             return false;
         }
 
-        public bool OnGround(Vector2 velocity, Vector2 position, out float groundY)
+        public bool OnGround(out float groundY)
         {
             Vector2 bottomLeft = new Vector2(
-                Position.X - (CollisionRectangle.Width / 2),
-                Position.Y + Velocity.Y + 1);
+                Position.X,
+                Position.Y + (CollisionRectangle.Height / 2) + Velocity.Y + 1);
 
             Vector2 bottomRight = new Vector2(
                 Position.X + (CollisionRectangle.Width / 2),
-                Position.Y + Velocity.Y + 1);
+                Position.Y + (CollisionRectangle.Height / 2) + Velocity.Y + 1);
 
             int tileIndexX, tileIndexY;
 
@@ -255,31 +285,66 @@ namespace ArenaPlatformer1
 
                 groundY = (float)tileIndexY * Map.TileSize.Y;
 
-                if (Map.IsBounce(tileIndexX, tileIndexY))
+                if (Map.IsGround(tileIndexX, tileIndexY))
                 {
-                    Velocity.Y -= 25f;
+                    return true;
+                }
+
+                if (Map.IsBounce(tileIndexX, tileIndexY) == true)
+                {
+                    Velocity.Y = -25f;
                     return false;
                 }
 
-                if (Map.IsObstacle(tileIndexX, tileIndexY))
-                    return true;
-
                 if (checkedTile.X >= bottomRight.X)
+                    break;
+            }
+
+
+            bottomLeft = new Vector2(
+                Position.X,
+                Position.Y + +(CollisionRectangle.Height / 2) + Velocity.Y + 1);
+
+            bottomRight = new Vector2(
+                Position.X - (CollisionRectangle.Width / 2),
+                Position.Y + +(CollisionRectangle.Height / 2) + Velocity.Y + 1);
+
+            for (var checkedTile = bottomLeft; ; checkedTile.X -= Map.TileSize.X)
+            {
+                checkedTile.X = Math.Min(checkedTile.X, bottomRight.X);
+
+                tileIndexX = Map.GetMapTileXAtPoint((int)checkedTile.X);
+                tileIndexY = Map.GetMapTileYAtPoint((int)checkedTile.Y);
+
+                groundY = (float)tileIndexY * Map.TileSize.Y;
+
+                if (Map.IsGround(tileIndexX, tileIndexY))
+                {
+                    return true;
+                }
+
+                if (Map.IsBounce(tileIndexX, tileIndexY) == true)
+                {
+                    Velocity.Y = -25f;
+                    return false;
+                }
+
+                if (checkedTile.X <= bottomRight.X)
                     break;
             }
 
             return false;
         }
 
-        public bool OnCeiling(Vector2 velocity, Vector2 position, out float tPos)
+        public bool OnCeiling(out float ceilingY)
         {
             Vector2 topLeft = new Vector2(
                 Position.X - (CollisionRectangle.Width / 2),
-                Position.Y - CollisionRectangle.Height + Velocity.Y - 1);
+                Position.Y - (CollisionRectangle.Height / 2) + Velocity.Y - 2);
 
             Vector2 topRight = new Vector2(
                 Position.X + (CollisionRectangle.Width / 2),
-                Position.Y - CollisionRectangle.Height + Velocity.Y - 1);
+                Position.Y - (CollisionRectangle.Height / 2) + Velocity.Y - 2);
 
             int tileIndexX, tileIndexY;
 
@@ -290,7 +355,7 @@ namespace ArenaPlatformer1
                 tileIndexX = Map.GetMapTileXAtPoint((int)checkedTile.X);
                 tileIndexY = Map.GetMapTileYAtPoint((int)checkedTile.Y);
 
-                tPos = (float)tileIndexY * Map.TileSize.Y;
+                ceilingY = (float)tileIndexY * Map.TileSize.Y;
 
                 if (Map.IsObstacle(tileIndexX, tileIndexY))
                     return true;
