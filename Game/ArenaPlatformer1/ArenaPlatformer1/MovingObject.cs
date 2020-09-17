@@ -102,12 +102,9 @@ namespace ArenaPlatformer1
         {
             PreviousPosition = Position;
 
-            //CheckPhysics();
+            CheckPhysics();
             CheckTiles(gameTime);
             
-
-            //Position += Velocity;
-
             CollisionRectangle = new Rectangle(
                 (int)(Position.X - (Size.X / 2)),
                 (int)(Position.Y - (Size.Y / 2)),
@@ -260,9 +257,6 @@ namespace ArenaPlatformer1
             bool upCol, downCol;
 
             leftCol = CheckLeft(out float lPos);
-            rightCol = CheckRight(out float rPos);
-            downCol = OnGround(out float gPos);
-            
             #region Left Collisions
             if (Velocity.X < 0)
             {
@@ -275,6 +269,7 @@ namespace ArenaPlatformer1
             }
             #endregion
 
+            rightCol = CheckRight(out float rPos);
             #region Right Collisions
             if (Velocity.X > 0)
             {
@@ -287,6 +282,7 @@ namespace ArenaPlatformer1
             }
             #endregion
 
+            downCol = OnGround(out float gPos);
             #region Down Collisions
             if (Velocity.Y > 0)
             {
@@ -313,7 +309,8 @@ namespace ArenaPlatformer1
             }
             #endregion
             
-            if (upCol == false && downCol == false)
+            if (upCol == false && 
+                downCol == false)
             {
                 Position.Y += Velocity.Y * ((float)gameTime.ElapsedGameTime.TotalSeconds * 60f);
             }

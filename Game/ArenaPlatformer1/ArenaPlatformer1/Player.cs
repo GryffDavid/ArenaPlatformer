@@ -12,7 +12,7 @@ namespace ArenaPlatformer1
     enum Facing { Left, Right };
     enum Pose { Standing, Crouching };
 
-    public class Player
+    public class Player : MovingObject
     {
         public PlayerIndex PlayerIndex;
     
@@ -78,7 +78,6 @@ namespace ArenaPlatformer1
         #endregion
 
         #region Shared Static
-        public static Map Map;
         public static List<Item> ItemList;
         public static List<Trap> TrapList;
         #endregion
@@ -119,7 +118,7 @@ namespace ArenaPlatformer1
         bool InAir = true;
         bool DoubleJumped = false;
 
-        public Vector2 Position, PrevPosition, Velocity, AimDirection, MaxSpeed;
+        public Vector2 AimDirection, MaxSpeed;
         public float Gravity;
 
         Facing CurrentFacing = Facing.Right;
@@ -141,17 +140,18 @@ namespace ArenaPlatformer1
         public Vector2 Health = new Vector2(100, 100);
         #endregion
 
-        public Rectangle DestinationRectangle, CollisionRectangle;
+        public Rectangle DestinationRectangle;
         
         public Player(PlayerIndex playerIndex)
         {
             PlayerIndex = playerIndex;
             Position = new Vector2(500, 500);
             MaxSpeed = new Vector2(5f, 6);
-            Gravity = 0.6f;            
+            Gravity = 0.6f;
+            Size = new Vector2(59, 98);
         }
 
-        public void Initialize()
+        public new void Initialize()
         {
 
         }
@@ -224,7 +224,7 @@ namespace ArenaPlatformer1
             CurrentAnimation = StandRightAnimation;
         }
 
-        public void Update(GameTime gameTime)
+        public new void Update(GameTime gameTime)
         {
             #region Control States
             CurrentGamePadState = GamePad.GetState(PlayerIndex);
@@ -236,10 +236,10 @@ namespace ArenaPlatformer1
             AimStick = Sticks.Right; 
             #endregion
 
-            Velocity.Y += Gravity * ((float)gameTime.ElapsedGameTime.TotalSeconds * 60f);
+            
 
-            bool leftCol, rightCol;
-            bool upCol, downCol;
+            //bool leftCol, rightCol;
+            //bool upCol, downCol;
 
             #region Jump
             if (CurrentGamePadState.IsButtonDown(JumpButton) &&
@@ -301,60 +301,87 @@ namespace ArenaPlatformer1
             }
             #endregion
 
+            Velocity.Y += Gravity * ((float)gameTime.ElapsedGameTime.TotalSeconds * 60f);
 
-            leftCol = CheckLeft(out float lPos);
-            #region Left Collisions
-            if (Velocity.X < 0)
-            {
-                if (leftCol == true)
-                {
-                    Velocity.X = 0;
-                    Position.X = lPos + 64 + (CollisionRectangle.Width / 2) + 1;
-                }
-            }
-            #endregion
+            base.Update(gameTime);
 
-            rightCol = CheckRight(out float rPos);
-            #region Right Collisions
-            if (Velocity.X > 0)
+            if (PushesBottomTile == true)
             {
-                if (rightCol == true)
-                {
-                    Velocity.X = 0;
-                    Position.X = rPos - (CollisionRectangle.Width / 2) - 1;
-                }
+                Velocity.Y = 0;
+                InAir = false;
+                DoubleJumped = false;
             }
-            #endregion
+            else
+            {
+                InAir = true;
+            }
 
-            downCol = OnGround(out float gPos);
-            #region Down Collisions
-            if (Velocity.Y != 0)
+            if (PushesTopTile == true)
             {
-                if (downCol == true)
-                {
-                    InAir = false;
-                    DoubleJumped = false;
-                    Velocity.Y = 0;
-                    Position.Y = gPos - (CollisionRectangle.Height / 2);
-                }
-                else
-                {
-                    InAir = true;
-                }
+                Velocity.Y = 0;
             }
-            #endregion
 
-            upCol = OnCeiling(out float cPos);
-            #region Up Collisions
-            if (Velocity.Y <= 0)
+            if (PushesLeftTile == true ||
+                PushesRightTile == true)
             {
-                if (upCol == true)
-                {
-                    Velocity.Y = 0;
-                    Position.Y = cPos + 64 + (CollisionRectangle.Height / 2) + 1;
-                }
+                Velocity.X = 0;
             }
-            #endregion
+
+            
+
+            //leftCol = CheckLeft(out float lPos);
+            //#region Left Collisions
+            //if (Velocity.X < 0)
+            //{
+            //    if (leftCol == true)
+            //    {
+            //        Velocity.X = 0;
+            //        Position.X = lPos + 64 + (CollisionRectangle.Width / 2) + 1;
+            //    }
+            //}
+            //#endregion
+
+            //rightCol = CheckRight(out float rPos);
+            //#region Right Collisions
+            //if (Velocity.X > 0)
+            //{
+            //    if (rightCol == true)
+            //    {
+            //        Velocity.X = 0;
+            //        Position.X = rPos - (CollisionRectangle.Width / 2) - 1;
+            //    }
+            //}
+            //#endregion
+
+            //downCol = OnGround(out float gPos);
+            //#region Down Collisions
+            //if (Velocity.Y != 0)
+            //{
+            //    if (downCol == true)
+            //    {
+            //        InAir = false;
+            //        DoubleJumped = false;
+            //        Velocity.Y = 0;
+            //        Position.Y = gPos - (CollisionRectangle.Height / 2);
+            //    }
+            //    else
+            //    {
+            //        InAir = true;
+            //    }
+            //}
+            //#endregion
+
+            //upCol = OnCeiling(out float cPos);
+            //#region Up Collisions
+            //if (Velocity.Y <= 0)
+            //{
+            //    if (upCol == true)
+            //    {
+            //        Velocity.Y = 0;
+            //        Position.Y = cPos + 64 + (CollisionRectangle.Height / 2) + 1;
+            //    }
+            //}
+            //#endregion
 
 
             #region Stop Moving
@@ -484,23 +511,25 @@ namespace ArenaPlatformer1
             } 
             #endregion
 
-            if (upCol== false && downCol == false)
-            {
-                Position.Y += Velocity.Y * ((float)gameTime.ElapsedGameTime.TotalSeconds * 60f);
-            }
+            //if (upCol== false && downCol == false)
+            //{
+            //    Position.Y += Velocity.Y * ((float)gameTime.ElapsedGameTime.TotalSeconds * 60f);
+            //}
 
-            if ((leftCol == false && Velocity.X < 0) ||
-                (rightCol == false && Velocity.X > 0))
-            {
-                Position.X += Velocity.X * ((float)gameTime.ElapsedGameTime.TotalSeconds * 60f);
-            }
+            //if ((leftCol == false && Velocity.X < 0) ||
+            //    (rightCol == false && Velocity.X > 0))
+            //{
+            //    Position.X += Velocity.X * ((float)gameTime.ElapsedGameTime.TotalSeconds * 60f);
+            //}
 
             if (Velocity.X <= 0.5f &&
                 Velocity.X >= -0.5f)
             {
                 Velocity.X = 0f;
             }
-       
+
+            
+
             DestinationRectangle = new Rectangle((int)(Position.X - CurrentAnimation.FrameSize.X/2), 
                                                  (int)(Position.Y - CurrentAnimation.FrameSize.Y/2), 
                                                  (int)CurrentAnimation.FrameSize.X, 
@@ -508,11 +537,13 @@ namespace ArenaPlatformer1
 
             if (CurrentPose == Pose.Standing)
             {
-                CollisionRectangle = new Rectangle((int)(Position.X - 29), (int)(Position.Y - 49), 59, 98);
+                Size = new Vector2(59, 98);
+                //CollisionRectangle = new Rectangle((int)(Position.X - 29), (int)(Position.Y - 49), 59, 98);
             }
             else
             {
-                CollisionRectangle = new Rectangle((int)(Position.X - 29), (int)(Position.Y - 37), 59, 74);
+                Size = new Vector2(59, 74);
+                //CollisionRectangle = new Rectangle((int)(Position.X - 29), (int)(Position.Y - 37), 59, 74);
             }
 
             #region Update Animations
@@ -574,8 +605,7 @@ namespace ArenaPlatformer1
                 CreatePlayerDied();
             } 
             #endregion
-
-            PrevPosition = Position;
+            
             PreviousPose = CurrentPose;
             PreviousFacing = CurrentFacing;
             PreviousGamePadState = CurrentGamePadState;
@@ -643,173 +673,173 @@ namespace ArenaPlatformer1
         }
         
 
-        public bool CheckLeft(out float tPos)
-        {
-            Vector2 bottomLeft = new Vector2(
-                Position.X - (CollisionRectangle.Width / 2) + Velocity.X - 1,
-                Position.Y + (CollisionRectangle.Height / 2) - 1);
+    //    public bool CheckLeft(out float tPos)
+    //    {
+    //        Vector2 bottomLeft = new Vector2(
+    //            Position.X - (CollisionRectangle.Width / 2) + Velocity.X - 1,
+    //            Position.Y + (CollisionRectangle.Height / 2) - 1);
 
-            Vector2 topLeft = new Vector2(
-                Position.X - (CollisionRectangle.Width / 2) + Velocity.X - 1, 
-                Position.Y - (CollisionRectangle.Height / 2) + 1);
+    //        Vector2 topLeft = new Vector2(
+    //            Position.X - (CollisionRectangle.Width / 2) + Velocity.X - 1, 
+    //            Position.Y - (CollisionRectangle.Height / 2) + 1);
 
-            int tileIndexX, tileIndexY;
-            tPos = 0;
+    //        int tileIndexX, tileIndexY;
+    //        tPos = 0;
 
-            for (var checkedTile = topLeft; ; checkedTile.Y += Map.TileSize.Y)
-            {
-                checkedTile.Y = Math.Min(checkedTile.Y, bottomLeft.Y);
+    //        for (var checkedTile = topLeft; ; checkedTile.Y += Map.TileSize.Y)
+    //        {
+    //            checkedTile.Y = Math.Min(checkedTile.Y, bottomLeft.Y);
 
-                tileIndexX = Map.GetMapTileXAtPoint((int)checkedTile.X);
-                tileIndexY = Map.GetMapTileYAtPoint((int)checkedTile.Y);
+    //            tileIndexX = Map.GetMapTileXAtPoint((int)checkedTile.X);
+    //            tileIndexY = Map.GetMapTileYAtPoint((int)checkedTile.Y);
 
-                if (Map.IsObstacle(tileIndexX, tileIndexY))
-                {
-                    tPos = Map.DrawTiles[tileIndexX, tileIndexY].Position.X;
-                    return true;
-                }
+    //            if (Map.IsObstacle(tileIndexX, tileIndexY))
+    //            {
+    //                tPos = Map.DrawTiles[tileIndexX, tileIndexY].Position.X;
+    //                return true;
+    //            }
 
-                if (checkedTile.Y >= bottomLeft.Y)
-                    break;
-            }
+    //            if (checkedTile.Y >= bottomLeft.Y)
+    //                break;
+    //        }
 
-            return false;
-        }
+    //        return false;
+    //    }
 
-        public bool CheckRight(out float tPos)
-        {
-            Vector2 bottomRight = new Vector2(
-                Position.X + (CollisionRectangle.Width / 2) + Velocity.X + 1, 
-                Position.Y + (CollisionRectangle.Height / 2) - 1);
+    //    public bool CheckRight(out float tPos)
+    //    {
+    //        Vector2 bottomRight = new Vector2(
+    //            Position.X + (CollisionRectangle.Width / 2) + Velocity.X + 1, 
+    //            Position.Y + (CollisionRectangle.Height / 2) - 1);
 
-            Vector2 topRight = new Vector2(
-                Position.X + (CollisionRectangle.Width / 2) + Velocity.X + 1, 
-                Position.Y - (CollisionRectangle.Height/2) + 1);
+    //        Vector2 topRight = new Vector2(
+    //            Position.X + (CollisionRectangle.Width / 2) + Velocity.X + 1, 
+    //            Position.Y - (CollisionRectangle.Height/2) + 1);
 
-            int tileIndexX, tileIndexY;
-            tPos = 0f;
+    //        int tileIndexX, tileIndexY;
+    //        tPos = 0f;
 
-            for (var checkedTile = topRight; ; checkedTile.Y += Map.TileSize.Y)
-            {
-                checkedTile.Y = Math.Min(checkedTile.Y, bottomRight.Y);
+    //        for (var checkedTile = topRight; ; checkedTile.Y += Map.TileSize.Y)
+    //        {
+    //            checkedTile.Y = Math.Min(checkedTile.Y, bottomRight.Y);
 
-                tileIndexX = Map.GetMapTileXAtPoint((int)checkedTile.X);
-                tileIndexY = Map.GetMapTileYAtPoint((int)checkedTile.Y);
+    //            tileIndexX = Map.GetMapTileXAtPoint((int)checkedTile.X);
+    //            tileIndexY = Map.GetMapTileYAtPoint((int)checkedTile.Y);
 
-                if (Map.IsObstacle(tileIndexX, tileIndexY))
-                {
-                    tPos = Map.DrawTiles[tileIndexX, tileIndexY].Position.X;
-                    return true;
-                }
+    //            if (Map.IsObstacle(tileIndexX, tileIndexY))
+    //            {
+    //                tPos = Map.DrawTiles[tileIndexX, tileIndexY].Position.X;
+    //                return true;
+    //            }
 
-                if (checkedTile.Y >= bottomRight.Y)
-                    break;
-            }
+    //            if (checkedTile.Y >= bottomRight.Y)
+    //                break;
+    //        }
 
-            return false;
-        }
+    //        return false;
+    //    }
 
-        public bool OnGround(out float groundY)
-        {
-            Vector2 bottomLeft = new Vector2(
-                Position.X,
-                Position.Y + (CollisionRectangle.Height / 2) + Velocity.Y + 1);
+    //    public bool OnGround(out float groundY)
+    //    {
+    //        Vector2 bottomLeft = new Vector2(
+    //            Position.X,
+    //            Position.Y + (CollisionRectangle.Height / 2) + Velocity.Y + 1);
 
-            Vector2 bottomRight = new Vector2(
-                Position.X + (CollisionRectangle.Width / 2),
-                Position.Y + (CollisionRectangle.Height/2) + Velocity.Y + 1);
+    //        Vector2 bottomRight = new Vector2(
+    //            Position.X + (CollisionRectangle.Width / 2),
+    //            Position.Y + (CollisionRectangle.Height/2) + Velocity.Y + 1);
 
-            int tileIndexX, tileIndexY;
+    //        int tileIndexX, tileIndexY;
 
-            for (var checkedTile = bottomLeft; ; checkedTile.X += Map.TileSize.X)
-            {
-                checkedTile.X = Math.Min(checkedTile.X, bottomRight.X);
+    //        for (var checkedTile = bottomLeft; ; checkedTile.X += Map.TileSize.X)
+    //        {
+    //            checkedTile.X = Math.Min(checkedTile.X, bottomRight.X);
 
-                tileIndexX = Map.GetMapTileXAtPoint((int)checkedTile.X);
-                tileIndexY = Map.GetMapTileYAtPoint((int)checkedTile.Y);
+    //            tileIndexX = Map.GetMapTileXAtPoint((int)checkedTile.X);
+    //            tileIndexY = Map.GetMapTileYAtPoint((int)checkedTile.Y);
 
-                groundY = (float)tileIndexY * Map.TileSize.Y;
+    //            groundY = (float)tileIndexY * Map.TileSize.Y;
 
-                if (Map.IsGround(tileIndexX, tileIndexY))
-                {
-                    return true;
-                }
+    //            if (Map.IsGround(tileIndexX, tileIndexY))
+    //            {
+    //                return true;
+    //            }
 
-                if (Map.IsBounce(tileIndexX, tileIndexY) == true)
-                {
-                    Velocity.Y = -25f;
-                    return false;
-                }
+    //            if (Map.IsBounce(tileIndexX, tileIndexY) == true)
+    //            {
+    //                Velocity.Y = -25f;
+    //                return false;
+    //            }
 
-                if (checkedTile.X >= bottomRight.X)
-                    break;
-            }
+    //            if (checkedTile.X >= bottomRight.X)
+    //                break;
+    //        }
 
 
-            bottomLeft = new Vector2(
-                Position.X,
-                Position.Y + +(CollisionRectangle.Height / 2) + Velocity.Y + 1);
+    //        bottomLeft = new Vector2(
+    //            Position.X,
+    //            Position.Y + +(CollisionRectangle.Height / 2) + Velocity.Y + 1);
 
-            bottomRight = new Vector2(
-                Position.X - (CollisionRectangle.Width / 2),
-                Position.Y + +(CollisionRectangle.Height / 2) + Velocity.Y + 1);
+    //        bottomRight = new Vector2(
+    //            Position.X - (CollisionRectangle.Width / 2),
+    //            Position.Y + +(CollisionRectangle.Height / 2) + Velocity.Y + 1);
             
-            for (var checkedTile = bottomLeft; ; checkedTile.X -= Map.TileSize.X)
-            {
-                checkedTile.X = Math.Min(checkedTile.X, bottomRight.X);
+    //        for (var checkedTile = bottomLeft; ; checkedTile.X -= Map.TileSize.X)
+    //        {
+    //            checkedTile.X = Math.Min(checkedTile.X, bottomRight.X);
 
-                tileIndexX = Map.GetMapTileXAtPoint((int)checkedTile.X);
-                tileIndexY = Map.GetMapTileYAtPoint((int)checkedTile.Y);
+    //            tileIndexX = Map.GetMapTileXAtPoint((int)checkedTile.X);
+    //            tileIndexY = Map.GetMapTileYAtPoint((int)checkedTile.Y);
 
-                groundY = (float)tileIndexY * Map.TileSize.Y;
+    //            groundY = (float)tileIndexY * Map.TileSize.Y;
 
-                if (Map.IsGround(tileIndexX, tileIndexY))
-                {
-                    return true;
-                }
+    //            if (Map.IsGround(tileIndexX, tileIndexY))
+    //            {
+    //                return true;
+    //            }
 
-                if (Map.IsBounce(tileIndexX, tileIndexY) == true)
-                {
-                    Velocity.Y = -25f;
-                    return false;
-                }
+    //            if (Map.IsBounce(tileIndexX, tileIndexY) == true)
+    //            {
+    //                Velocity.Y = -25f;
+    //                return false;
+    //            }
 
-                if (checkedTile.X <= bottomRight.X)
-                    break;
-            }
+    //            if (checkedTile.X <= bottomRight.X)
+    //                break;
+    //        }
 
-            return false;
-        }        
+    //        return false;
+    //    }        
 
-        public bool OnCeiling(out float ceilingY)
-        {
-            Vector2 topLeft = new Vector2(
-                Position.X - (CollisionRectangle.Width / 2), 
-                Position.Y - (CollisionRectangle.Height / 2) + Velocity.Y - 2);
+    //    public bool OnCeiling(out float ceilingY)
+    //    {
+    //        Vector2 topLeft = new Vector2(
+    //            Position.X - (CollisionRectangle.Width / 2), 
+    //            Position.Y - (CollisionRectangle.Height / 2) + Velocity.Y - 2);
 
-            Vector2 topRight = new Vector2(
-                Position.X + (CollisionRectangle.Width / 2),
-                Position.Y - (CollisionRectangle.Height / 2) + Velocity.Y - 2);
+    //        Vector2 topRight = new Vector2(
+    //            Position.X + (CollisionRectangle.Width / 2),
+    //            Position.Y - (CollisionRectangle.Height / 2) + Velocity.Y - 2);
 
-            int tileIndexX, tileIndexY;
+    //        int tileIndexX, tileIndexY;
 
-            for (var checkedTile = topLeft; ; checkedTile.X += Map.TileSize.X)
-            {
-                checkedTile.X = Math.Min(checkedTile.X, topRight.X);
+    //        for (var checkedTile = topLeft; ; checkedTile.X += Map.TileSize.X)
+    //        {
+    //            checkedTile.X = Math.Min(checkedTile.X, topRight.X);
 
-                tileIndexX = Map.GetMapTileXAtPoint((int)checkedTile.X);
-                tileIndexY = Map.GetMapTileYAtPoint((int)checkedTile.Y);
+    //            tileIndexX = Map.GetMapTileXAtPoint((int)checkedTile.X);
+    //            tileIndexY = Map.GetMapTileYAtPoint((int)checkedTile.Y);
 
-                ceilingY = (float)tileIndexY * Map.TileSize.Y;
+    //            ceilingY = (float)tileIndexY * Map.TileSize.Y;
 
-                if (Map.IsObstacle(tileIndexX, tileIndexY))
-                    return true;
+    //            if (Map.IsObstacle(tileIndexX, tileIndexY))
+    //                return true;
 
-                if (checkedTile.X >= topRight.X)
-                    break;
-            }
+    //            if (checkedTile.X >= topRight.X)
+    //                break;
+    //        }
 
-            return false;
-        }
+    //        return false;
+    //    }
     }
 }

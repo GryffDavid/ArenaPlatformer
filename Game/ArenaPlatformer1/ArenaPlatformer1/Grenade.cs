@@ -84,11 +84,6 @@ namespace ArenaPlatformer1
                 (int)Position.X,
                 (int)Position.Y,
                 Texture.Width, Texture.Height);
-
-            //CollisionRectangle = new Rectangle(
-            //    (int)(Position.X - (Texture.Width / 2)),
-            //    (int)(Position.Y - Texture.Height / 2),
-            //    Texture.Width, Texture.Height);
         }
 
         public void Draw(SpriteBatch spriteBatch)
