@@ -72,7 +72,7 @@ namespace ArenaPlatformer1
             Tiles[3, 11] = TileType.Solid;
             Tiles[4, 11] = TileType.BouncePad;
 
-            for (int x = 10; x < 20; x++)
+            for (int x = 10; x < 21; x++)
             {
                 Tiles[x, 13] = TileType.Solid;
             }
@@ -91,7 +91,12 @@ namespace ArenaPlatformer1
             {
                 Tiles[x, 12] = TileType.Solid;
             }
-            
+
+            for (int y = 5; y < 10; y++)
+            {
+                Tiles[8, y] = TileType.Solid;
+            }
+
             Tiles[6, (int)MapSize.Y - 1] = TileType.BouncePad;
             Tiles[5, (int)MapSize.Y - 1] = TileType.BouncePad;
 

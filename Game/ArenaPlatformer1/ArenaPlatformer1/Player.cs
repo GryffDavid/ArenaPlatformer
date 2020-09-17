@@ -239,7 +239,25 @@ namespace ArenaPlatformer1
             Velocity.Y += Gravity * ((float)gameTime.ElapsedGameTime.TotalSeconds * 60f);
 
             bool leftCol, rightCol;
-            bool upCol, downCol;            
+            bool upCol, downCol;
+
+            #region Jump
+            if (CurrentGamePadState.IsButtonDown(JumpButton) &&
+                PreviousGamePadState.IsButtonUp(JumpButton) &&
+                Velocity.Y >= 0 &&
+                DoubleJumped == false)
+            {
+                if (InAir == true)
+                {
+                    DoubleJumped = true;
+                    Velocity.Y -= 15f;
+                }
+                else
+                {
+                    Velocity.Y = -15f;
+                }
+            }
+            #endregion
 
             #region Move stick left
             if (MoveStick.X < 0f)
@@ -259,80 +277,6 @@ namespace ArenaPlatformer1
 
                 Velocity.X += (MoveStick.X * 3f);
             }
-            #endregion
-            
-            leftCol = CheckLeft(out float lPos);
-            rightCol = CheckRight(out float rPos);            
-            downCol = OnGround(out float gPos);
-
-            #region Left Collisions
-            if (Velocity.X < 0)
-            {
-                if (leftCol == true)
-                {
-                    Velocity.X = 0;
-                    Position.X = lPos + 64 + (CollisionRectangle.Width / 2) + 1;
-                }
-            } 
-            #endregion
-
-            #region Right Collisions
-            if (Velocity.X > 0)
-            {
-                if (rightCol == true)
-                {
-                    Velocity.X = 0;
-                    Position.X = rPos - (CollisionRectangle.Width / 2) - 1;
-                }
-            }
-            #endregion
-
-            #region Down Collisions
-            if (Velocity.Y != 0)
-            {
-                if (downCol == true)
-                {
-                    InAir = false;
-                    DoubleJumped = false;
-                    Velocity.Y = 0;
-                    Position.Y = gPos - (CollisionRectangle.Height / 2);
-                }
-                else
-                {
-                    InAir = true;
-                }
-            }
-            #endregion
-
-            #region Jump
-            if (CurrentGamePadState.IsButtonDown(JumpButton) &&
-                    PreviousGamePadState.IsButtonUp(JumpButton) &&
-                    Velocity.Y >= 0 &&
-                    DoubleJumped == false)
-            {
-                if (InAir == true)
-                {
-                    DoubleJumped = true;
-                    Velocity.Y -= 15f;
-                }
-                else
-                {
-                    Velocity.Y = -15f;
-                }
-            } 
-            #endregion
-
-            upCol = OnCeiling(out float cPos);
-
-            #region Up Collisions
-            if (Velocity.Y <= 0)
-            {
-                if (upCol == true)
-                {
-                    Velocity.Y = 0;
-                    Position.Y = cPos + 64 + (CollisionRectangle.Height / 2) + 1;
-                }
-            } 
             #endregion
 
             #region Move stick down
@@ -356,6 +300,62 @@ namespace ArenaPlatformer1
                 CurrentPose = Pose.Standing;
             }
             #endregion
+
+
+            leftCol = CheckLeft(out float lPos);
+            #region Left Collisions
+            if (Velocity.X < 0)
+            {
+                if (leftCol == true)
+                {
+                    Velocity.X = 0;
+                    Position.X = lPos + 64 + (CollisionRectangle.Width / 2) + 1;
+                }
+            }
+            #endregion
+
+            rightCol = CheckRight(out float rPos);
+            #region Right Collisions
+            if (Velocity.X > 0)
+            {
+                if (rightCol == true)
+                {
+                    Velocity.X = 0;
+                    Position.X = rPos - (CollisionRectangle.Width / 2) - 1;
+                }
+            }
+            #endregion
+
+            downCol = OnGround(out float gPos);
+            #region Down Collisions
+            if (Velocity.Y != 0)
+            {
+                if (downCol == true)
+                {
+                    InAir = false;
+                    DoubleJumped = false;
+                    Velocity.Y = 0;
+                    Position.Y = gPos - (CollisionRectangle.Height / 2);
+                }
+                else
+                {
+                    InAir = true;
+                }
+            }
+            #endregion
+
+            upCol = OnCeiling(out float cPos);
+            #region Up Collisions
+            if (Velocity.Y <= 0)
+            {
+                if (upCol == true)
+                {
+                    Velocity.Y = 0;
+                    Position.Y = cPos + 64 + (CollisionRectangle.Height / 2) + 1;
+                }
+            }
+            #endregion
+
 
             #region Stop Moving
             if (MoveStick.X == 0)

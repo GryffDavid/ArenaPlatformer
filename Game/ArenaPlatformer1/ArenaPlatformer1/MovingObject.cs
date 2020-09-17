@@ -101,17 +101,18 @@ namespace ArenaPlatformer1
         public void Update(GameTime gameTime)
         {
             PreviousPosition = Position;
-            
+
+            //CheckPhysics();
             CheckTiles(gameTime);
-            CheckPhysics();
+            
 
             //Position += Velocity;
 
-            //CollisionRectangle = new Rectangle(
-            //    (int)(Position.X - (Size.X / 2)), 
-            //    (int)(Position.Y - (Size.Y / 2)),
-            //    (int)Size.X, (int)Size.Y);       
-            
+            CollisionRectangle = new Rectangle(
+                (int)(Position.X - (Size.X / 2)),
+                (int)(Position.Y - (Size.Y / 2)),
+                (int)Size.X, (int)Size.Y);
+
             Center = new Vector2(CollisionRectangle.Center.X, CollisionRectangle.Center.Y);
         }
 
@@ -250,21 +251,26 @@ namespace ArenaPlatformer1
 
         private void CheckTiles(GameTime gameTime)
         {
+            PushesLeftTile = false;
+            PushesRightTile = false;
+            PushesBottomTile = false;
+            PushesTopTile = false;
+
             bool leftCol, rightCol;
             bool upCol, downCol;
 
             leftCol = CheckLeft(out float lPos);
             rightCol = CheckRight(out float rPos);
             downCol = OnGround(out float gPos);
-            upCol = OnCeiling(out float cPos);
-
+            
             #region Left Collisions
             if (Velocity.X < 0)
             {
                 if (leftCol == true)
                 {
-                    Velocity.X = -Velocity.X * 0.65f;
-                    Position.X = lPos + 64 + CollisionRectangle.Width / 2;
+                    //Velocity.X = -Velocity.X * 0.65f;
+                    PushesLeftTile = true;
+                    Position.X = lPos + 64 + (CollisionRectangle.Width / 2);
                 }
             }
             #endregion
@@ -274,8 +280,9 @@ namespace ArenaPlatformer1
             {
                 if (rightCol == true)
                 {
-                    Velocity.X = -Velocity.X * 0.65f;
-                    Position.X = rPos - CollisionRectangle.Width / 2 - 1;
+                    //Velocity.X = -Velocity.X * 0.65f;
+                    PushesRightTile = true;
+                    Position.X = rPos - (CollisionRectangle.Width / 2) - 1;
                 }
             }
             #endregion
@@ -285,24 +292,27 @@ namespace ArenaPlatformer1
             {
                 if (downCol == true)
                 {
-                    Velocity.Y = -Velocity.Y * 0.65f;
-                    Velocity.X *= 0.65f;
+                    //Velocity.Y = -Velocity.Y * 0.65f;
+                    //Velocity.X *= 0.65f;
+                    PushesBottomTile = true;
                     Position.Y = gPos - (CollisionRectangle.Height / 2);
                 }
             }
             #endregion
 
+            upCol = OnCeiling(out float cPos);
             #region Up Collisions
             if (Velocity.Y < 0)
             {
                 if (upCol == true)
                 {
-                    Position.Y = cPos + 64 + (CollisionRectangle.Height);
-                    Velocity.Y = -Velocity.Y * 0.65f;
+                    PushesTopTile = true;
+                    Position.Y = cPos + 64 + (CollisionRectangle.Height / 2);
+                    //Velocity.Y = -Velocity.Y * 0.65f;
                 }
             }
             #endregion
-
+            
             if (upCol == false && downCol == false)
             {
                 Position.Y += Velocity.Y * ((float)gameTime.ElapsedGameTime.TotalSeconds * 60f);
@@ -344,6 +354,7 @@ namespace ArenaPlatformer1
 
             return false;
         }
+
 
         public bool CheckLeft(out float tPos)
         {
@@ -505,7 +516,9 @@ namespace ArenaPlatformer1
                 ceilingY = (float)tileIndexY * Map.TileSize.Y;
 
                 if (Map.IsObstacle(tileIndexX, tileIndexY))
+                {
                     return true;
+                }
 
                 if (checkedTile.X >= topRight.X)
                     break;
