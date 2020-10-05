@@ -69,6 +69,12 @@ namespace ArenaPlatformer1
         HasBlue,
         NoFlag
     };
+
+    public enum TeamColor
+    {
+        BlueTeam,
+        RedTeam
+    };
     #endregion
 
     #region Events
@@ -246,6 +252,9 @@ namespace ArenaPlatformer1
         Camera Camera = new Camera();
 
         Rectangle ScreenRectangle = new Rectangle(0, 0, 1920, 1080);
+
+        int BlueTeamScore = 0;
+        int RedTeamScore = 0;
 
         public void OnPlayerShoot(object source, PlayerShootEventArgs e)
         {
@@ -578,20 +587,28 @@ namespace ArenaPlatformer1
 
             #region Guns
             RocketLauncher.Texture = GameContentManager.Load<Texture2D>("Gun");
+            FlameThrower.Texture = GameContentManager.Load<Texture2D>("Gun");
+
             RocketLauncher launcher = new RocketLauncher()
             {
                 Position = new Vector2(200, 200)
             };
             launcher.LoadContent(Content);
-            ItemList.Add(launcher);
+            ItemList.Add(launcher);            
 
-            FlameThrower.Texture = GameContentManager.Load<Texture2D>("Gun");
             FlameThrower flameThrower = new FlameThrower()
             {
                 Position = new Vector2(800, 500)
             };
             flameThrower.LoadContent(Content);
             ItemList.Add(flameThrower);
+            
+            FlameThrower flameThrower2 = new FlameThrower()
+            {
+                Position = new Vector2(300, 500)
+            };
+            flameThrower2.LoadContent(Content);
+            ItemList.Add(flameThrower2);
             #endregion
 
             #region Traps
@@ -601,12 +618,35 @@ namespace ArenaPlatformer1
                 Position = new Vector2(500, 500)
             };
             mine.LoadContent(GameContentManager);
-            ItemList.Add(mine); 
+            ItemList.Add(mine);
             #endregion
 
-            Grenade.Texture = GameContentManager.Load<Texture2D>("GrenadeTexture");            
-            Grenade.Map = CurrentMap;
-                        
+            
+
+            Player.BlueFlagTexture = GameContentManager.Load<Texture2D>("BlueFlag");
+            Player.RedFlagTexture = GameContentManager.Load<Texture2D>("RedFlag");
+
+            #region Red Flag
+            RedFlag.Texture = GameContentManager.Load<Texture2D>("RedFlag");
+            RedFlag redFlag = new RedFlag()
+            {
+                Position = new Vector2(400, 400)
+            };
+            redFlag.Initialize();
+            ItemList.Add(redFlag); 
+            #endregion
+
+            #region Blue Flag
+            BlueFlag.Texture = GameContentManager.Load<Texture2D>("BlueFlag");
+            BlueFlag blueFlag = new BlueFlag()
+            {
+                Position = new Vector2(900, 400)
+            };
+            blueFlag.Initialize();
+            ItemList.Add(blueFlag); 
+            #endregion
+
+            Grenade.Texture = GameContentManager.Load<Texture2D>("GrenadeTexture");                        
             Emitter.Map = CurrentMap;
             Trap.Map = CurrentMap;
 
@@ -690,13 +730,14 @@ namespace ArenaPlatformer1
                 PlayerJoinButtons[i] = new PlayerJoin(ButtonTexture, new Vector2(106 + (451 * i), 278), new Vector2(356, 524)); 
             }
 
-            Player.Map = CurrentMap;            
-            Projectile.Map = CurrentMap;
+            MovingObject.Map = CurrentMap;
 
             Rocket.Texture = Content.Load<Texture2D>("Projectiles/RocketTexture");
             Bullet.Texture = Content.Load<Texture2D>("Projectiles/BulletTexture");
-
+            
             Block = Content.Load<Texture2D>("Blank");
+
+            HealthBar.Texture = Block;
 
             ExplosionParticle2 = Content.Load<Texture2D>("Particles/ExplosionParticle2");
             BOOMParticle = Content.Load<Texture2D>("Particles/BOOM");
@@ -780,7 +821,7 @@ namespace ArenaPlatformer1
                     }
                     break;
                 #endregion
-
+                
                 #region ModeSelect
                 case GameState.ModeSelect:
                     {
@@ -801,7 +842,7 @@ namespace ArenaPlatformer1
                     }
                     break;
                 #endregion
-
+                
                 #region LevelCreator
                 case GameState.LevelCreator:
                     {
@@ -816,7 +857,7 @@ namespace ArenaPlatformer1
                     }
                     break;
                 #endregion
-
+                
                 #region Playing
                 case GameState.Playing:
                     {
@@ -1253,8 +1294,8 @@ namespace ArenaPlatformer1
             GraphicsDevice.Clear(Color.Transparent);
             spriteBatch.Begin();
 
-            spriteBatch.DrawString(Font1, CurrentMap.GetTile((int)Mouse.GetState().X/64, (int)Mouse.GetState().Y/64).ToString(), Vector2.Zero, Color.Yellow);
-            spriteBatch.DrawString(Font1, CurrentMap.GetTilePosition((int)Mouse.GetState().X / 64, (int)Mouse.GetState().Y / 64).ToString(), new Vector2(0, 32), Color.Yellow);
+            //spriteBatch.DrawString(Font1, CurrentMap.GetTile((int)Mouse.GetState().X/64, (int)Mouse.GetState().Y/64).ToString(), Vector2.Zero, Color.Yellow);
+            //spriteBatch.DrawString(Font1, CurrentMap.GetTilePosition((int)Mouse.GetState().X / 64, (int)Mouse.GetState().Y / 64).ToString(), new Vector2(0, 32), Color.Yellow);
 
             if (DrawDiagnostics == true)
             {
@@ -1382,18 +1423,19 @@ namespace ArenaPlatformer1
             {
                 if (Players[i] != null)
                 {
-                    int y = 16;
-                    spriteBatch.DrawString(Font1, "Health: " + Players[i].Health.X.ToString() + "/" + Players[i].Health.Y.ToString(), new Vector2(256 + (i * 256), y), Color.Red);
-                    y += 16;
-                    spriteBatch.DrawString(Font1, "Trap: " + Players[i].CurrentTrap.ToString(), new Vector2(256 + (i * 256), y), Color.Red);
-                    y += 16;
-                    spriteBatch.DrawString(Font1, "Trap Ammo: " + Players[i].TrapAmmo.ToString(), new Vector2(256 + (i * 256), y), Color.Red);
-                    y += 16;
-                    spriteBatch.DrawString(Font1, "Gun: " + Players[i].CurrentGun.ToString(), new Vector2(256 + (i * 256), y), Color.Red);
-                    y += 16;
-                    spriteBatch.DrawString(Font1, "Gun Ammo: " + Players[i].GunAmmo.ToString(), new Vector2(256 + (i * 256), y), Color.Red);
-                    y += 16;
-                    spriteBatch.DrawString(Font1, "Deahts: " + Players[i].Deaths.ToString(), new Vector2(256 + (i * 256), y), Color.Red);
+                    Players[i].HealthBar.Draw(spriteBatch);
+                    //int y = 16;
+                    //spriteBatch.DrawString(Font1, "Health: " + Players[i].Health.X.ToString() + "/" + Players[i].Health.Y.ToString(), new Vector2(256 + (i * 256), y), Color.Red);
+                    //y += 16;
+                    //spriteBatch.DrawString(Font1, "Trap: " + Players[i].CurrentTrap.ToString(), new Vector2(256 + (i * 256), y), Color.Red);
+                    //y += 16;
+                    //spriteBatch.DrawString(Font1, "Trap Ammo: " + Players[i].TrapAmmo.ToString(), new Vector2(256 + (i * 256), y), Color.Red);
+                    //y += 16;
+                    //spriteBatch.DrawString(Font1, "Gun: " + Players[i].CurrentGun.ToString(), new Vector2(256 + (i * 256), y), Color.Red);
+                    //y += 16;
+                    //spriteBatch.DrawString(Font1, "Gun Ammo: " + Players[i].GunAmmo.ToString(), new Vector2(256 + (i * 256), y), Color.Red);
+                    //y += 16;
+                    //spriteBatch.DrawString(Font1, "Deahts: " + Players[i].Deaths.ToString(), new Vector2(256 + (i * 256), y), Color.Red);
                 }
             }
             #endregion

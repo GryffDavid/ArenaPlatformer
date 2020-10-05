@@ -104,6 +104,8 @@ Content\Player2\Standing\StandRightDown.xnb
 Content\Player2\Standing\StandRightUp.xnb
 Content\Player2\WallSlideLeft.xnb
 Content\Player2\WallSlideRight.xnb
+Content\BlueFlag.xnb
+Content\RedFlag.xnb
 Content\Font1.xnb
 Content\Shaders\Blur.xnb
 Content\Shaders\Crepuscular.xnb

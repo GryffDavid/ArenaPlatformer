@@ -17,6 +17,8 @@ namespace ArenaPlatformer1
         public PlayerIndex PlayerIndex;
         public static Random Random = new Random();
 
+        public HealthBar HealthBar;
+
         #region Events
         public event PlayerShootHappenedEventHandler PlayerShootHappened;
         public void CreatePlayerShoot(Vector2 velocity)
@@ -104,6 +106,8 @@ namespace ArenaPlatformer1
                         JumpLeftTexture, JumpLeftUpTexture, JumpLeftDownTexture,
                         CrouchRightTexture, CrouchLeftTexture,
                         HeadTexture;
+
+        public static Texture2D RedFlagTexture, BlueFlagTexture;
         #endregion
 
         #region Controls
@@ -156,6 +160,11 @@ namespace ArenaPlatformer1
         /// </summary>
         public int Credits;
 
+        public FlagState CurrentFlagState;
+
+        //On team red or blue?
+        public TeamColor TeamColor;
+
         #region Debuff
         private DebuffData _CurrentDebuff;
         public DebuffData CurrentDebuff
@@ -176,6 +185,8 @@ namespace ArenaPlatformer1
             }
         }
         #endregion
+          
+        public Vector2 RespawnTime;
 
         public Vector2 BarrelEnd;
 
@@ -184,10 +195,18 @@ namespace ArenaPlatformer1
         public Player(PlayerIndex playerIndex)
         {
             PlayerIndex = playerIndex;
-            Position = new Vector2(500, 500);
+            Position = new Vector2(500 + (150 * (int)PlayerIndex), 500);
             MaxSpeed = new Vector2(5f, 6);
             Gravity = 0.6f;
             Size = new Vector2(59, 98);
+            CurrentFlagState = FlagState.NoFlag;
+
+            HealthBar = new HealthBar()
+            {
+                Position = new Vector2(100 + (300 * (int)PlayerIndex), 100),
+                Size = new Vector2(250, 25),
+                Player = this,
+            };
         }
 
         public new void Initialize()
@@ -276,7 +295,9 @@ namespace ArenaPlatformer1
             PreviousKeyboardState = CurrentKeyboardState;
             PreviousMouseState = CurrentMouseState;
             WasShooting = IsShooting;
-            
+
+            HealthBar.Update(gameTime);
+
             #region Control States
             CurrentGamePadState = GamePad.GetState(PlayerIndex);
             CurrentKeyboardState = Keyboard.GetState();
@@ -566,6 +587,8 @@ namespace ArenaPlatformer1
             if (ItemList != null)
                 ItemList.ForEach(Item =>
                 {
+                    bool removeItem = true;
+
                     if (Item.CollisionRectangle.Intersects(CollisionRectangle))
                     {
                         #region Item is a TrapPickup
@@ -599,29 +622,59 @@ namespace ArenaPlatformer1
                             }
                             #endregion
 
-                            switch ((Item as Gun).GunType)
+                            if ((Item as Gun).GunType == CurrentGun)
                             {
-                                #region Rocket Launcher
-                                case GunType.RocketLauncher:
-                                    {
-                                        CurrentGun = GunType.RocketLauncher;
-                                    }
-                                    break;
-                                #endregion
-
-                                #region Flamethrower
-                                case GunType.Flamethrower:
-                                    {
-                                        CurrentGun = GunType.Flamethrower;
-                                        //CurrentDebuff = new DebuffData(DebuffType.ScrambleButtons, new Vector2(0, 15000));
-                                    }
-                                    break;
-                                    #endregion
+                                removeItem = false;
                             }
-                        } 
+                            else
+                            {
+                                switch ((Item as Gun).GunType)
+                                {
+                                    #region Rocket Launcher
+                                    case GunType.RocketLauncher:
+                                        {
+                                            CurrentGun = GunType.RocketLauncher;
+                                        }
+                                        break;
+                                    #endregion
+
+                                    #region Flamethrower
+                                    case GunType.Flamethrower:
+                                        {
+                                            CurrentGun = GunType.Flamethrower;
+                                            //CurrentDebuff = new DebuffData(DebuffType.ScrambleButtons, new Vector2(0, 15000));
+                                        }
+                                        break;
+                                        #endregion
+                                }
+                            }
+                        }
                         #endregion
 
-                        ItemList.Remove(Item);
+                        #region Item is a Flag
+                        if (Item as RedFlag != null)
+                        {
+                            if (CurrentFlagState == FlagState.NoFlag)
+                                CurrentFlagState = FlagState.HasRed;
+                            else
+                            {
+                                removeItem = false;
+                            }
+                        }
+
+                        if (Item as BlueFlag != null)
+                        {
+                            if (CurrentFlagState == FlagState.NoFlag)
+                                CurrentFlagState = FlagState.HasBlue;
+                            else
+                            {
+                                removeItem = false;
+                            }
+                        }
+                        #endregion
+
+                        if (removeItem == true)
+                            ItemList.Remove(Item);
                     }
                 }); 
             #endregion
@@ -641,6 +694,32 @@ namespace ArenaPlatformer1
             #region Player Died
             if (Health.X <= 0)
             {
+                switch (CurrentFlagState)
+                {
+                    case FlagState.NoFlag:
+                        break;
+
+                    case FlagState.HasRed:
+                        {
+                            RedFlag replacementFlag = new RedFlag() { Position = Position };
+                            replacementFlag.Initialize();
+
+                            ItemList.Add(replacementFlag);
+                            CurrentFlagState = FlagState.NoFlag;
+                        }
+                        break;
+
+                    case FlagState.HasBlue:
+                        {
+                            BlueFlag replacementFlag = new BlueFlag() { Position = Position };
+                            replacementFlag.Initialize();
+
+                            ItemList.Add(replacementFlag);
+                            CurrentFlagState = FlagState.NoFlag;
+                        }
+                        break;
+                }
+
                 Deaths++;
                 flameEmitter = null;
                 IsShooting = false;
@@ -698,6 +777,26 @@ namespace ArenaPlatformer1
         {
             if (CurrentAnimation != null)
                 CurrentAnimation.Draw(spriteBatch, Position);
+
+            #region Draw the flag
+            switch (CurrentFlagState)
+            {
+                case FlagState.NoFlag:
+                    break;
+
+                case FlagState.HasRed:
+                    {
+                        spriteBatch.Draw(RedFlagTexture, Position + new Vector2(0, -45), Color.White);
+                    }
+                    break;
+
+                case FlagState.HasBlue:
+                    {
+                        spriteBatch.Draw(BlueFlagTexture, Position + new Vector2(0, -45), Color.White);
+                    }
+                    break;
+            } 
+            #endregion
         }
         
         public void DrawInfo(SpriteBatch spriteBatch, GraphicsDevice graphics, BasicEffect basicEffect)
