@@ -858,29 +858,26 @@ namespace ArenaPlatformer1
                         {
                             projectile.Update(gameTime);
                             projectile.UpdateEmitters(gameTime);
-                            
-                            if (projectile.CheckCollisions() == true)
-                            {
 
+                            if (projectile.Active == false)
+                            {
                                 for (int i = 0; i < 10; i++)
                                 {
                                     Vector2 rang = new Vector2(
                                         MathHelper.ToDegrees(-(float)Math.Atan2(projectile.Velocity.Y, projectile.Velocity.X)) - 180 - 60,
                                         MathHelper.ToDegrees(-(float)Math.Atan2(projectile.Velocity.Y, projectile.Velocity.X)) - 180 + 60);
 
-                                    Emitter emitter = new Emitter(ParticleTexture, projectile.Position - (projectile.Velocity * 0.75f),
+                                    Emitter emitter = new Emitter(ParticleTexture, projectile.Position,
                                         new Vector2(0, 360), new Vector2(1, 3),
                                         new Vector2(500, 1500), 1f, true, Vector2.Zero, new Vector2(-3, 3), new Vector2(0.5f, 1f),
                                         new Color(Color.HotPink.R, Color.HotPink.G, Color.HotPink.B, 80),
-                                        new Color(Color.HotPink.R, Color.HotPink.G, Color.HotPink.B, 20), 
+                                        new Color(Color.HotPink.R, Color.HotPink.G, Color.HotPink.B, 20),
                                         0f, (float)DoubleRange(0.5d, 1.5d), 1, 3, true, new Vector2(1080 - 64, 1080 - 64),
                                         false, 0, true, true, new Vector2(3, 5), rang, 0.2f,
                                         true, null, null, null, null, true, null, null, true, false);
 
                                     EmitterList.Add(emitter);
                                 }
-
-                                projectile.Active = false;
                             }
                         }
 

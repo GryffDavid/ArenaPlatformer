@@ -27,10 +27,16 @@ namespace ArenaPlatformer1
         public override void Update(GameTime gameTime)
         {
             Velocity.Y += Gravity;
-            Position += Velocity;
+            //Position += Velocity;
+            base.Update(gameTime);
+
+            if (PushesRightTile == true)
+            {
+                Active = false;
+            }
 
             DestinationRectangle = new Rectangle((int)Position.X, (int)Position.Y, Texture.Width, Texture.Height);
-            CollisionRectangle = new Rectangle((int)(Position.X - Texture.Width / 2), (int)(Position.Y - Texture.Height / 2), Texture.Width, Texture.Height);
+            //CollisionRectangle = new Rectangle((int)(Position.X - Texture.Width / 2), (int)(Position.Y - Texture.Height / 2), Texture.Width, Texture.Height);
         }
 
         public override void Draw(SpriteBatch spriteBatch)

@@ -17,7 +17,7 @@ namespace ArenaPlatformer1
         public Rocket()
         {
             Gravity = 0.05f;
-            //Velocity = new Vector2(17, 0);
+            Size = new Vector2(8, 8);
             Active = true;
         }
 
@@ -31,18 +31,19 @@ namespace ArenaPlatformer1
             myVel = Vector2.Lerp(myVel, Velocity, 0.1f);
 
             Velocity.Y += Gravity;
-            Position += myVel;
 
-            CollisionRectangle = new Rectangle((int)(Position.X - Texture.Width / 2), (int)(Position.Y - Texture.Height / 2), Texture.Width, Texture.Height);
+            base.Update(gameTime);
+
+            if (PushesRightTile == true || PushesLeftTile == true || 
+                PushesBottomTile == true || PushesTopTile == true)
+            {
+                Active = false;
+            }
         }
 
         public override void Draw(SpriteBatch spriteBatch)
         {
-            Color color;
-
-            //color = new Color(Color.Violet.R, Color.Violet.G, Color.Violet.B, 120);
-            color = new Color(Color.Lime.R, Color.Lime.G, Color.Lime.B, 120);
-
+            Color color = new Color(Color.Lime.R, Color.Lime.G, Color.Lime.B, 120);
 
             spriteBatch.Draw(Texture, new Rectangle((int)Position.X, (int)Position.Y, Texture.Width / 2, Texture.Height / 2),
                 color);

@@ -98,7 +98,7 @@ namespace ArenaPlatformer1
             HalfSize = Size / 2;
         }
 
-        public void Update(GameTime gameTime)
+        public virtual void Update(GameTime gameTime)
         {
             PreviousPosition = Position;
 

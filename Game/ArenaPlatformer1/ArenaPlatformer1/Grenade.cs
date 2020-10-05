@@ -44,7 +44,7 @@ namespace ArenaPlatformer1
             
         }
 
-        public new void Update(GameTime gameTime)
+        public override void Update(GameTime gameTime)
         {
             Time.X += (float)gameTime.ElapsedGameTime.TotalMilliseconds;
             if (Time.X >= Time.Y)
