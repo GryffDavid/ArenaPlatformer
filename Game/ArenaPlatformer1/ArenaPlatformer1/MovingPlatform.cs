@@ -13,7 +13,7 @@ namespace ArenaPlatformer1
         public MovingPlatform()
         {
             IsKinematic = true;
-            Size = new Vector2(80, 32);
+            Size = new Vector2(400, 63);
         }
 
         public override void Update(GameTime gameTime)
@@ -33,7 +33,7 @@ namespace ArenaPlatformer1
 
         public void Draw(SpriteBatch spriteBatch)
         {
-            spriteBatch.Draw(Texture, new Rectangle((int)(Position.X - 40), (int)(Position.Y - 16), (int)Size.X, (int)Size.Y), Color.White);
+            spriteBatch.Draw(Texture, new Rectangle((int)(Position.X - (Size.X/2)), (int)(Position.Y - (Size.Y/2)), (int)Size.X, (int)Size.Y), Color.White);
         }
     }
 }

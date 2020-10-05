@@ -196,9 +196,9 @@ namespace ArenaPlatformer1
                         speedRatio.Y = absSpeed1.Y / speedSum.Y;
                     }
                     else if (speedSum.Y == 0)
-                    {
-                        speedRatio.Y = 0.5f;
+                    {                        
                         speedRatio.X = absSpeed1.X / speedSum.X;
+                        speedRatio.Y = 0.5f;
                     }
                     else
                     {
@@ -208,13 +208,13 @@ namespace ArenaPlatformer1
                 }
 
                 Vector2 Offset = Overlap * speedRatio;
-                
+
                 bool overlappedLastFrameX = Math.Abs(data.PreviousPosition1.X - data.PreviousPosition2.X) < (other.HalfSize.X + HalfSize.X);
                 bool overlappedLastFrameY = Math.Abs(data.PreviousPosition1.Y - data.PreviousPosition2.Y) < (other.HalfSize.Y + HalfSize.Y);
 
                 offsetSum = Vector2.Zero;
 
-                if ((!overlappedLastFrameX && overlappedLastFrameY) || 
+                if ((!overlappedLastFrameX && overlappedLastFrameY) ||
                     (!overlappedLastFrameX && !overlappedLastFrameY && Math.Abs(Overlap.X) <= Math.Abs(Overlap.Y)))
                 {
                     Position.X += Offset.X;

@@ -15,7 +15,8 @@ namespace ArenaPlatformer1
     public class Player : MovingObject
     {
         public PlayerIndex PlayerIndex;
-    
+        public static Random Random = new Random();
+
         #region Events
         public event PlayerShootHappenedEventHandler PlayerShootHappened;
         public void CreatePlayerShoot(Vector2 velocity)
@@ -108,6 +109,7 @@ namespace ArenaPlatformer1
         #region Controls
         GamePadThumbSticks Sticks;
         Buttons JumpButton, ShootButton, GrenadeButton, TrapButton;
+        Buttons CurrentJumpButton, CurrentShootButton, CurrentGrenadeButton, CurrentTrapButton;
         public GamePadState CurrentGamePadState, PreviousGamePadState;
         public KeyboardState CurrentKeyboardState, PreviousKeyboardState;
         public MouseState CurrentMouseState, PreviousMouseState;
@@ -140,6 +142,38 @@ namespace ArenaPlatformer1
         public Vector2 Health = new Vector2(100, 100);
         #endregion
 
+        /// <summary>
+        /// For determining whether the player is currently holding down the 
+        /// shoot button to fire a constant beam/fire etc.
+        /// </summary>
+        public bool IsShooting = false;
+        public bool WasShooting = false;
+
+        public Emitter flameEmitter;
+
+        #region Debuff
+        private DebuffData _CurrentDebuff;
+        public DebuffData CurrentDebuff
+        {
+            get { return _CurrentDebuff; }
+            set
+            {
+                _CurrentDebuff = value;
+
+                switch (CurrentDebuff.DebuffType)
+                {
+                    case DebuffType.ScrambleButtons:
+                        {
+                            ScrambleButtons();
+                        }
+                        break;
+                }
+            }
+        }
+        #endregion
+
+        public Vector2 BarrelEnd;
+
         public Rectangle DestinationRectangle;
         
         public Player(PlayerIndex playerIndex)
@@ -149,7 +183,6 @@ namespace ArenaPlatformer1
             MaxSpeed = new Vector2(5f, 6);
             Gravity = 0.6f;
             Size = new Vector2(59, 98);
-            IsKinematic = false;
         }
 
         public new void Initialize()
@@ -163,6 +196,11 @@ namespace ArenaPlatformer1
             ShootButton = Buttons.X;
             GrenadeButton = Buttons.B;
             TrapButton = Buttons.Y;
+
+            CurrentJumpButton = JumpButton;
+            CurrentShootButton = ShootButton;
+            CurrentGrenadeButton = GrenadeButton;
+            CurrentTrapButton = TrapButton;
 
             #region Load Textures
             RunRightTexture = content.Load<Texture2D>("Player" + ((int)PlayerIndex + 1) + "/Running/RunRight");
@@ -227,6 +265,16 @@ namespace ArenaPlatformer1
 
         public override void Update(GameTime gameTime)
         {
+            PreviousPose = CurrentPose;
+            PreviousFacing = CurrentFacing;
+            PreviousGamePadState = CurrentGamePadState;
+            PreviousKeyboardState = CurrentKeyboardState;
+            PreviousMouseState = CurrentMouseState;
+            WasShooting = IsShooting;
+
+       
+
+
             #region Control States
             CurrentGamePadState = GamePad.GetState(PlayerIndex);
             CurrentKeyboardState = Keyboard.GetState();
@@ -238,8 +286,8 @@ namespace ArenaPlatformer1
             #endregion
             
             #region Jump
-            if (CurrentGamePadState.IsButtonDown(JumpButton) &&
-                PreviousGamePadState.IsButtonUp(JumpButton) &&
+            if (CurrentGamePadState.IsButtonDown(CurrentJumpButton) &&
+                PreviousGamePadState.IsButtonUp(CurrentJumpButton) &&
                 Velocity.Y >= 0 &&
                 DoubleJumped == false)
             {
@@ -372,8 +420,9 @@ namespace ArenaPlatformer1
             #endregion
 
             #region Shoot
-            if (CurrentGamePadState.IsButtonDown(ShootButton) &&
-                PreviousGamePadState.IsButtonUp(ShootButton))
+            if (CurrentGamePadState.IsButtonDown(CurrentShootButton) &&
+                PreviousGamePadState.IsButtonUp(CurrentShootButton) &&
+                CurrentGun != GunType.Flamethrower)
             {
                 if (GunAmmo > 0)
                 {
@@ -391,11 +440,48 @@ namespace ArenaPlatformer1
                     GunAmmo--;
                 }
             }
+
+            if (CurrentGamePadState.IsButtonDown(CurrentShootButton) &&
+                PreviousGamePadState.IsButtonDown(CurrentShootButton))
+            {
+                switch (CurrentGun)
+                {
+                    case GunType.Flamethrower:
+                        {
+                            IsShooting = true;
+
+                            if (flameEmitter != null)
+                            {
+                                Vector2 rang = new Vector2(
+                                            MathHelper.ToDegrees(-(float)Math.Atan2(AimDirection.Y, AimDirection.X)) - 5,
+                                            MathHelper.ToDegrees(-(float)Math.Atan2(AimDirection.Y, AimDirection.X)) + 5);
+
+                                rang.X += 10 * (float)Math.Sin(gameTime.TotalGameTime.TotalSeconds*5);
+                                rang.Y += 10 * (float)Math.Sin(gameTime.TotalGameTime.TotalSeconds*5);
+
+                                flameEmitter.AngleRange = rang;
+                            }
+
+                        }
+                        break;
+                }
+            }
+
+            if (CurrentGamePadState.IsButtonUp(CurrentShootButton) &&
+                PreviousGamePadState.IsButtonUp(CurrentShootButton))
+            {
+                IsShooting = false;
+            }
+
+            if (IsShooting == false && WasShooting == true && flameEmitter != null)
+            {
+                flameEmitter.AddMore = false;
+            }
             #endregion
 
             #region Grenade
-            if (CurrentGamePadState.IsButtonDown(GrenadeButton) &&
-                        PreviousGamePadState.IsButtonUp(GrenadeButton))
+            if (CurrentGamePadState.IsButtonDown(CurrentGrenadeButton) &&
+                PreviousGamePadState.IsButtonUp(CurrentGrenadeButton))
             {
                 //Create grenades!
                 CreatePlayerGrenade();
@@ -403,8 +489,8 @@ namespace ArenaPlatformer1
             #endregion
 
             #region Trap
-            if (CurrentGamePadState.IsButtonDown(TrapButton) &&
-                PreviousGamePadState.IsButtonUp(TrapButton))
+            if (CurrentGamePadState.IsButtonDown(CurrentTrapButton) &&
+                PreviousGamePadState.IsButtonUp(CurrentTrapButton))
             {
                 if (TrapAmmo > 0)
                 {
@@ -499,6 +585,22 @@ namespace ArenaPlatformer1
                             {
                                 GunAmmo += 15;
                             }
+
+                            switch ((Item as Gun).GunType)
+                            {
+                                case GunType.RocketLauncher:
+                                    {
+                                        CurrentGun = GunType.RocketLauncher;
+                                    }
+                                    break;
+
+                                case GunType.Flamethrower:
+                                    {
+                                        CurrentGun = GunType.Flamethrower;
+                                        //CurrentDebuff = new DebuffData(DebuffType.ScrambleButtons, new Vector2(0, 15000));
+                                    }
+                                    break;
+                            }
                         }
 
                         ItemList.Remove(Item);
@@ -522,20 +624,56 @@ namespace ArenaPlatformer1
             if (Health.X <= 0)
             {
                 Deaths++;
+                flameEmitter = null;
+                IsShooting = false;
+                WasShooting = false;
                 CreatePlayerDied();
+                UnscrambleButtons();
             }
             #endregion
+
+            #region Debuffs
+            if (_CurrentDebuff.Active == true)
+            {
+                _CurrentDebuff.Update(gameTime);
+
+                //The debuff has expired based on the previous Update                
+                if (_CurrentDebuff.Active == false)
+                {
+                    switch (_CurrentDebuff.DebuffType)
+                    {
+                        case DebuffType.ScrambleButtons:
+                            {
+                                UnscrambleButtons();
+                            }
+                            break;
+                    }
+                }
+            }
+            #endregion
+
+            BarrelEnd = Position + new Vector2(AimDirection.X * 28, -12);
+
+            if (flameEmitter != null)
+            {
+                flameEmitter.Update(gameTime);
+                flameEmitter.Position = BarrelEnd;
+                flameEmitter.SpeedRange = new Vector2(
+                    6 + Math.Abs(Velocity.X * 2),
+                    8 + Math.Abs(Velocity.X * 2));
+
+                if (Math.Abs(Velocity.X) > 0)
+                {
+                    flameEmitter.Friction.X = 0;
+                }
+
+                flameEmitter.Friction.Y = 0.05f;
+            }
 
             DestinationRectangle = new Rectangle((int)(Position.X - CurrentAnimation.FrameSize.X / 2),
                                                  (int)(Position.Y - CurrentAnimation.FrameSize.Y / 2),
                                                  (int)CurrentAnimation.FrameSize.X,
                                                  (int)CurrentAnimation.FrameSize.Y);
-
-            PreviousPose = CurrentPose;
-            PreviousFacing = CurrentFacing;
-            PreviousGamePadState = CurrentGamePadState;
-            PreviousKeyboardState = CurrentKeyboardState;
-            PreviousMouseState = CurrentMouseState;
         }
 
         public void Draw(SpriteBatch spriteBatch)
@@ -595,6 +733,35 @@ namespace ArenaPlatformer1
                 graphics.DrawUserIndexedPrimitives(PrimitiveType.LineStrip, Vertices, 0, 4, Indices, 0, 6, VertexPositionColorTexture.VertexDeclaration);
             } 
             #endregion
+        }
+
+
+        public void ScrambleButtons()
+        {
+            Buttons[] buttons = new Buttons[] { Buttons.A, Buttons.X, Buttons.B, Buttons.Y};
+
+            int n = buttons.Length;
+
+            for (int i = 0; i < n; i++)
+            {
+                int r = i + Random.Next(n - i);
+                Buttons but = buttons[r];
+                buttons[r] = buttons[i];
+                buttons[i] = but;
+            }
+            
+            CurrentJumpButton = buttons[0];
+            CurrentShootButton = buttons[1];
+            CurrentGrenadeButton = buttons[2];
+            CurrentTrapButton = buttons[3];
+        }
+
+        public void UnscrambleButtons()
+        {
+            CurrentJumpButton = JumpButton;
+            CurrentShootButton = ShootButton;
+            CurrentGrenadeButton = GrenadeButton;
+            CurrentTrapButton = TrapButton;
         }
     }
 }

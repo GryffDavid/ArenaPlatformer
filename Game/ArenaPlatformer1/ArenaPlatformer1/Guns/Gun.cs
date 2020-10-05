@@ -11,8 +11,8 @@ namespace ArenaPlatformer1
     /// <summary>
     /// The class representing the physical object in the game which the player can pick up to get access to the weapon
     /// </summary>
-    abstract class Gun : Item
+    public abstract class Gun : Item
     {
-        public static GunType GunType;
+        public GunType GunType;
     }
 }

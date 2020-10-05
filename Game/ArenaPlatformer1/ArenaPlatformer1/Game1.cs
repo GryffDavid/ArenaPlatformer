@@ -16,7 +16,7 @@ namespace ArenaPlatformer1
     {
         UpdateParticle,
         DeleteRenderData,
-    }
+    };
 
     public enum TrapType
     {
@@ -25,7 +25,13 @@ namespace ArenaPlatformer1
         Spikes,
         Fire,
         Gas
-    }
+    };
+
+    public enum GrenadeType
+    {
+        Explosive,
+        Fire
+    };
 
     public enum GunType
     {
@@ -34,7 +40,7 @@ namespace ArenaPlatformer1
         Flamethrower,
         GrenadeLauncher,
         Shotgun
-    }
+    };
 
     enum GameState
     {
@@ -42,7 +48,27 @@ namespace ArenaPlatformer1
         ModeSelect,
         Playing,
         LevelCreator
-    }; 
+    };
+
+    public enum DebuffType
+    {
+        ScrambleButtons,
+        ScrambleSticks,
+        ReverseGravity
+    };
+
+    public enum PowerupTyp
+    {
+        Shield,
+        Shrink
+    };
+
+    public enum FlagState
+    {
+        HasRed,
+        HasBlue,
+        NoFlag
+    };
     #endregion
 
     #region Events
@@ -78,6 +104,32 @@ namespace ArenaPlatformer1
     }
 
 
+    #endregion
+
+    #region Debuff Data Struct
+    public struct DebuffData
+    {
+        public DebuffData(DebuffType debuffType, Vector2 time)
+        {
+            Active = true;
+            DebuffType = debuffType;
+            Time = time;
+        }
+
+        public void Update(GameTime gameTime)
+        {
+            Time.X += (float)gameTime.ElapsedGameTime.TotalMilliseconds;
+
+            if (Time.X >= Time.Y)
+            {
+                Active = false;
+            }
+        }
+
+        public bool Active;
+        public DebuffType DebuffType;
+        public Vector2 Time;
+    }
     #endregion
 
     public class Game1 : Microsoft.Xna.Framework.Game
@@ -201,7 +253,7 @@ namespace ArenaPlatformer1
 
             Rocket rocket = new Rocket()
             {
-                Position = e.Player.Position,
+                Position = e.Player.BarrelEnd,
                 PlayerIndex = e.Player.PlayerIndex,
                 Velocity = e.Velocity
             };
@@ -473,22 +525,22 @@ namespace ArenaPlatformer1
             MovingObjectList = new List<MovingObject>();
             MovingPlatformList = new List<MovingPlatform>();
 
-            MovingPlatform platform1 = new MovingPlatform()
-            {
-                Texture = Block,
-                Position = new Vector2(400, 100),
-                Velocity = new Vector2(2, 0)
-            };
+            //MovingPlatform platform1 = new MovingPlatform()
+            //{
+            //    Texture = Block,
+            //    Position = new Vector2(400, 250),
+            //    Velocity = new Vector2(2, 0)
+            //};
 
-            MovingPlatformList.Add(platform1);
+            //MovingPlatformList.Add(platform1);
 
-            MovingPlatform platform2 = new MovingPlatform()
-            {
-                Texture = Block,
-                Position = new Vector2(800, 600)
-            };
+            //MovingPlatform platform2 = new MovingPlatform()
+            //{
+            //    Texture = Block,
+            //    Position = new Vector2(848, 609)
+            //};
 
-            MovingPlatformList.Add(platform2);
+            //MovingPlatformList.Add(platform2);
 
             #region Particle System
             DoubleBuffer = new DoubleBuffer();
@@ -531,7 +583,15 @@ namespace ArenaPlatformer1
                 Position = new Vector2(200, 200)
             };
             launcher.LoadContent(Content);
-            ItemList.Add(launcher); 
+            ItemList.Add(launcher);
+
+            FlameThrower.Texture = GameContentManager.Load<Texture2D>("Gun");
+            FlameThrower flameThrower = new FlameThrower()
+            {
+                Position = new Vector2(800, 500)
+            };
+            flameThrower.LoadContent(Content);
+            ItemList.Add(flameThrower);
             #endregion
 
             #region Traps
@@ -866,6 +926,32 @@ namespace ArenaPlatformer1
                             player.Update(gameTime);
                             CurrentMap.UpdateAreas(player);
                             player.CollisionDataList.Clear();
+
+                            if (player.IsShooting == true && 
+                                player.WasShooting == false)
+                            {
+                                switch (player.CurrentGun)
+                                {
+                                    case GunType.Flamethrower:
+                                        {
+                                            if (player.flameEmitter == null)
+                                            {
+                                                player.flameEmitter = new Emitter(ToonSmoke3,
+                                                new Vector2(player.Position.X, player.Position.Y), new Vector2(60, 120), new Vector2(6, 8),
+                                                new Vector2(650, 800), 1f, false, new Vector2(-10, 10), new Vector2(-1, 1), new Vector2(0.05f, 0.06f),
+                                                new Color(255, 128, 0, 6), Color.Black,
+                                                -0.005f, -0.4f, 16, 6, false, new Vector2(0, 720), true, 0.1f,
+                                                null, null, null, null, null, false, new Vector2(0.02f, 0.01f), null, null,
+                                                null, null, null, true, null);
+                                            }
+                                            else
+                                            {
+                                                player.flameEmitter.AddMore = true;
+                                            }
+                                        }
+                                        break;
+                                }
+                            }
                         }
 
                         foreach (Projectile projectile in ProjectileList)
