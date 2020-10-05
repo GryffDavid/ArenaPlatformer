@@ -12,16 +12,28 @@ namespace ArenaPlatformer1
     {
         public MovingPlatform()
         {
-            Size = new Vector2(64, 16);
             IsKinematic = true;
-            Velocity = new Vector2(2, 0);
+            Size = new Vector2(80, 32);
         }
 
-        public new void Update(GameTime gameTime)
+        public override void Update(GameTime gameTime)
         {
-            
-
             base.Update(gameTime);
+
+            if (PushesRightTile == true)
+            {
+                Velocity.X = -Velocity.X;
+            }
+
+            if (PushesLeftTile == true)
+            {
+                Velocity.X = -Velocity.X;
+            }
+        }
+
+        public void Draw(SpriteBatch spriteBatch)
+        {
+            spriteBatch.Draw(Texture, new Rectangle((int)(Position.X - 40), (int)(Position.Y - 16), (int)Size.X, (int)Size.Y), Color.White);
         }
     }
 }
