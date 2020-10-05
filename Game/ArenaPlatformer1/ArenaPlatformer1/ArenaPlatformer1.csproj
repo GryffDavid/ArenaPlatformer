@@ -86,6 +86,7 @@
     <Compile Include="Lighting\Solid.cs" />
     <Compile Include="Map.cs" />
     <Compile Include="MovingObject.cs" />
+    <Compile Include="MovingPlatform.cs" />
     <Compile Include="ParticleSystem\Buffers\ChangeBuffer.cs" />
     <Compile Include="ParticleSystem\Buffers\ChangeMessage.cs" />
     <Compile Include="ParticleSystem\Buffers\DoubleBuffer.cs" />

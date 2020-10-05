@@ -171,6 +171,7 @@ namespace ArenaPlatformer1
         List<Grenade> GrenadeList;
         List<Projectile> ProjectileList;
         List<MovingObject> MovingObjectList;
+        List<MovingPlatform> MovingPlatformList;
         #endregion
 
         #region Debugging
@@ -470,6 +471,24 @@ namespace ArenaPlatformer1
             Player.ItemList = ItemList;
 
             MovingObjectList = new List<MovingObject>();
+            MovingPlatformList = new List<MovingPlatform>();
+
+            MovingPlatform platform1 = new MovingPlatform()
+            {
+                Texture = Block,
+                Position = new Vector2(400, 100),
+                Velocity = new Vector2(2, 0)
+            };
+
+            MovingPlatformList.Add(platform1);
+
+            MovingPlatform platform2 = new MovingPlatform()
+            {
+                Texture = Block,
+                Position = new Vector2(800, 600)
+            };
+
+            MovingPlatformList.Add(platform2);
 
             #region Particle System
             DoubleBuffer = new DoubleBuffer();
@@ -774,21 +793,14 @@ namespace ArenaPlatformer1
 
 
                         CurrentMap.CheckCollisions();
-
-                        //foreach (MovingPlatform movingObject in MovingObjectList)
-                        //{
-                        //    movingObject.Update(gameTime);
-                        //    CurrentMap.UpdateAreas(movingObject);
-
-                        //    movingObject.CollisionDataList.Clear();
-                        //}
-
                         
+                        foreach (MovingPlatform platform in MovingPlatformList)
+                        {
+                            platform.Update(gameTime);
 
-                        //foreach (MovingObject movingObject in MovingObjectList)
-                        //{
-                        //    movingObject.CheckPhysics2();
-                        //}
+                            CurrentMap.UpdateAreas(platform);
+                            platform.CollisionDataList.Clear();
+                        }
 
                         foreach (Solid solid in SolidList)
                         {
@@ -852,6 +864,8 @@ namespace ArenaPlatformer1
                         foreach (Player player in Players.Where(Player => Player != null))
                         {
                             player.Update(gameTime);
+                            CurrentMap.UpdateAreas(player);
+                            player.CollisionDataList.Clear();
                         }
 
                         foreach (Projectile projectile in ProjectileList)
@@ -993,16 +1007,15 @@ namespace ArenaPlatformer1
                         }
 
                         spriteBatch.Draw(Texture, new Rectangle(0, 0, 1920, 1080), null, Color.White, 0, Vector2.Zero, SpriteEffects.None, 1);
-
-                        //foreach (MovingPlatform movingObject in MovingObjectList)
-                        //{
-                        //    spriteBatch.Draw(Block, movingObject.CollisionRectangle, movingObject.Color);
-                        //}
-                        //spriteBatch.Draw(Block, new Rectangle(0, 750, 1920, 80), null, Color.Red, 0, Vector2.Zero, SpriteEffects.None, 0.15f);
-
+                        
                         foreach (Projectile projectile in ProjectileList)
                         {
                             projectile.Draw(spriteBatch);
+                        }
+
+                        foreach (MovingPlatform platform in MovingPlatformList)
+                        {
+                            platform.Draw(spriteBatch);                            
                         }
 
                         CurrentMap.Draw(spriteBatch);

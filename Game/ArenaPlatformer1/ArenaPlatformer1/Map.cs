@@ -250,7 +250,7 @@ namespace ArenaPlatformer1
 
         public void UpdateAreas(MovingObject movingObject)
         {
-            if (new Rectangle(0, 0, 1920, 1080).Contains(new Point(movingObject.CollisionRectangle.Right, (int)movingObject.Center.Y)))
+            //if (new Rectangle(0, 0, 1920, 1080).Contains(new Point(movingObject.CollisionRectangle.Right, (int)movingObject.Center.Y)))
             {
                 List<Vector2> OverlappingAreas = new List<Vector2>();
 

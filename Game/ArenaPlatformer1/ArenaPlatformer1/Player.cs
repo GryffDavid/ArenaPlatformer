@@ -149,6 +149,7 @@ namespace ArenaPlatformer1
             MaxSpeed = new Vector2(5f, 6);
             Gravity = 0.6f;
             Size = new Vector2(59, 98);
+            IsKinematic = false;
         }
 
         public new void Initialize()

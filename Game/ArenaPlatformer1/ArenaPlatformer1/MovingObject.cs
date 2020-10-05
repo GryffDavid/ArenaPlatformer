@@ -93,13 +93,12 @@ namespace ArenaPlatformer1
 
         public void Initialize()
         {
-            Size = new Vector2(20, 26) / 2;
-            CollisionRectangle = new Rectangle((int)Position.X, (int)Position.Y, (int)Size.X, (int)Size.Y);
-            HalfSize = Size / 2;
+            //HalfSize = Size / 2;
         }
 
         public virtual void Update(GameTime gameTime)
         {
+            HalfSize = Size / 2;
             PreviousPosition = Position;
 
             CheckPhysics();
@@ -111,6 +110,11 @@ namespace ArenaPlatformer1
                 (int)Size.X, (int)Size.Y);
 
             Center = new Vector2(CollisionRectangle.Center.X, CollisionRectangle.Center.Y);
+
+            PushesRight = PushesRightObject || PushesRightTile;
+            PushesLeft = PushesLeftObject || PushesLeftTile;
+            PushesBottom = PushesBottomObject || PushesBottomTile;
+            PushesTop = PushesTopObject || PushesTopTile;
         }
 
         private void CheckPhysics()
