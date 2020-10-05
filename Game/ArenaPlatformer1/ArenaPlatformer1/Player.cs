@@ -151,6 +151,11 @@ namespace ArenaPlatformer1
 
         public Emitter flameEmitter;
 
+        /// <summary>
+        /// Used to purchase upgrades and items between levels
+        /// </summary>
+        public int Credits;
+
         #region Debuff
         private DebuffData _CurrentDebuff;
         public DebuffData CurrentDebuff
@@ -271,10 +276,7 @@ namespace ArenaPlatformer1
             PreviousKeyboardState = CurrentKeyboardState;
             PreviousMouseState = CurrentMouseState;
             WasShooting = IsShooting;
-
-       
-
-
+            
             #region Control States
             CurrentGamePadState = GamePad.GetState(PlayerIndex);
             CurrentKeyboardState = Keyboard.GetState();
@@ -566,6 +568,7 @@ namespace ArenaPlatformer1
                 {
                     if (Item.CollisionRectangle.Intersects(CollisionRectangle))
                     {
+                        #region Item is a TrapPickup
                         if (Item as TrapPickup != null)
                         {
                             if (TrapAmmo <= 0)
@@ -577,8 +580,10 @@ namespace ArenaPlatformer1
                             {
                                 TrapAmmo++;
                             }
-                        }
+                        } 
+                        #endregion
 
+                        #region Item is a Gun
                         if (Item as Gun != null)
                         {
                             if (GunAmmo <= 0)
@@ -586,22 +591,35 @@ namespace ArenaPlatformer1
                                 GunAmmo += 15;
                             }
 
+                            #region Disable the flame emitter if another gun is picked up
+                            if ((Item as Gun).GunType != GunType.Flamethrower)
+                            {
+                                if (flameEmitter != null)
+                                    flameEmitter = null;
+                            }
+                            #endregion
+
                             switch ((Item as Gun).GunType)
                             {
+                                #region Rocket Launcher
                                 case GunType.RocketLauncher:
                                     {
                                         CurrentGun = GunType.RocketLauncher;
                                     }
                                     break;
+                                #endregion
 
+                                #region Flamethrower
                                 case GunType.Flamethrower:
                                     {
                                         CurrentGun = GunType.Flamethrower;
                                         //CurrentDebuff = new DebuffData(DebuffType.ScrambleButtons, new Vector2(0, 15000));
                                     }
                                     break;
+                                    #endregion
                             }
-                        }
+                        } 
+                        #endregion
 
                         ItemList.Remove(Item);
                     }
