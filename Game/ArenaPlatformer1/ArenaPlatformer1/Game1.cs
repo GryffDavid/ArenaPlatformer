@@ -59,8 +59,12 @@ namespace ArenaPlatformer1
 
     public enum PowerupTyp
     {
-        Shield,
-        Shrink
+        Shield
+    };
+
+    public enum CrateType
+    {
+        ShieldPickup
     };
 
     public enum FlagState
@@ -523,7 +527,9 @@ namespace ArenaPlatformer1
         protected void LoadGameContent()
         {
             GrenadeList = new List<Grenade>();
+
             ProjectileList = new List<Projectile>();
+            Player.ProjectileList = ProjectileList;
 
             TrapList = new List<Trap>();
             Player.TrapList = TrapList;
@@ -568,7 +574,7 @@ namespace ArenaPlatformer1
 
             LightList.Add(new Light()
             {
-                Color = Color.Plum,
+                Color = Color.OrangeRed,
                 Active = true,
                 Power = 1.7f,
                 Position = new Vector3(100, 100, 100),
@@ -621,7 +627,16 @@ namespace ArenaPlatformer1
             ItemList.Add(mine);
             #endregion
 
-            
+            Player.ShieldTexture = GameContentManager.Load<Texture2D>("PlayerShield");
+
+            ShieldPickup.Texture = GameContentManager.Load<Texture2D>("Crate");
+            ShieldPickup shieldPickup = new ShieldPickup()
+            {
+                Position = new Vector2(1200, 800)
+            };
+            shieldPickup.LoadContent(GameContentManager);
+
+            ItemList.Add(shieldPickup);
 
             Player.BlueFlagTexture = GameContentManager.Load<Texture2D>("BlueFlag");
             Player.RedFlagTexture = GameContentManager.Load<Texture2D>("RedFlag");

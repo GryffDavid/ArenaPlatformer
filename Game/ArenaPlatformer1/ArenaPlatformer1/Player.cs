@@ -83,6 +83,7 @@ namespace ArenaPlatformer1
         #region Shared Static
         public static List<Item> ItemList;
         public static List<Trap> TrapList;
+        public static List<Projectile> ProjectileList;
         #endregion
 
         #region Animations
@@ -108,6 +109,7 @@ namespace ArenaPlatformer1
                         HeadTexture;
 
         public static Texture2D RedFlagTexture, BlueFlagTexture;
+        public static Texture2D ShieldTexture;
         #endregion
 
         #region Controls
@@ -152,6 +154,7 @@ namespace ArenaPlatformer1
         /// </summary>
         public bool IsShooting = false;
         public bool WasShooting = false;
+        public bool ShieldActive = false;
 
         public Emitter flameEmitter;
 
@@ -200,6 +203,7 @@ namespace ArenaPlatformer1
             Gravity = 0.6f;
             Size = new Vector2(59, 98);
             CurrentFlagState = FlagState.NoFlag;
+            IsKinematic = true;
 
             HealthBar = new HealthBar()
             {
@@ -572,8 +576,13 @@ namespace ArenaPlatformer1
                     }
                     break; 
                     #endregion
-            } 
-            #endregion            
+            }
+            #endregion
+
+            DestinationRectangle = new Rectangle((int)(Position.X - CurrentAnimation.FrameSize.X / 2),
+                                                 (int)(Position.Y - CurrentAnimation.FrameSize.Y / 2),
+                                                 (int)CurrentAnimation.FrameSize.X,
+                                                 (int)CurrentAnimation.FrameSize.Y);
 
             #region Update Animations
             if (CurrentAnimation != null)
@@ -673,6 +682,22 @@ namespace ArenaPlatformer1
                         }
                         #endregion
 
+                        #region Item is a Crate
+                        if (Item as CratePickup != null)
+                        {
+                            switch ((Item as CratePickup).CrateType)
+                            {
+                                #region Shield Pickup
+                                case CrateType.ShieldPickup:
+                                    {
+                                        ShieldActive = true;
+                                    }
+                                    break; 
+                                    #endregion
+                            }
+                        }
+                        #endregion
+
                         if (removeItem == true)
                             ItemList.Remove(Item);
                     }
@@ -688,12 +713,34 @@ namespace ArenaPlatformer1
                         Health.X -= 20;
                         Trap.Reset();
                     }
-                }); 
+                });
+            #endregion
+
+            #region Projectile Collisions
+            if (ProjectileList != null)
+                ProjectileList.ForEach(Projectile =>
+                {
+                    if (Projectile.PlayerIndex != PlayerIndex &&
+                        Projectile.CollisionRectangle.Intersects(CollisionRectangle))
+                    {
+                        Projectile.Active = false;
+
+                        if (ShieldActive == true)
+                        {
+                            ShieldActive = false;
+                        }
+                        else
+                        {
+                            Health.X = 0;
+                        }                        
+                    }
+                });
             #endregion
 
             #region Player Died
             if (Health.X <= 0)
             {
+                #region Flag behaviour
                 switch (CurrentFlagState)
                 {
                     case FlagState.NoFlag:
@@ -718,7 +765,8 @@ namespace ArenaPlatformer1
                             CurrentFlagState = FlagState.NoFlag;
                         }
                         break;
-                }
+                } 
+                #endregion
 
                 Deaths++;
                 flameEmitter = null;
@@ -766,11 +814,6 @@ namespace ArenaPlatformer1
 
                 flameEmitter.Friction.Y = 0.05f;
             }
-
-            DestinationRectangle = new Rectangle((int)(Position.X - CurrentAnimation.FrameSize.X / 2),
-                                                 (int)(Position.Y - CurrentAnimation.FrameSize.Y / 2),
-                                                 (int)CurrentAnimation.FrameSize.X,
-                                                 (int)CurrentAnimation.FrameSize.Y);
         }
 
         public void Draw(SpriteBatch spriteBatch)
@@ -795,6 +838,17 @@ namespace ArenaPlatformer1
                         spriteBatch.Draw(BlueFlagTexture, Position + new Vector2(0, -45), Color.White);
                     }
                     break;
+            }
+            #endregion
+
+            #region Draw the shield
+            if (ShieldActive == true)
+            {
+                spriteBatch.Draw(ShieldTexture,
+                    new Rectangle((int)Position.X, (int)Position.Y,
+                                  CollisionRectangle.Height + 8, CollisionRectangle.Height + 8),
+                    null, Color.White, 0, new Vector2(ShieldTexture.Width / 2, ShieldTexture.Height / 2),
+                    SpriteEffects.None, 0);
             } 
             #endregion
         }

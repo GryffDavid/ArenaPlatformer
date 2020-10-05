@@ -106,6 +106,8 @@ Content\Player2\WallSlideLeft.xnb
 Content\Player2\WallSlideRight.xnb
 Content\BlueFlag.xnb
 Content\RedFlag.xnb
+Content\Crate.xnb
+Content\PlayerShield.xnb
 Content\Font1.xnb
 Content\Shaders\Blur.xnb
 Content\Shaders\Crepuscular.xnb

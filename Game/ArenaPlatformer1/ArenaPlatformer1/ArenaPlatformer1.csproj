@@ -72,13 +72,15 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Animation.cs" />
+    <Compile Include="Items\CratePickup.cs" />
     <Compile Include="Explosion.cs" />
     <Compile Include="Grenade.cs" />
-    <Compile Include="Guns\FlameThrower.cs" />
-    <Compile Include="Guns\Gun.cs" />
-    <Compile Include="Guns\RocketLauncher.cs" />
+    <Compile Include="Items\Guns\FlameThrower.cs" />
+    <Compile Include="Items\Guns\Gun.cs" />
+    <Compile Include="Items\Guns\RocketLauncher.cs" />
     <Compile Include="HealthBar.cs" />
-    <Compile Include="Item.cs" />
+    <Compile Include="Items\Item.cs" />
+    <Compile Include="Items\CratePickups\ShieldPickup.cs" />
     <Compile Include="Items\TrapPickups\MinePickup.cs" />
     <Compile Include="Level.cs" />
     <Compile Include="Lighting\CrepuscularLight.cs" />
@@ -86,6 +88,7 @@
     <Compile Include="Lighting\Occluder.cs" />
     <Compile Include="Lighting\PolygonShadow.cs" />
     <Compile Include="Lighting\Solid.cs" />
+    <Compile Include="LightProjectile.cs" />
     <Compile Include="Map.cs" />
     <Compile Include="MovingObject.cs" />
     <Compile Include="MovingPlatform.cs" />
@@ -108,7 +111,7 @@
     <Compile Include="RedFlag.cs" />
     <Compile Include="Tile.cs" />
     <Compile Include="Trap.cs" />
-    <Compile Include="TrapPickup.cs" />
+    <Compile Include="Items\TrapPickup.cs" />
     <Compile Include="Traps\BeamTrap.cs" />
     <Compile Include="Traps\BouncePadTrap.cs" />
     <Compile Include="Traps\Mine.cs" />

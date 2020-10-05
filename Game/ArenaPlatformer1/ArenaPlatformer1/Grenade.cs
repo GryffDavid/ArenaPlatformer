@@ -40,8 +40,6 @@ namespace ArenaPlatformer1
             Time.Y = 1000f;
 
             Size = new Vector2(20, 26);
-
-            
         }
 
         public override void Update(GameTime gameTime)

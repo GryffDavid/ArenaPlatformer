@@ -4,24 +4,25 @@ using System.Linq;
 using System.Text;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Content;
 
 namespace ArenaPlatformer1
 {
-    enum ProjectileType { Rocket, Bullet };
-
-    public abstract class Projectile : MovingObject
+    public abstract class Item
     {
+        public abstract void Update(GameTime gameTime);
         public abstract void Draw(SpriteBatch spriteBatch);
 
-        public List<Emitter> EmitterList = new List<Emitter>();
+        public bool Exists = true;
+        public Vector2 Position;
+        public Rectangle DestinationRectangle, CollisionRectangle;        
 
-        public PlayerIndex PlayerIndex;
-        public Vector2 Direction;
-        public float Rotation, Angle, Gravity;
-        public bool Active;
-        public Rectangle DestinationRectangle;  
-
-        public void DrawInfo(GraphicsDevice graphics, BasicEffect basicEffect)
+        /// <summary>
+        /// Draw the collision box and other useful debug info
+        /// </summary>
+        /// <param name="graphics"></param>
+        /// <param name="basicEffect"></param>
+        public void DrawInfo(SpriteBatch spriteBatch, GraphicsDevice graphics, BasicEffect basicEffect)
         {
             #region Draw the collision box for debugging
             VertexPositionColorTexture[] Vertices = new VertexPositionColorTexture[4];
@@ -29,28 +30,28 @@ namespace ArenaPlatformer1
 
             Vertices[0] = new VertexPositionColorTexture()
             {
-                Color = Color.Aqua,
+                Color = Color.Yellow,
                 Position = new Vector3(CollisionRectangle.Left, CollisionRectangle.Top, 0),
                 TextureCoordinate = new Vector2(0, 0)
             };
 
             Vertices[1] = new VertexPositionColorTexture()
             {
-                Color = Color.Aqua,
+                Color = Color.Yellow,
                 Position = new Vector3(CollisionRectangle.Right - 1, CollisionRectangle.Top, 0),
                 TextureCoordinate = new Vector2(1, 0)
             };
 
             Vertices[2] = new VertexPositionColorTexture()
             {
-                Color = Color.Aqua,
+                Color = Color.Yellow,
                 Position = new Vector3(CollisionRectangle.Right - 1, CollisionRectangle.Bottom - 1, 0),
                 TextureCoordinate = new Vector2(1, 1)
             };
 
             Vertices[3] = new VertexPositionColorTexture()
             {
-                Color = Color.Aqua,
+                Color = Color.Yellow,
                 Position = new Vector3(CollisionRectangle.Left, CollisionRectangle.Bottom - 1, 0),
                 TextureCoordinate = new Vector2(0, 1)
             };
@@ -73,14 +74,5 @@ namespace ArenaPlatformer1
             }
             #endregion
         }
-
-        public void UpdateEmitters(GameTime gameTime)
-        {
-            foreach (Emitter emitter in EmitterList)
-            {
-                emitter.Position = Position;
-                emitter.Update(gameTime);
-            }
-        }        
     }
 }
