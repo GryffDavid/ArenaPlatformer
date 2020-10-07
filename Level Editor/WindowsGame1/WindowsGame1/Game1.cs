@@ -32,11 +32,13 @@ namespace ArenaLevelEditor
         GraphicsDeviceManager graphics;
         SpriteBatch spriteBatch;
 
-        Map CurrentMap;
+        public Map CurrentMap;
 
         public Game1(IntPtr drawSurface, Form1 form)
         {
             Form1 = form;
+            Form1.MyGame = this;
+
             graphics = new GraphicsDeviceManager(this);
             Content.RootDirectory = "Content";
             this.drawSurface = drawSurface;

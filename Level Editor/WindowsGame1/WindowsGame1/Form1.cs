@@ -12,8 +12,6 @@ using Microsoft.Xna.Framework.Content;
 
 namespace ArenaLevelEditor
 {
-
-
     //Texture2D Texture;
 
     //Vector2 Position, PreviousPosition, AngleRange, ScaleRange, TimeRange,  SpeedRange, 
@@ -36,6 +34,13 @@ namespace ArenaLevelEditor
 
     public partial class Form1 : Form
     {
+        private Game1 _myGame;
+        public Game1 MyGame
+        {
+            get { return _myGame; }
+            set { _myGame = value; }
+        }
+
         public Vector2 EmitterPosition = new Vector2(1280 / 2, 720 / 2);
         public System.Drawing.Color backgroundColor = System.Drawing.Color.CornflowerBlue;
         public string TextureLocation = "";
@@ -92,6 +97,17 @@ namespace ArenaLevelEditor
 
         private void Form1_Load(object sender, EventArgs e)
         {
+
+        }
+
+        private void pctSurface_MouseDown(object sender, MouseEventArgs e)
+        {
+            Vector2 index = MyGame.CurrentMap.GetMapTileAtPoint(new Vector2(pctSurface.PointToClient(MousePosition).X, pctSurface.PointToClient(MousePosition).Y));
+
+            MyGame.CurrentMap.Tiles[(int)index.X, (int)index.Y] = TileType.Solid;
+            MyGame.CurrentMap.ReloadTiles();
+
+           //emit.Position = new Vector2(pctSurface.PointToClient(MousePosition).X, pctSurface.PointToClient(MousePosition).Y);
 
         }
     }

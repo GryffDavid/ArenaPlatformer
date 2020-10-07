@@ -8,10 +8,10 @@ using Microsoft.Xna.Framework.Content;
 
 namespace ArenaLevelEditor
 {
-    class Map
+    public class Map
     {
         //Collision tiles
-        private TileType[,] Tiles;
+        public TileType[,] Tiles;
 
         //Draw data
         public Tile[,] DrawTiles;
@@ -21,6 +21,8 @@ namespace ArenaLevelEditor
 
         //The size of the map in tiles
         public Vector2 MapSize = new Vector2(30, 17);
+
+        ContentManager contentManager;
 
         public Map()
         {
@@ -93,6 +95,8 @@ namespace ArenaLevelEditor
 
         public void LoadContent(ContentManager content)
         {
+            contentManager = content;
+
             for (int x = 0; x < (int)MapSize.X; x++)
             {
                 for (int y = 0; y < (int)MapSize.Y; y++)
@@ -127,6 +131,42 @@ namespace ArenaLevelEditor
             }
         }
 
+        public void ReloadTiles()
+        {
+            for (int x = 0; x < (int)MapSize.X; x++)
+            {
+                for (int y = 0; y < (int)MapSize.Y; y++)
+                {
+                    if (Tiles[x, y] == TileType.Solid)
+                    {
+                        Tile drawTile = new Tile()
+                        {
+                            Size = TileSize,
+                            Position = new Vector2(x * TileSize.X, y * TileSize.Y)
+                        };
+                        drawTile.Index = new Vector2(x, y);
+                        drawTile.LoadContent(contentManager);
+
+                        DrawTiles[x, y] = drawTile;
+                    }
+
+                    if (Tiles[x, y] == TileType.BouncePad)
+                    {
+                        Tile drawTile = new Tile()
+                        {
+                            Size = TileSize,
+                            Position = new Vector2(x * TileSize.X, y * TileSize.Y),
+                            Color = Color.Red
+                        };
+                        drawTile.Index = new Vector2(x, y);
+                        drawTile.LoadContent(contentManager);
+
+                        DrawTiles[x, y] = drawTile;
+                    }
+                }
+            }
+        }
+
         public void Draw(SpriteBatch spriteBatch)
         {
             foreach (Tile drawTile in DrawTiles)
@@ -136,5 +176,9 @@ namespace ArenaLevelEditor
             }
         }
 
+        public Vector2 GetMapTileAtPoint(Vector2 position)
+        {
+            return new Vector2((int)(position.X / TileSize.X), (int)(position.Y / TileSize.Y));
+        }
     }
 }

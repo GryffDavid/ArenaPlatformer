@@ -7,7 +7,7 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>D:\Google Drive\Game Projects\ArenaPlatfomer (Nov 2017)\Level Editor\ArenaLevelEditor2\WindowsGame1\WindowsGame1\bin\x86\Debug\Content\Blank.xnb</Output>
+      <Output>D:\Google Drive\Game Projects\ArenaPlatfomer (Nov 2017)\Level Editor\ArenaLevelEditor3\WindowsGame1\WindowsGame1\bin\x86\Debug\Content\Blank.xnb</Output>
       <Time>2017-12-03T14:55:34+02:00</Time>
     </Item>
     <BuildSuccessful>true</BuildSuccessful>
@@ -17,10 +17,10 @@
       <TargetProfile>HiDef</TargetProfile>
       <BuildConfiguration>Debug</BuildConfiguration>
       <CompressContent>false</CompressContent>
-      <RootDirectory>D:\Google Drive\Game Projects\ArenaPlatfomer (Nov 2017)\Level Editor\ArenaLevelEditor2\WindowsGame1\WindowsGame1Content\</RootDirectory>
-      <LoggerRootDirectory>D:\Google Drive\Game Projects\ArenaPlatfomer (Nov 2017)\Level Editor\ArenaLevelEditor2\WindowsGame1\WindowsGame1\</LoggerRootDirectory>
-      <IntermediateDirectory>D:\Google Drive\Game Projects\ArenaPlatfomer (Nov 2017)\Level Editor\ArenaLevelEditor2\WindowsGame1\WindowsGame1\obj\x86\Debug\</IntermediateDirectory>
-      <OutputDirectory>D:\Google Drive\Game Projects\ArenaPlatfomer (Nov 2017)\Level Editor\ArenaLevelEditor2\WindowsGame1\WindowsGame1\bin\x86\Debug\Content\</OutputDirectory>
+      <RootDirectory>D:\Google Drive\Game Projects\ArenaPlatfomer (Nov 2017)\Level Editor\ArenaLevelEditor3\WindowsGame1\WindowsGame1Content\</RootDirectory>
+      <LoggerRootDirectory>D:\Google Drive\Game Projects\ArenaPlatfomer (Nov 2017)\Level Editor\ArenaLevelEditor3\WindowsGame1\WindowsGame1\</LoggerRootDirectory>
+      <IntermediateDirectory>D:\Google Drive\Game Projects\ArenaPlatfomer (Nov 2017)\Level Editor\ArenaLevelEditor3\WindowsGame1\WindowsGame1\obj\x86\Debug\</IntermediateDirectory>
+      <OutputDirectory>D:\Google Drive\Game Projects\ArenaPlatfomer (Nov 2017)\Level Editor\ArenaLevelEditor3\WindowsGame1\WindowsGame1\bin\x86\Debug\Content\</OutputDirectory>
     </Settings>
     <Assemblies>
       <Assembly>

@@ -46,6 +46,7 @@
             this.pctSurface.Size = new System.Drawing.Size(1920, 1080);
             this.pctSurface.TabIndex = 0;
             this.pctSurface.TabStop = false;
+            this.pctSurface.MouseDown += new System.Windows.Forms.MouseEventHandler(this.pctSurface_MouseDown);
             // 
             // menuStrip1
             // 
@@ -70,13 +71,13 @@
             // saveLevelToolStripMenuItem
             // 
             this.saveLevelToolStripMenuItem.Name = "saveLevelToolStripMenuItem";
-            this.saveLevelToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.saveLevelToolStripMenuItem.Size = new System.Drawing.Size(130, 22);
             this.saveLevelToolStripMenuItem.Text = "Save Level";
             // 
             // loadLevelToolStripMenuItem
             // 
             this.loadLevelToolStripMenuItem.Name = "loadLevelToolStripMenuItem";
-            this.loadLevelToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.loadLevelToolStripMenuItem.Size = new System.Drawing.Size(130, 22);
             this.loadLevelToolStripMenuItem.Text = "Load Level";
             // 
             // Form1
