@@ -111,6 +111,7 @@ namespace ArenaPlatformer1
 
         public static Texture2D RedFlagTexture, BlueFlagTexture;
         public static Texture2D ShieldTexture, MeleeEffectTexture;
+        public static Texture2D GunTexture;
         #endregion
 
         #region Controls
@@ -191,11 +192,18 @@ namespace ArenaPlatformer1
         #endregion
 
         public Vector2 RespawnTime, MeleeTime;
+
+        //The delay between firing a shot and being able to move again
+        public Vector2 MoveShootTime = new Vector2(0, 150);
+
         public Vector2 MeleeCooldownTime = new Vector2(0, 500);
 
         public Vector2 BarrelEnd;
 
         public Rectangle DestinationRectangle, MeleeCollisionRectangle;
+
+        public float AimAngle, StickAngle;
+        float num = 0;
         
         public Player(PlayerIndex playerIndex)
         {
@@ -340,7 +348,8 @@ namespace ArenaPlatformer1
                 AimDirection.X = -1f;
                 CurrentFacing = Facing.Left;
 
-                Velocity.X += (MoveStick.X * 3f);
+                //if (CurrentGamePadState.IsButtonUp(CurrentShootButton))
+                //    Velocity.X += (MoveStick.X * 3f);
             }
             #endregion
 
@@ -350,9 +359,26 @@ namespace ArenaPlatformer1
                 AimDirection.X = 1f;
                 CurrentFacing = Facing.Right;
 
-                Velocity.X += (MoveStick.X * 3f);
+                //if (CurrentGamePadState.IsButtonUp(CurrentShootButton))
+                //    Velocity.X += (MoveStick.X * 3f);
             }
             #endregion
+
+            if (CurrentGamePadState.IsButtonUp(CurrentShootButton))
+            {
+                MoveShootTime.X += (float)gameTime.ElapsedGameTime.TotalMilliseconds;
+
+                if (MoveShootTime.X >= MoveShootTime.Y)
+                    Velocity.X += (MoveStick.X * 3f);
+
+                if (MoveShootTime.X < MoveShootTime.Y)
+                {
+                    if (InAir == false)
+                        Velocity.X *= 0.85f;
+                    else
+                        Velocity.X *= 0.95f;
+                }
+            }
 
             if (CurrentPose == Pose.Standing)
             {
@@ -451,24 +477,61 @@ namespace ArenaPlatformer1
             #endregion
 
             #region Shoot
-            if (CurrentGamePadState.IsButtonDown(CurrentShootButton) &&
-                PreviousGamePadState.IsButtonUp(CurrentShootButton) &&
-                CurrentGun != GunType.Flamethrower)
+            if (CurrentGun != GunType.Flamethrower)
             {
-                if (GunAmmo > 0)
+                if (CurrentGamePadState.IsButtonDown(CurrentShootButton))
                 {
-                    switch (CurrentFacing)
-                    {
-                        case Facing.Left:
-                            CreatePlayerShoot(new Vector2(-35, 0));
-                            break;
+                    if (InAir == false)
+                        Velocity.X *= 0.85f;
+                    else
+                        Velocity.X *= 0.95f;
 
-                        case Facing.Right:
-                            CreatePlayerShoot(new Vector2(35, 0));
-                            break;
+                    if (GunAmmo > 0)
+                    {
+                        StickAngle = MathHelper.ToDegrees((float)Math.Atan2(MoveStick.Y, -MoveStick.X));
+                        num = 4 + (int)Math.Round(StickAngle / 45f, 0);
+
+                        //switch (CurrentFacing)
+                        //{
+                        //    case Facing.Left:
+                        //        CreatePlayerShoot(new Vector2(-35, 0));
+                        //        break;
+
+                        //    case Facing.Right:
+                        //        CreatePlayerShoot(new Vector2(35, 0));
+                        //        break;
+                        //}
+
+                        //GunAmmo--;
+                    }
+                }                
+
+                if (CurrentGamePadState.IsButtonUp(CurrentShootButton) &&
+                    PreviousGamePadState.IsButtonDown(CurrentShootButton))
+                {
+                    //The player is not aiming the stick, use the facing direction.
+                    if (MoveStick == Vector2.Zero)
+                    {
+                        switch (CurrentFacing)
+                        {
+                            case Facing.Left:
+                                CreatePlayerShoot(new Vector2(-35, 0));
+                                break;
+
+                            case Facing.Right:
+                                CreatePlayerShoot(new Vector2(35, 0));
+                                break;
+                        }
+                    }
+                    else //Player is aiming with the stick, fire in the direction;
+                    {
+                        float temp1 = MathHelper.ToRadians(num * 45);
+                        Vector2 temp2 = new Vector2((float)Math.Cos(temp1), (float)Math.Sin(temp1));
+
+                        CreatePlayerShoot(temp2 * 35);
                     }
 
-                    GunAmmo--;
+                    MoveShootTime.X = 0;
                 }
             }
 
@@ -876,7 +939,14 @@ namespace ArenaPlatformer1
         public void Draw(SpriteBatch spriteBatch)
         {
             if (CurrentAnimation != null)
-                CurrentAnimation.Draw(spriteBatch, Position);                       
+                CurrentAnimation.Draw(spriteBatch, Position);
+
+            if (CurrentGamePadState.IsButtonDown(ShootButton))
+            {
+                spriteBatch.Draw(GunTexture, new Rectangle((int)Position.X, (int)Position.Y, GunTexture.Width, GunTexture.Height), null, Color.White,
+                    MathHelper.ToRadians(num * 45),
+                    new Vector2(0, GunTexture.Height / 2), SpriteEffects.None, 0);
+            }
 
             #region Draw the flag
             switch (CurrentFlagState)

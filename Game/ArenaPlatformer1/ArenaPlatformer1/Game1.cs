@@ -639,6 +639,7 @@ namespace ArenaPlatformer1
 
             Player.ShieldTexture = GameContentManager.Load<Texture2D>("PlayerShield");
             Player.MeleeEffectTexture = GameContentManager.Load<Texture2D>("MeleeEffect1");
+            Player.GunTexture = GameContentManager.Load<Texture2D>("Gun");
 
             ShieldPickup.Texture = GameContentManager.Load<Texture2D>("Crate");
             ShieldPickup shieldPickup = new ShieldPickup()
