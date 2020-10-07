@@ -13,30 +13,26 @@ namespace ArenaLevelEditor
 {    
     public class Game1 : Game
     {
+        #region Windows Form Stuff
         private IntPtr drawSurface;
-
-        GraphicsDeviceManager graphics;
-        SpriteBatch spriteBatch;
-
-        Texture2D Texture;
         Form1 Form1;
-
-        Color BackgroundColor = Color.CornflowerBlue;
-
-        bool blendState = false;
-        
 
         void graphics_PreparingDeviceSettings(object sender, PreparingDeviceSettingsEventArgs e)
         {
-                e.GraphicsDeviceInformation.PresentationParameters.DeviceWindowHandle =
-                drawSurface;
+            e.GraphicsDeviceInformation.PresentationParameters.DeviceWindowHandle = drawSurface;
         }
 
         private void Game1_VisibleChanged(object sender, EventArgs e)
         {
-                if (System.Windows.Forms.Control.FromHandle((this.Window.Handle)).Visible == true)
-                    System.Windows.Forms.Control.FromHandle((this.Window.Handle)).Visible = false;
+            if (System.Windows.Forms.Control.FromHandle((this.Window.Handle)).Visible == true)
+                System.Windows.Forms.Control.FromHandle((this.Window.Handle)).Visible = false;
         }
+        #endregion
+        
+        GraphicsDeviceManager graphics;
+        SpriteBatch spriteBatch;
+
+        Map CurrentMap;
 
         public Game1(IntPtr drawSurface, Form1 form)
         {
@@ -53,7 +49,7 @@ namespace ArenaLevelEditor
         
         protected override void Initialize()
         {
-
+            CurrentMap = new Map();
             base.Initialize();
         }
         
@@ -62,7 +58,7 @@ namespace ArenaLevelEditor
             spriteBatch = new SpriteBatch(GraphicsDevice);
             Form1.Graphics = GraphicsDevice;
 
-            Texture = Content.Load<Texture2D>("Sprite");
+            CurrentMap.LoadContent(Content);
         }
         
         protected override void UnloadContent()
@@ -76,23 +72,18 @@ namespace ArenaLevelEditor
             {
                 this.Exit();
             }
+
             base.Update(gameTime);
         }
         
         protected override void Draw(GameTime gameTime)
         {
-            GraphicsDevice.Clear(BackgroundColor);
-
-            if (blendState == false)
-                spriteBatch.Begin();
-            else
-                spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.Additive);
-            
+            GraphicsDevice.Clear(Color.CornflowerBlue);            
+            spriteBatch.Begin();
+            CurrentMap.Draw(spriteBatch);
             spriteBatch.End();
 
             base.Draw(gameTime);
         }
-
-
     }
 }
