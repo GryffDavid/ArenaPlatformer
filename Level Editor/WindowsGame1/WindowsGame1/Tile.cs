@@ -8,8 +8,10 @@ using Microsoft.Xna.Framework.Content;
 
 namespace ArenaLevelEditor
 {
+    [Serializable]
     public enum TileType { Empty, Solid, Death, Slow, BouncePad, RedFlag, BlueFlag };
 
+    [Serializable]
     public class Tile
     {
         public TileType TileType;

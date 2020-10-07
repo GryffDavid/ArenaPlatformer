@@ -8,12 +8,14 @@ using Microsoft.Xna.Framework.Content;
 
 namespace ArenaLevelEditor
 {
+    [Serializable]
     public class Map
     {
         //Collision tiles
         public TileType[,] Tiles;
 
         //Draw data
+        [NonSerialized]
         public Tile[,] DrawTiles;
 
         //The size of each tile
@@ -22,6 +24,7 @@ namespace ArenaLevelEditor
         //The size of the map in tiles
         public Vector2 MapSize = new Vector2(30, 17);
 
+        [NonSerialized]
         ContentManager contentManager;
 
         public Map()
@@ -95,6 +98,7 @@ namespace ArenaLevelEditor
 
         public void LoadContent(ContentManager content)
         {
+            DrawTiles = new Tile[(int)MapSize.X, (int)MapSize.Y];
             contentManager = content;
 
             for (int x = 0; x < (int)MapSize.X; x++)
@@ -131,44 +135,48 @@ namespace ArenaLevelEditor
             }
         }
 
-        public void ReloadTiles()
+        public void ReloadContent()
         {
-            for (int x = 0; x < (int)MapSize.X; x++)
+            //Tiles = new TileType[(int)MapSize.X, (int)MapSize.Y];
+            //DrawTiles = new Tile[(int)MapSize.X, (int)MapSize.Y];
+
+            LoadContent(contentManager);
+        }
+        
+        public void AddTile(int x, int y, TileType tileType)
+        {
+            Tiles[x, y] = tileType;
+
+            if (tileType == TileType.Solid)
             {
-                for (int y = 0; y < (int)MapSize.Y; y++)
+                Tile drawTile = new Tile()
                 {
-                    if (Tiles[x, y] == TileType.Solid)
-                    {
-                        Tile drawTile = new Tile()
-                        {
-                            Size = TileSize,
-                            Position = new Vector2(x * TileSize.X, y * TileSize.Y)
-                        };
-                        drawTile.Index = new Vector2(x, y);
-                        drawTile.LoadContent(contentManager);
+                    Size = TileSize,
+                    Position = new Vector2(x * TileSize.X, y * TileSize.Y)
+                };
+                drawTile.Index = new Vector2(x, y);
+                drawTile.LoadContent(contentManager);
+               
+                DrawTiles[x, y] = drawTile;
+            }
 
-                        DrawTiles[x, y] = drawTile;
-                    }
+            if (tileType == TileType.BouncePad)
+            {
+                Tile drawTile = new Tile()
+                {
+                    Size = TileSize,
+                    Position = new Vector2(x * TileSize.X, y * TileSize.Y),
+                    Color = Color.Red
+                };
+                drawTile.Index = new Vector2(x, y);
+                drawTile.LoadContent(contentManager);
 
-                    if (Tiles[x, y] == TileType.BouncePad)
-                    {
-                        Tile drawTile = new Tile()
-                        {
-                            Size = TileSize,
-                            Position = new Vector2(x * TileSize.X, y * TileSize.Y),
-                            Color = Color.Red
-                        };
-                        drawTile.Index = new Vector2(x, y);
-                        drawTile.LoadContent(contentManager);
+                DrawTiles[x, y] = drawTile;
+            }
 
-                        DrawTiles[x, y] = drawTile;
-                    }
-
-                    if (Tiles[x, y] == TileType.Empty)
-                    {
-                        DrawTiles[x, y] = null;
-                    }
-                }
+            if (tileType == TileType.Empty)
+            {
+                DrawTiles[x, y] = null;
             }
         }
 

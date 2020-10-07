@@ -9,29 +9,14 @@ using System.Windows.Forms;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Content;
+using System.Xml;
+using System.IO;
+using System.Xml.Serialization;
+using System.Runtime.Serialization;
+using System.Runtime.Serialization.Formatters.Binary;
 
 namespace ArenaLevelEditor
 {
-    //Texture2D Texture;
-
-    //Vector2 Position, PreviousPosition, AngleRange, ScaleRange, TimeRange,  SpeedRange, 
-    //        RotationIncrementRange, StartingRotationRange, 
-    //        EmitterDirection, EmitterVelocity, YRange, Friction;
-
-    //float Transparency, Gravity, ActiveSeconds, Interval, EmitterSpeed, 
-    //      EmitterAngle, EmitterGravity, FadeDelay, StartingInterval, BounceY;
-
-    //Color StartColor, EndColor, ThirdColor;
-
-    //bool Fade, CanBounce, AddMore, Shrink, StopBounce, HardBounce, 
-    //     BouncedOnGround, RotateVelocity, FlipHor, FlipVer, ReduceDensity, SortParticles, Grow;
-
-    //int Burst;
-
-    //double IntervalTime, CurrentTime;
-
-    //SpriteEffects Orientation = SpriteEffects.None;
-
     public partial class Form1 : Form
     {
         private Game1 _myGame;
@@ -97,28 +82,56 @@ namespace ArenaLevelEditor
 
         private void Form1_Load(object sender, EventArgs e)
         {
-
+            string dir = Environment.CurrentDirectory;
+            string newPath = Path.GetFullPath(Path.Combine(dir, @"..\..\..\..\..\..\..\Levels\\"));
+            openFileDialog1.InitialDirectory = newPath;
         }
 
         private void pctSurface_MouseDown(object sender, MouseEventArgs e)
         {
+            Vector2 index = MyGame.CurrentMap.GetMapTileAtPoint(new Vector2(pctSurface.PointToClient(MousePosition).X, pctSurface.PointToClient(MousePosition).Y));
+
             if (e.Button == MouseButtons.Left)
             {
-                Vector2 index = MyGame.CurrentMap.GetMapTileAtPoint(new Vector2(pctSurface.PointToClient(MousePosition).X, pctSurface.PointToClient(MousePosition).Y));
-
-                MyGame.CurrentMap.Tiles[(int)index.X, (int)index.Y] = TileType.Solid;
-                MyGame.CurrentMap.ReloadTiles();
+                MyGame.CurrentMap.AddTile((int)index.X, (int)index.Y, TileType.Solid);
             }
 
             if (e.Button == MouseButtons.Right)
             {
-                Vector2 index = MyGame.CurrentMap.GetMapTileAtPoint(new Vector2(pctSurface.PointToClient(MousePosition).X, pctSurface.PointToClient(MousePosition).Y));
-
-                MyGame.CurrentMap.Tiles[(int)index.X, (int)index.Y] = TileType.Empty;
-                MyGame.CurrentMap.ReloadTiles();
+                MyGame.CurrentMap.AddTile((int)index.X, (int)index.Y, TileType.Empty);
             }
-           //emit.Position = new Vector2(pctSurface.PointToClient(MousePosition).X, pctSurface.PointToClient(MousePosition).Y);
+        }
 
+        private void saveLevelToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            string dir = Environment.CurrentDirectory;
+            string newPath = Path.GetFullPath(Path.Combine(dir, @"..\..\..\..\..\..\..\Levels\\"));
+            newPath += "Level1.lvl";
+
+            IFormatter formatter = new BinaryFormatter();
+            Stream stream = new FileStream(newPath, FileMode.Create);
+            formatter.Serialize(stream, MyGame.CurrentMap);
+            stream.Close();
+        }
+
+        private void loadLevelToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            openFileDialog1.ShowDialog();
+        }
+
+        private void openFileDialog1_FileOk(object sender, CancelEventArgs e)
+        {
+            string name = openFileDialog1.FileName;
+
+            IFormatter formatter = new BinaryFormatter();
+            Stream stream = new FileStream(name, FileMode.Open);
+            Map loadMap = (Map)formatter.Deserialize(stream);
+
+            stream.Close();
+
+            MyGame.CurrentMap = loadMap;
+            MyGame.CurrentMap.LoadContent(MyGame.Content);
+            //MyGame.CurrentMap.ReloadContent();
         }
     }
 }
