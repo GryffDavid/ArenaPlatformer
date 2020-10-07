@@ -8,6 +8,11 @@ using Microsoft.Xna.Framework.GamerServices;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Microsoft.Xna.Framework.Media;
+using System.IO;
+using System.Xml.Serialization;
+using System.Runtime.Serialization;
+using System.Runtime.Serialization.Formatters.Binary;
+using System.Reflection;
 
 namespace ArenaPlatformer1
 {
@@ -526,7 +531,12 @@ namespace ArenaPlatformer1
 
         protected void LoadGameContent()
         {
+            LoadLevel();
+            MovingObject.Map = CurrentMap;
+
             GrenadeList = new List<Grenade>();
+
+            Player.Players = Players;
 
             ProjectileList = new List<Projectile>();
             Player.ProjectileList = ProjectileList;
@@ -628,6 +638,7 @@ namespace ArenaPlatformer1
             #endregion
 
             Player.ShieldTexture = GameContentManager.Load<Texture2D>("PlayerShield");
+            Player.MeleeEffectTexture = GameContentManager.Load<Texture2D>("MeleeEffect1");
 
             ShieldPickup.Texture = GameContentManager.Load<Texture2D>("Crate");
             ShieldPickup shieldPickup = new ShieldPickup()
@@ -744,8 +755,6 @@ namespace ArenaPlatformer1
             {
                 PlayerJoinButtons[i] = new PlayerJoin(ButtonTexture, new Vector2(106 + (451 * i), 278), new Vector2(356, 524)); 
             }
-
-            MovingObject.Map = CurrentMap;
 
             Rocket.Texture = Content.Load<Texture2D>("Projectiles/RocketTexture");
             Bullet.Texture = Content.Load<Texture2D>("Projectiles/BulletTexture");
@@ -1117,6 +1126,11 @@ namespace ArenaPlatformer1
                         foreach (Projectile projectile in ProjectileList)
                         {
                             projectile.Draw(spriteBatch);
+                        }
+
+                        foreach (Player player in Players.Where(Player => Player != null))
+                        {
+                            player.DrawEmissive(spriteBatch);
                         }
                         spriteBatch.End();
 
@@ -1672,6 +1686,48 @@ namespace ArenaPlatformer1
         public double DoubleRange(double one, double two)
         {
             return one + Random.NextDouble() * (two - one);
+        }
+
+        public void LoadLevel()
+        {
+            string dir = Environment.CurrentDirectory;
+            string newPath = Path.GetFullPath(Path.Combine(dir, @"..\..\..\..\..\..\Levels\\"));
+            newPath += "Level1.lvl";
+
+            IFormatter formatter = new BinaryFormatter();
+            formatter.Binder = new SerializationHelper();
+
+
+            Stream stream = new FileStream(newPath, FileMode.Open);
+            Map loadMap = (Map)formatter.Deserialize(stream);
+
+            stream.Close();
+
+            CurrentMap = loadMap;
+            CurrentMap.LoadContent(Content);
+            CurrentMap.Initialize();
+        }
+
+        sealed class SerializationHelper : SerializationBinder
+        {
+            public override Type BindToType(string assemblyName, string typeName)
+            {
+                Type typetoD = null;
+                string currentAssembly = Assembly.GetExecutingAssembly().FullName;
+                
+                assemblyName = currentAssembly;
+
+                int index = typeName.IndexOf('.');
+                string obj = typeName.Substring(index + 1);
+
+                index = currentAssembly.IndexOf(',');
+                currentAssembly = currentAssembly.Substring(0, index);
+
+                string objType = currentAssembly + "." + obj;
+                typetoD = Type.GetType(objType);
+
+                return typetoD;
+            }
         }
     }
 }

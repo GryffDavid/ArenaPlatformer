@@ -14,6 +14,7 @@ namespace ArenaPlatformer1
 
     public class Player : MovingObject
     {
+        public static Player[] Players = new Player[4];
         public PlayerIndex PlayerIndex;
         public static Random Random = new Random();
 
@@ -109,13 +110,13 @@ namespace ArenaPlatformer1
                         HeadTexture;
 
         public static Texture2D RedFlagTexture, BlueFlagTexture;
-        public static Texture2D ShieldTexture;
+        public static Texture2D ShieldTexture, MeleeEffectTexture;
         #endregion
 
         #region Controls
         GamePadThumbSticks Sticks;
-        Buttons JumpButton, ShootButton, GrenadeButton, TrapButton;
-        Buttons CurrentJumpButton, CurrentShootButton, CurrentGrenadeButton, CurrentTrapButton;
+        Buttons JumpButton, ShootButton, GrenadeButton, TrapButton, MeleeButton;
+        Buttons CurrentJumpButton, CurrentShootButton, CurrentGrenadeButton, CurrentTrapButton, CurrentMeleeButton;
         public GamePadState CurrentGamePadState, PreviousGamePadState;
         public KeyboardState CurrentKeyboardState, PreviousKeyboardState;
         public MouseState CurrentMouseState, PreviousMouseState;
@@ -188,12 +189,13 @@ namespace ArenaPlatformer1
             }
         }
         #endregion
-          
-        public Vector2 RespawnTime;
+
+        public Vector2 RespawnTime, MeleeTime;
+        public Vector2 MeleeCooldownTime = new Vector2(0, 500);
 
         public Vector2 BarrelEnd;
 
-        public Rectangle DestinationRectangle;
+        public Rectangle DestinationRectangle, MeleeCollisionRectangle;
         
         public Player(PlayerIndex playerIndex)
         {
@@ -224,11 +226,13 @@ namespace ArenaPlatformer1
             ShootButton = Buttons.X;
             GrenadeButton = Buttons.B;
             TrapButton = Buttons.Y;
+            MeleeButton = Buttons.RightShoulder;
 
             CurrentJumpButton = JumpButton;
             CurrentShootButton = ShootButton;
             CurrentGrenadeButton = GrenadeButton;
             CurrentTrapButton = TrapButton;
+            CurrentMeleeButton = MeleeButton;
 
             #region Load Textures
             RunRightTexture = content.Load<Texture2D>("Player" + ((int)PlayerIndex + 1) + "/Running/RunRight");
@@ -528,8 +532,61 @@ namespace ArenaPlatformer1
             }
             #endregion
 
-            #region Change Animation Direction
-            switch (CurrentFacing)
+            #region Melee Attack
+            if (CurrentGamePadState.IsButtonDown(CurrentMeleeButton) &&
+                PreviousGamePadState.IsButtonUp(CurrentMeleeButton) &&
+                MeleeCooldownTime.X >= MeleeCooldownTime.Y)
+            {
+                MeleeTime.Y = 100f;
+
+                MeleeCooldownTime.X = 0;
+            }
+            #endregion
+
+            if (MeleeCooldownTime.X < MeleeCooldownTime.Y)
+            {
+                MeleeCooldownTime.X += (float)gameTime.ElapsedGameTime.TotalMilliseconds;
+            }
+
+            #region Melee Collisions
+            for (int i = 0; i < Players.Length; i++)
+            {
+                if (Players[i] != null && i != (int)(PlayerIndex))
+                {
+                    if (Players[i].MeleeCollisionRectangle != null &&
+                        Players[i].MeleeCollisionRectangle.Width > 0)
+                    {
+                        if (CollisionRectangle.Intersects(Players[i].MeleeCollisionRectangle))
+                        {
+                            Health.X = 0;
+                        }
+                    }
+                }
+            }
+            #endregion
+
+            if (MeleeTime.Y > 0)
+            {
+                MeleeTime.X += (float)gameTime.ElapsedGameTime.TotalMilliseconds;
+                
+                if (AimDirection.X < 0)
+                {
+                    MeleeCollisionRectangle = new Rectangle((int)(Position.X - (HalfSize.X) - 40), (int)(Position.Y - HalfSize.Y), 40, (int)Size.Y);
+                }
+                else
+                {
+                    MeleeCollisionRectangle = new Rectangle((int)(Position.X + (HalfSize.X)), (int)(Position.Y - HalfSize.Y), 40, (int)Size.Y);
+                }
+
+                if (MeleeTime.X >= MeleeTime.Y)
+                {
+                    MeleeCollisionRectangle = new Rectangle(0, 0, 0, 0);
+                    MeleeTime = Vector2.Zero;
+                }
+            }
+
+                #region Change Animation Direction
+                switch (CurrentFacing)
             {
                 #region Left
                 case Facing.Left:
@@ -702,7 +759,7 @@ namespace ArenaPlatformer1
                             ItemList.Remove(Item);
                     }
                 }); 
-            #endregion
+            #endregion 
 
             #region Trap Collisions
             if (TrapList != null)
@@ -819,7 +876,7 @@ namespace ArenaPlatformer1
         public void Draw(SpriteBatch spriteBatch)
         {
             if (CurrentAnimation != null)
-                CurrentAnimation.Draw(spriteBatch, Position);
+                CurrentAnimation.Draw(spriteBatch, Position);                       
 
             #region Draw the flag
             switch (CurrentFlagState)
@@ -840,19 +897,37 @@ namespace ArenaPlatformer1
                     break;
             }
             #endregion
+        }
 
-            #region Draw the shield
+        public void DrawEmissive(SpriteBatch spriteBatch)
+        {
+            #region Draw the Melee effect
+            if (MeleeTime.Y > 0)
+            {
+                //new Vector2(MeleeCollisionRectangle.X - MeleeCollisionRectangle.Width, MeleeCollisionRectangle.Y)
+                float perc = ((MeleeTime.Y / 100) * MeleeTime.X) / 100f;
+                Rectangle sourceRectangle = new Rectangle(0, 0, MeleeEffectTexture.Width, (int)(MeleeEffectTexture.Height * perc));
+                Rectangle drawRect = new Rectangle(MeleeCollisionRectangle.X, MeleeCollisionRectangle.Y, MeleeCollisionRectangle.Width, (int)(MeleeCollisionRectangle.Height * perc));
+                
+                if (AimDirection.X > 0)
+                    spriteBatch.Draw(MeleeEffectTexture, drawRect, sourceRectangle, Color.DeepSkyBlue, 0, Vector2.Zero, SpriteEffects.None, 0);
+                else
+                    spriteBatch.Draw(MeleeEffectTexture, drawRect, sourceRectangle, Color.DeepSkyBlue, 0, Vector2.Zero, SpriteEffects.FlipHorizontally, 0);
+            } 
+            #endregion
+
+            #region Draw the Shield
             if (ShieldActive == true)
             {
                 spriteBatch.Draw(ShieldTexture,
                     new Rectangle((int)Position.X, (int)Position.Y,
                                   CollisionRectangle.Height + 8, CollisionRectangle.Height + 8),
-                    null, Color.White, 0, new Vector2(ShieldTexture.Width / 2, ShieldTexture.Height / 2),
+                    null, Color.White * 0.5f, 0, new Vector2(ShieldTexture.Width / 2, ShieldTexture.Height / 2),
                     SpriteEffects.None, 0);
-            } 
+            }
             #endregion
         }
-        
+
         public void DrawInfo(SpriteBatch spriteBatch, GraphicsDevice graphics, BasicEffect basicEffect)
         {
             #region Draw the collision box for debugging
@@ -902,7 +977,58 @@ namespace ArenaPlatformer1
             {
                 pass.Apply();
                 graphics.DrawUserIndexedPrimitives(PrimitiveType.LineStrip, Vertices, 0, 4, Indices, 0, 6, VertexPositionColorTexture.VertexDeclaration);
-            } 
+            }
+            #endregion
+
+
+            #region Draw the MeleeCollisionRectangle
+            VertexPositionColorTexture[] Vertices2 = new VertexPositionColorTexture[4];
+            int[] Indices2 = new int[8];
+
+            Vertices2[0] = new VertexPositionColorTexture()
+            {
+                Color = Color.White,
+                Position = new Vector3(MeleeCollisionRectangle.Left, MeleeCollisionRectangle.Top, 0),
+                TextureCoordinate = new Vector2(0, 0)
+            };
+
+            Vertices2[1] = new VertexPositionColorTexture()
+            {
+                Color = Color.White,
+                Position = new Vector3(MeleeCollisionRectangle.Right - 1, MeleeCollisionRectangle.Top, 0),
+                TextureCoordinate = new Vector2(1, 0)
+            };
+
+            Vertices2[2] = new VertexPositionColorTexture()
+            {
+                Color = Color.White,
+                Position = new Vector3(MeleeCollisionRectangle.Right - 1, MeleeCollisionRectangle.Bottom - 1, 0),
+                TextureCoordinate = new Vector2(1, 1)
+            };
+
+            Vertices2[3] = new VertexPositionColorTexture()
+            {
+                Color = Color.White,
+                Position = new Vector3(MeleeCollisionRectangle.Left, MeleeCollisionRectangle.Bottom - 1, 0),
+                TextureCoordinate = new Vector2(0, 1)
+            };
+
+            Indices2[0] = 0;
+            Indices2[1] = 1;
+
+            Indices2[2] = 2;
+            Indices2[3] = 3;
+
+            Indices2[4] = 0;
+
+            Indices2[5] = 2;
+            Indices2[6] = 0;
+
+            foreach (EffectPass pass in basicEffect.CurrentTechnique.Passes)
+            {
+                pass.Apply();
+                graphics.DrawUserIndexedPrimitives(PrimitiveType.LineStrip, Vertices2, 0, 4, Indices2, 0, 6, VertexPositionColorTexture.VertexDeclaration);
+            }
             #endregion
         }
 

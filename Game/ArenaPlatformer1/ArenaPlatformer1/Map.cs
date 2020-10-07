@@ -10,7 +10,7 @@ namespace ArenaPlatformer1
 {
     //https://gamedevelopment.tutsplus.com/tutorials/basic-2d-platformer-physics-part-2--cms-25922?_ga=2.50805920.845617979.1510510859-1473812659.1510510859
 
-
+    [Serializable]
     public class Map
     {
         //Collision tiles
@@ -24,12 +24,12 @@ namespace ArenaPlatformer1
 
         //The size of the map in tiles
         public Vector2 MapSize = new Vector2(30, 17);
-
-        public int TreeGridWidth = 64;
+        
+        public int TreeGridWidth = 64;        
         public int TreeGridHeight = 64;
-
+        
         public List<MovingObject>[,] ObjectsInArea;
-
+        
         int HorizontalAreasCount;
         int VerticalAreasCount;
 
@@ -38,74 +38,75 @@ namespace ArenaPlatformer1
             Tiles = new TileType[(int)MapSize.X, (int)MapSize.Y];
             DrawTiles = new Tile[(int)MapSize.X, (int)MapSize.Y];
 
-            for (int x = 0; x < (int)MapSize.X; x++)
-            {
-                for (int y = 0; y < (int)MapSize.Y; y++)
-                {
-                    Tiles[x, y] = TileType.Empty;
-                }
-            }
+            //for (int x = 0; x < (int)MapSize.X; x++)
+            //{
+            //    for (int y = 0; y < (int)MapSize.Y; y++)
+            //    {
+            //        Tiles[x, y] = TileType.Empty;
+            //    }
+            //}
 
-            #region Add tiles
-            #region Border
-            for (int x = 0; x < MapSize.X; x++)
-            {
-                Tiles[x, 0] = TileType.Solid;
-            }
+            //#region Add tiles
+            //#region Border
+            //for (int x = 0; x < MapSize.X; x++)
+            //{
+            //    Tiles[x, 0] = TileType.Solid;
+            //}
 
-            for (int x = 0; x < MapSize.X; x++)
-            {
-                Tiles[x, (int)MapSize.Y - 1] = TileType.Solid;
-            }
+            //for (int x = 0; x < MapSize.X; x++)
+            //{
+            //    Tiles[x, (int)MapSize.Y - 1] = TileType.Solid;
+            //}
 
-            for (int y = 0; y < MapSize.Y; y++)
-            {
-                Tiles[0, y] = TileType.Solid;
-            }
+            //for (int y = 0; y < MapSize.Y; y++)
+            //{
+            //    Tiles[0, y] = TileType.Solid;
+            //}
 
-            for (int y = 0; y < MapSize.Y; y++)
-            {
-                Tiles[(int)MapSize.X - 1, y] = TileType.Solid;
-            }
-            #endregion
+            //for (int y = 0; y < MapSize.Y; y++)
+            //{
+            //    Tiles[(int)MapSize.X - 1, y] = TileType.Solid;
+            //}
+            //#endregion
 
-            Tiles[3, 11] = TileType.Solid;
-            Tiles[4, 11] = TileType.BouncePad;
+            //Tiles[3, 11] = TileType.Solid;
+            //Tiles[4, 11] = TileType.BouncePad;
 
-            for (int x = 10; x < 21; x++)
-            {
-                Tiles[x, 13] = TileType.Solid;
-            }
+            //for (int x = 10; x < 21; x++)
+            //{
+            //    Tiles[x, 13] = TileType.Solid;
+            //}
 
-            for (int x = 5; x < 10; x++)
-            {
-                Tiles[x, 14] = TileType.Solid;
-            }
+            //for (int x = 5; x < 10; x++)
+            //{
+            //    Tiles[x, 14] = TileType.Solid;
+            //}
 
-            for (int x = 5; x < 10; x++)
-            {
-                Tiles[x, 11] = TileType.Solid;
-            }
+            //for (int x = 5; x < 10; x++)
+            //{
+            //    Tiles[x, 11] = TileType.Solid;
+            //}
 
-            for (int x = 20; x < 25; x++)
-            {
-                Tiles[x, 12] = TileType.Solid;
-            }
+            //for (int x = 20; x < 25; x++)
+            //{
+            //    Tiles[x, 12] = TileType.Solid;
+            //}
 
-            for (int y = 5; y < 10; y++)
-            {
-                Tiles[8, y] = TileType.Solid;
-            }
+            //for (int y = 5; y < 10; y++)
+            //{
+            //    Tiles[8, y] = TileType.Solid;
+            //}
 
-            Tiles[6, (int)MapSize.Y - 1] = TileType.BouncePad;
-            Tiles[5, (int)MapSize.Y - 1] = TileType.BouncePad;
-
-
-            #endregion
+            //Tiles[6, (int)MapSize.Y - 1] = TileType.BouncePad;
+            //Tiles[5, (int)MapSize.Y - 1] = TileType.BouncePad;
+            //#endregion
         }
 
         public void Initialize()
         {
+            TreeGridWidth = 64;
+            TreeGridHeight = 64;
+
             HorizontalAreasCount = (int)Math.Ceiling((float)1920 / (float)TreeGridWidth);
             VerticalAreasCount = (int)Math.Ceiling((float)1080 / (float)TreeGridHeight);
 
@@ -118,10 +119,12 @@ namespace ArenaPlatformer1
                     ObjectsInArea[x, y] = new List<MovingObject>();
                 }
             }
-        }
+    }
 
         public void LoadContent(ContentManager content)
         {
+            DrawTiles = new Tile[(int)MapSize.X, (int)MapSize.Y];
+
             for (int x = 0; x < (int)MapSize.X; x++)
             {
                 for (int y = 0; y < (int)MapSize.Y; y++)
