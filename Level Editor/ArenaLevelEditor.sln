@@ -1,0 +1,29 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.27004.2005
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ArenaLevelEditor", "WindowsGame1\WindowsGame1\ArenaLevelEditor.csproj", "{3482145E-E433-4472-ACBC-6030EC288189}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WindowsGame1Content", "WindowsGame1\WindowsGame1Content\WindowsGame1Content.contentproj", "{1EA820CD-377C-4427-B089-4827430A1711}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x86 = Debug|x86
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{3482145E-E433-4472-ACBC-6030EC288189}.Debug|x86.ActiveCfg = Debug|x86
+		{3482145E-E433-4472-ACBC-6030EC288189}.Debug|x86.Build.0 = Debug|x86
+		{3482145E-E433-4472-ACBC-6030EC288189}.Release|x86.ActiveCfg = Release|x86
+		{3482145E-E433-4472-ACBC-6030EC288189}.Release|x86.Build.0 = Release|x86
+		{1EA820CD-377C-4427-B089-4827430A1711}.Debug|x86.ActiveCfg = Debug|x86
+		{1EA820CD-377C-4427-B089-4827430A1711}.Release|x86.ActiveCfg = Release|x86
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {67BCDE19-A716-411C-AA15-AFDEF4D8D045}
+	EndGlobalSection
+EndGlobal

@@ -1,0 +1,12 @@
+G:\Game Test Bench\ParticleEditor\WindowsGame1\WindowsGame1\WindowsGame1Content\obj\x86\Debug\WindowsGame1Content.contentprojResolveAssemblyReference.cache
+G:\Game Test Bench\ParticleEditor\Particle Editor v2\WindowsGame1\WindowsGame1Content\obj\x86\Debug\WindowsGame1Content.contentprojResolveAssemblyReference.cache
+G:\Game Test Bench\ParticleEditor\Particle Editor v3\WindowsGame1\WindowsGame1Content\obj\x86\Debug\WindowsGame1Content.contentprojResolveAssemblyReference.cache
+G:\Game Test Bench\ParticleEditor\Particle Editor v4\WindowsGame1\WindowsGame1Content\obj\x86\Debug\WindowsGame1Content.contentprojResolveAssemblyReference.cache
+G:\Game Test Bench\ParticleEditor\Particle Editor v5\WindowsGame1\WindowsGame1Content\obj\x86\Debug\WindowsGame1Content.contentprojResolveAssemblyReference.cache
+G:\Game Test Bench\ParticleEditor\Particle Editor v6\WindowsGame1\WindowsGame1Content\obj\x86\Debug\WindowsGame1Content.contentprojResolveAssemblyReference.cache
+D:\Game Test Bench\ParticleEditor\Particle Editor v6\WindowsGame1\WindowsGame1Content\obj\x86\Debug\WindowsGame1Content.contentprojResolveAssemblyReference.cache
+D:\Game Test Bench\ParticleEditor\Particle Editor v6\WindowsGame1\WindowsGame1Content\obj\x86\Debug\WindowsGame1Content.contentproj.CoreCompileInputs.cache
+D:\Game Test Bench\ArenaLevelEditor\Particle Editor v6\WindowsGame1\WindowsGame1Content\obj\x86\Debug\WindowsGame1Content.contentprojResolveAssemblyReference.cache
+D:\Game Test Bench\ArenaLevelEditor\Particle Editor v6\WindowsGame1\WindowsGame1Content\obj\x86\Debug\WindowsGame1Content.contentproj.CoreCompileInputs.cache
+D:\Game Test Bench\ArenaLevelEditor\ArenaLevelEditor1\WindowsGame1\WindowsGame1Content\obj\x86\Debug\WindowsGame1Content.contentprojResolveAssemblyReference.cache
+D:\Game Test Bench\ArenaLevelEditor\ArenaLevelEditor1\WindowsGame1\WindowsGame1Content\obj\x86\Debug\WindowsGame1Content.contentproj.CoreCompileInputs.cache
