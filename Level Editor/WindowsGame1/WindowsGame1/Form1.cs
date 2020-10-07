@@ -102,11 +102,21 @@ namespace ArenaLevelEditor
 
         private void pctSurface_MouseDown(object sender, MouseEventArgs e)
         {
-            Vector2 index = MyGame.CurrentMap.GetMapTileAtPoint(new Vector2(pctSurface.PointToClient(MousePosition).X, pctSurface.PointToClient(MousePosition).Y));
+            if (e.Button == MouseButtons.Left)
+            {
+                Vector2 index = MyGame.CurrentMap.GetMapTileAtPoint(new Vector2(pctSurface.PointToClient(MousePosition).X, pctSurface.PointToClient(MousePosition).Y));
 
-            MyGame.CurrentMap.Tiles[(int)index.X, (int)index.Y] = TileType.Solid;
-            MyGame.CurrentMap.ReloadTiles();
+                MyGame.CurrentMap.Tiles[(int)index.X, (int)index.Y] = TileType.Solid;
+                MyGame.CurrentMap.ReloadTiles();
+            }
 
+            if (e.Button == MouseButtons.Right)
+            {
+                Vector2 index = MyGame.CurrentMap.GetMapTileAtPoint(new Vector2(pctSurface.PointToClient(MousePosition).X, pctSurface.PointToClient(MousePosition).Y));
+
+                MyGame.CurrentMap.Tiles[(int)index.X, (int)index.Y] = TileType.Empty;
+                MyGame.CurrentMap.ReloadTiles();
+            }
            //emit.Position = new Vector2(pctSurface.PointToClient(MousePosition).X, pctSurface.PointToClient(MousePosition).Y);
 
         }

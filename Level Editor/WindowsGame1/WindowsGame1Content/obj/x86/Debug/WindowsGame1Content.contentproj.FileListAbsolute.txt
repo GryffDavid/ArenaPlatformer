@@ -14,5 +14,5 @@ D:\Game Test Bench\ArenaLevelEditor\ArenaLevelEditor2\WindowsGame1\WindowsGame1C
 D:\Game Test Bench\ArenaLevelEditor\ArenaLevelEditor2\WindowsGame1\WindowsGame1Content\obj\x86\Debug\WindowsGame1Content.contentproj.CoreCompileInputs.cache
 D:\Game Test Bench\ArenaLevelEditor\ArenaLevelEditor3\WindowsGame1\WindowsGame1Content\obj\x86\Debug\WindowsGame1Content.contentprojResolveAssemblyReference.cache
 D:\Game Test Bench\ArenaLevelEditor\ArenaLevelEditor3\WindowsGame1\WindowsGame1Content\obj\x86\Debug\WindowsGame1Content.contentproj.CoreCompileInputs.cache
-D:\Google Drive\Game Projects\ArenaPlatfomer (Nov 2017)\Level Editor\ArenaLevelEditor3\WindowsGame1\WindowsGame1Content\obj\x86\Debug\WindowsGame1Content.contentprojAssemblyReference.cache
-D:\Google Drive\Game Projects\ArenaPlatfomer (Nov 2017)\Level Editor\ArenaLevelEditor3\WindowsGame1\WindowsGame1Content\obj\x86\Debug\WindowsGame1Content.contentproj.CoreCompileInputs.cache
+D:\Game Test Bench\ArenaLevelEditor\ArenaLevelEditor4\WindowsGame1\WindowsGame1Content\obj\x86\Debug\WindowsGame1Content.contentprojResolveAssemblyReference.cache
+D:\Game Test Bench\ArenaLevelEditor\ArenaLevelEditor4\WindowsGame1\WindowsGame1Content\obj\x86\Debug\WindowsGame1Content.contentproj.CoreCompileInputs.cache

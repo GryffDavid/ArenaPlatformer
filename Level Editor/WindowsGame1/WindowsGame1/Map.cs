@@ -126,7 +126,7 @@ namespace ArenaLevelEditor
                         drawTile.LoadContent(content);
 
                         DrawTiles[x, y] = drawTile;
-                    }
+                    }                    
                 }
             }
         }
@@ -162,6 +162,11 @@ namespace ArenaLevelEditor
                         drawTile.LoadContent(contentManager);
 
                         DrawTiles[x, y] = drawTile;
+                    }
+
+                    if (Tiles[x, y] == TileType.Empty)
+                    {
+                        DrawTiles[x, y] = null;
                     }
                 }
             }

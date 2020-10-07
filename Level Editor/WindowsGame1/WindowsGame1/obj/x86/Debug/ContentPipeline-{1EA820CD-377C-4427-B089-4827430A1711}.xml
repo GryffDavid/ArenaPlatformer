@@ -7,8 +7,8 @@
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <Options>None</Options>
-      <Output>D:\Google Drive\Game Projects\ArenaPlatfomer (Nov 2017)\Level Editor\ArenaLevelEditor3\WindowsGame1\WindowsGame1\bin\x86\Debug\Content\Blank.xnb</Output>
-      <Time>2017-12-03T14:55:34+02:00</Time>
+      <Output>D:\Game Test Bench\ArenaLevelEditor\ArenaLevelEditor4\WindowsGame1\WindowsGame1\bin\x86\Debug\Content\Blank.xnb</Output>
+      <Time>2017-12-03T14:55:34.3796393+02:00</Time>
     </Item>
     <BuildSuccessful>true</BuildSuccessful>
     <Settings>
@@ -17,10 +17,10 @@
       <TargetProfile>HiDef</TargetProfile>
       <BuildConfiguration>Debug</BuildConfiguration>
       <CompressContent>false</CompressContent>
-      <RootDirectory>D:\Google Drive\Game Projects\ArenaPlatfomer (Nov 2017)\Level Editor\ArenaLevelEditor3\WindowsGame1\WindowsGame1Content\</RootDirectory>
-      <LoggerRootDirectory>D:\Google Drive\Game Projects\ArenaPlatfomer (Nov 2017)\Level Editor\ArenaLevelEditor3\WindowsGame1\WindowsGame1\</LoggerRootDirectory>
-      <IntermediateDirectory>D:\Google Drive\Game Projects\ArenaPlatfomer (Nov 2017)\Level Editor\ArenaLevelEditor3\WindowsGame1\WindowsGame1\obj\x86\Debug\</IntermediateDirectory>
-      <OutputDirectory>D:\Google Drive\Game Projects\ArenaPlatfomer (Nov 2017)\Level Editor\ArenaLevelEditor3\WindowsGame1\WindowsGame1\bin\x86\Debug\Content\</OutputDirectory>
+      <RootDirectory>D:\Game Test Bench\ArenaLevelEditor\ArenaLevelEditor4\WindowsGame1\WindowsGame1Content\</RootDirectory>
+      <LoggerRootDirectory>D:\Game Test Bench\ArenaLevelEditor\ArenaLevelEditor4\WindowsGame1\WindowsGame1\</LoggerRootDirectory>
+      <IntermediateDirectory>D:\Game Test Bench\ArenaLevelEditor\ArenaLevelEditor4\WindowsGame1\WindowsGame1\obj\x86\Debug\</IntermediateDirectory>
+      <OutputDirectory>D:\Game Test Bench\ArenaLevelEditor\ArenaLevelEditor4\WindowsGame1\WindowsGame1\bin\x86\Debug\Content\</OutputDirectory>
     </Settings>
     <Assemblies>
       <Assembly>
@@ -48,8 +48,8 @@
         <Value>2011-09-01T16:22:30+02:00</Value>
       </Assembly>
       <Assembly>
-        <Key>C:\WINDOWS\Microsoft.Net\assembly\GAC_32\Microsoft.Xna.Framework.Content.Pipeline\v4.0_4.0.0.0__842cf8be1de50553\Microsoft.Xna.Framework.Content.Pipeline.dll</Key>
-        <Value>2020-06-29T16:32:37.5662333+02:00</Value>
+        <Key>C:\Windows\Microsoft.Net\assembly\GAC_32\Microsoft.Xna.Framework.Content.Pipeline\v4.0_4.0.0.0__842cf8be1de50553\Microsoft.Xna.Framework.Content.Pipeline.dll</Key>
+        <Value>2017-10-14T11:21:25.4800111+02:00</Value>
       </Assembly>
     </Assemblies>
   </Asset>
