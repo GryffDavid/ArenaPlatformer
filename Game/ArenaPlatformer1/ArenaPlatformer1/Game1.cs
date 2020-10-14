@@ -351,8 +351,6 @@ namespace ArenaPlatformer1
             e.Player.Health.X = 100;
             e.Player.GunAmmo = 50;
             e.Player.Velocity = new Vector2(0, 0);
-
-            
         }
 
         public void OnExplosionHappened(object source, ExplosionEventArgs e)
@@ -685,6 +683,7 @@ namespace ArenaPlatformer1
         {
             spriteBatch = new SpriteBatch(GraphicsDevice);
 
+            
 
             #region Lighting
             Buffer2 = new RenderTarget2D(GraphicsDevice, 1920, 1080, false, SurfaceFormat.Rgba64, DepthFormat.None, 1, RenderTargetUsage.PreserveContents);
@@ -771,6 +770,7 @@ namespace ArenaPlatformer1
             ToonSmoke2 = Content.Load<Texture2D>("Particles/ToonSmoke/ToonSmoke2");
             ToonSmoke3 = Content.Load<Texture2D>("Particles/ToonSmoke/ToonSmoke3");
             //ProjectileList.Add(new Rocket() { Position = new Vector2(80, 80), Velocity = new Vector2(1, 0) });
+
         }
         
         protected override void UnloadContent()
@@ -1693,7 +1693,7 @@ namespace ArenaPlatformer1
         {
             string dir = Environment.CurrentDirectory;
             string newPath = Path.GetFullPath(Path.Combine(dir, @"..\..\..\..\..\..\Levels\\"));
-            newPath += "Level1.lvl";
+            newPath += "Level3.lvl";
 
             IFormatter formatter = new BinaryFormatter();
             formatter.Binder = new SerializationHelper();

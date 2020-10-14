@@ -209,7 +209,7 @@ namespace ArenaPlatformer1
         {
             PlayerIndex = playerIndex;
             Position = new Vector2(500 + (150 * (int)PlayerIndex), 500);
-            MaxSpeed = new Vector2(5f, 6);
+            MaxSpeed = new Vector2(3.5f, 6);
             Gravity = 0.6f;
             Size = new Vector2(59, 98);
             CurrentFlagState = FlagState.NoFlag;
@@ -366,17 +366,15 @@ namespace ArenaPlatformer1
 
             if (CurrentGamePadState.IsButtonUp(CurrentShootButton))
             {
-                MoveShootTime.X += (float)gameTime.ElapsedGameTime.TotalMilliseconds;
+                if (MoveShootTime.Y > MoveShootTime.X)
+                    MoveShootTime.X += (float)gameTime.ElapsedGameTime.TotalMilliseconds;
 
                 if (MoveShootTime.X >= MoveShootTime.Y)
                     Velocity.X += (MoveStick.X * 3f);
 
                 if (MoveShootTime.X < MoveShootTime.Y)
                 {
-                    if (InAir == false)
-                        Velocity.X *= 0.85f;
-                    else
-                        Velocity.X *= 0.95f;
+                    Velocity.X = 0f;
                 }
             }
 
@@ -389,26 +387,26 @@ namespace ArenaPlatformer1
                 Size = new Vector2(59, 74);
             }
 
-            #region Move stick down
-            if (MoveStick.Y < -0.75f)
-            {
-                CurrentPose = Pose.Crouching;
+            //#region Move stick down
+            //if (MoveStick.Y < -0.75f)
+            //{
+            //    CurrentPose = Pose.Crouching;
 
-                if (PreviousPose == Pose.Standing)
-                {
-                    Position.Y += 12;
-                }
-            }
-            else
-            {
-                CurrentPose = Pose.Standing;
+            //    if (PreviousPose == Pose.Standing)
+            //    {
+            //        Position.Y += 12;
+            //    }
+            //}
+            //else
+            //{
+            //    CurrentPose = Pose.Standing;
 
-                if (PreviousPose == Pose.Crouching)
-                {
-                    Position.Y -= 12;
-                }
-            }
-            #endregion
+            //    if (PreviousPose == Pose.Crouching)
+            //    {
+            //        Position.Y -= 12;
+            //    }
+            //}
+            //#endregion
 
             Velocity.Y += Gravity * ((float)gameTime.ElapsedGameTime.TotalSeconds * 60f);
 
@@ -442,15 +440,9 @@ namespace ArenaPlatformer1
             if (MoveStick.X == 0)
             {
                 if (InAir == false)
-                    Velocity.X *= 0.85f;
+                    Velocity.X = 0f;
                 else
-                    Velocity.X *= 0.95f;
-            }
-
-            if (Velocity.X <= 0.5f &&
-                Velocity.X >= -0.5f)
-            {
-                Velocity.X = 0f;
+                    Velocity.X *= 0.98f;
             }
             #endregion
 
@@ -482,9 +474,7 @@ namespace ArenaPlatformer1
                 if (CurrentGamePadState.IsButtonDown(CurrentShootButton))
                 {
                     if (InAir == false)
-                        Velocity.X *= 0.85f;
-                    else
-                        Velocity.X *= 0.95f;
+                        Velocity.X = 0f;
 
                     if (GunAmmo > 0)
                     {
