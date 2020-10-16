@@ -71,26 +71,21 @@
     <Reference Include="System.Net" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Animation.cs" />
-    <Compile Include="Items\CratePickup.cs" />
-    <Compile Include="Explosion.cs" />
-    <Compile Include="Grenade.cs" />
-    <Compile Include="Items\Guns\Gun.cs" />
-    <Compile Include="Items\Guns\RocketLauncher.cs" />
-    <Compile Include="HealthBar.cs" />
-    <Compile Include="Items\Item.cs" />
-    <Compile Include="Items\CratePickups\ShieldPickup.cs" />
-    <Compile Include="Items\TrapPickups\MinePickup.cs" />
-    <Compile Include="Level.cs" />
+    <Compile Include="Basics\Animation.cs" />
+    <Compile Include="Basics\Explosion.cs" />
+    <Compile Include="Basics\Grenade.cs" />
+    <Compile Include="Basics\HealthBar.cs" />
+    <Compile Include="Item.cs" />
+    <Compile Include="ItemSpawn.cs" />
     <Compile Include="Lighting\CrepuscularLight.cs" />
     <Compile Include="Lighting\Light.cs" />
     <Compile Include="Lighting\Occluder.cs" />
     <Compile Include="Lighting\PolygonShadow.cs" />
     <Compile Include="Lighting\Solid.cs" />
-    <Compile Include="LightProjectile.cs" />
-    <Compile Include="Map.cs" />
-    <Compile Include="MovingObject.cs" />
-    <Compile Include="MovingPlatform.cs" />
+    <Compile Include="Basics\LightProjectile.cs" />
+    <Compile Include="Basics\Map.cs" />
+    <Compile Include="Basics\MovingObject.cs" />
+    <Compile Include="Basics\MovingPlatform.cs" />
     <Compile Include="ParticleSystem\Buffers\ChangeBuffer.cs" />
     <Compile Include="ParticleSystem\Buffers\ChangeMessage.cs" />
     <Compile Include="ParticleSystem\Buffers\DoubleBuffer.cs" />
@@ -99,24 +94,22 @@
     <Compile Include="ParticleSystem\Emitter.cs" />
     <Compile Include="ParticleSystem\Managers\RenderManager.cs" />
     <Compile Include="ParticleSystem\Managers\UpdateManager.cs" />
+    <Compile Include="Pickups\ShieldPickup.cs" />
     <Compile Include="Player.cs" />
-    <Compile Include="Projectile.cs" />
+    <Compile Include="Basics\Projectile.cs" />
     <Compile Include="Projectiles\Bullet.cs" />
     <Compile Include="Projectiles\Rocket.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="aOtherStuff\Program.cs" />
     <Compile Include="Game1.cs" />
-    <Compile Include="BlueFlag.cs" />
-    <Compile Include="RedFlag.cs" />
-    <Compile Include="Tile.cs" />
-    <Compile Include="Trap.cs" />
-    <Compile Include="Items\TrapPickup.cs" />
+    <Compile Include="Basics\Tile.cs" />
+    <Compile Include="Basics\Trap.cs" />
     <Compile Include="Traps\BeamTrap.cs" />
     <Compile Include="Traps\BouncePadTrap.cs" />
     <Compile Include="Traps\Mine.cs" />
     <Compile Include="Traps\SpikesTrap.cs" />
     <Compile Include="UI\PlayerJoin.cs" />
-    <Compile Include="Camera.cs" />
+    <Compile Include="Basics\Camera.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="aOtherStuff\Game.ico" />
@@ -130,9 +123,7 @@
       <XnaReferenceType>Content</XnaReferenceType>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="MapEditor\" />
-  </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">
       <Visible>False</Visible>

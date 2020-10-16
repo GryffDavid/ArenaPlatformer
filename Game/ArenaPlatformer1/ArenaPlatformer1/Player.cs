@@ -534,92 +534,104 @@ namespace ArenaPlatformer1
 
                     if (Item.CollisionRectangle.Intersects(CollisionRectangle))
                     {
-                        #region Item is a TrapPickup
-                        if (Item as TrapPickup != null)
+                        switch (Item.ItemType)
                         {
-                            if (TrapAmmo <= 0)
-                            {
-                                CurrentTrap = (Item as TrapPickup).TrapType;
-                            }
-
-                            if (Item as MinePickup != null)
-                            {
-                                TrapAmmo++;
-                            }
-                        } 
-                        #endregion
-
-                        #region Item is a Gun
-                        if (Item as Gun != null)
-                        {
-                            if (GunAmmo <= 0)
-                            {
-                                GunAmmo += 15;
-                            }
-
-                            if ((Item as Gun).GunType == CurrentGun)
-                            {
-                                removeItem = false;
-                            }
-                            else
-                            {
-                                switch ((Item as Gun).GunType)
+                            case ItemType.Shield:
                                 {
-                                    #region Rocket Launcher
-                                    case GunType.RocketLauncher:
-                                        {
-                                            CurrentGun = GunType.RocketLauncher;
-                                        }
-                                        break;
-                                    #endregion
+                                    ShieldActive = true;
+                                    removeItem = true;
                                 }
-                            }
-                        }
-                        #endregion
-
-                        #region Item is a Flag
-                        if (Item as RedFlag != null)
-                        {
-                            if (CurrentFlagState == FlagState.NoFlag)
-                                CurrentFlagState = FlagState.HasRed;
-                            else
-                            {
-                                removeItem = false;
-                            }
+                                break;
                         }
 
-                        if (Item as BlueFlag != null)
-                        {
-                            if (CurrentFlagState == FlagState.NoFlag)
-                                CurrentFlagState = FlagState.HasBlue;
-                            else
-                            {
-                                removeItem = false;
-                            }
-                        }
-                        #endregion
+                        #region Old
+                        //#region Item is a TrapPickup
+                        //if (Item as TrapPickup != null)
+                        //{
+                        //    if (TrapAmmo <= 0)
+                        //    {
+                        //        CurrentTrap = (Item as TrapPickup).TrapType;
+                        //    }
 
-                        #region Item is a Crate
-                        if (Item as CratePickup != null)
-                        {
-                            switch ((Item as CratePickup).CrateType)
-                            {
-                                #region Shield Pickup
-                                case CrateType.ShieldPickup:
-                                    {
-                                        ShieldActive = true;
-                                    }
-                                    break; 
-                                    #endregion
-                            }
-                        }
+                        //    if (Item as MinePickup != null)
+                        //    {
+                        //        TrapAmmo++;
+                        //    }
+                        //}
+                        //#endregion
+
+                        //#region Item is a Gun
+                        //if (Item as Gun != null)
+                        //{
+                        //    if (GunAmmo <= 0)
+                        //    {
+                        //        GunAmmo += 15;
+                        //    }
+
+                        //    if ((Item as Gun).GunType == CurrentGun)
+                        //    {
+                        //        removeItem = false;
+                        //    }
+                        //    else
+                        //    {
+                        //        switch ((Item as Gun).GunType)
+                        //        {
+                        //            #region Rocket Launcher
+                        //            case GunType.RocketLauncher:
+                        //                {
+                        //                    CurrentGun = GunType.RocketLauncher;
+                        //                }
+                        //                break;
+                        //                #endregion
+                        //        }
+                        //    }
+                        //}
+                        //#endregion
+
+                        //#region Item is a Flag
+                        //if (Item as RedFlag != null)
+                        //{
+                        //    if (CurrentFlagState == FlagState.NoFlag)
+                        //        CurrentFlagState = FlagState.HasRed;
+                        //    else
+                        //    {
+                        //        removeItem = false;
+                        //    }
+                        //}
+
+                        //if (Item as BlueFlag != null)
+                        //{
+                        //    if (CurrentFlagState == FlagState.NoFlag)
+                        //        CurrentFlagState = FlagState.HasBlue;
+                        //    else
+                        //    {
+                        //        removeItem = false;
+                        //    }
+                        //}
+                        //#endregion
+
+                        //#region Item is a Crate
+                        //if (Item as CratePickup != null)
+                        //{
+                        //    switch ((Item as CratePickup).CrateType)
+                        //    {
+                        //        #region Shield Pickup
+                        //        case CrateType.ShieldPickup:
+                        //            {
+                        //                ShieldActive = true;
+                        //            }
+                        //            break;
+                        //            #endregion
+                        //    }
+                        //}
+                        //#endregion 
                         #endregion
 
                         if (removeItem == true)
                             ItemList.Remove(Item);
                     }
-                }); 
-            #endregion 
+                });
+            #endregion
 
             #region Trap Collisions
             if (TrapList != null)
@@ -668,33 +680,33 @@ namespace ArenaPlatformer1
             #region Player Died
             if (Health.X <= 0)
             {
-                #region Flag behaviour
-                switch (CurrentFlagState)
-                {
-                    case FlagState.NoFlag:
-                        break;
+                //#region Flag behaviour
+                //switch (CurrentFlagState)
+                //{
+                //    case FlagState.NoFlag:
+                //        break;
 
-                    case FlagState.HasRed:
-                        {
-                            RedFlag replacementFlag = new RedFlag() { Position = Position };
-                            replacementFlag.Initialize();
+                //    case FlagState.HasRed:
+                //        {
+                //            RedFlag replacementFlag = new RedFlag() { Position = Position };
+                //            replacementFlag.Initialize();
 
-                            ItemList.Add(replacementFlag);
-                            CurrentFlagState = FlagState.NoFlag;
-                        }
-                        break;
+                //            ItemList.Add(replacementFlag);
+                //            CurrentFlagState = FlagState.NoFlag;
+                //        }
+                //        break;
 
-                    case FlagState.HasBlue:
-                        {
-                            BlueFlag replacementFlag = new BlueFlag() { Position = Position };
-                            replacementFlag.Initialize();
+                //    case FlagState.HasBlue:
+                //        {
+                //            BlueFlag replacementFlag = new BlueFlag() { Position = Position };
+                //            replacementFlag.Initialize();
 
-                            ItemList.Add(replacementFlag);
-                            CurrentFlagState = FlagState.NoFlag;
-                        }
-                        break;
-                } 
-                #endregion
+                //            ItemList.Add(replacementFlag);
+                //            CurrentFlagState = FlagState.NoFlag;
+                //        }
+                //        break;
+                //} 
+                //#endregion
 
                 Deaths++;
                 IsShooting = false;
