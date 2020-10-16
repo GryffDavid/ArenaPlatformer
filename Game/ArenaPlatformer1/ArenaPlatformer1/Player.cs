@@ -327,7 +327,7 @@ namespace ArenaPlatformer1
             #region Jump
             if (CurrentGamePadState.IsButtonDown(CurrentJumpButton) &&
                 PreviousGamePadState.IsButtonUp(CurrentJumpButton) &&
-                Velocity.Y >= 0 &&
+                //Velocity.Y >= 0 &&
                 DoubleJumped == false)
             {
                 if (InAir == true)
@@ -347,9 +347,6 @@ namespace ArenaPlatformer1
             {
                 AimDirection.X = -1f;
                 CurrentFacing = Facing.Left;
-
-                //if (CurrentGamePadState.IsButtonUp(CurrentShootButton))
-                //    Velocity.X += (MoveStick.X * 3f);
             }
             #endregion
 
@@ -358,25 +355,11 @@ namespace ArenaPlatformer1
             {
                 AimDirection.X = 1f;
                 CurrentFacing = Facing.Right;
-
-                //if (CurrentGamePadState.IsButtonUp(CurrentShootButton))
-                //    Velocity.X += (MoveStick.X * 3f);
             }
             #endregion
 
-            if (CurrentGamePadState.IsButtonUp(CurrentShootButton))
-            {
-                if (MoveShootTime.Y > MoveShootTime.X)
-                    MoveShootTime.X += (float)gameTime.ElapsedGameTime.TotalMilliseconds;
 
-                if (MoveShootTime.X >= MoveShootTime.Y)
-                    Velocity.X += (MoveStick.X * 3f);
-
-                if (MoveShootTime.X < MoveShootTime.Y)
-                {
-                    Velocity.X = 0f;
-                }
-            }
+            Velocity.X += (MoveStick.X * 3f);
 
             if (CurrentPose == Pose.Standing)
             {
@@ -386,27 +369,6 @@ namespace ArenaPlatformer1
             {
                 Size = new Vector2(59, 74);
             }
-
-            //#region Move stick down
-            //if (MoveStick.Y < -0.75f)
-            //{
-            //    CurrentPose = Pose.Crouching;
-
-            //    if (PreviousPose == Pose.Standing)
-            //    {
-            //        Position.Y += 12;
-            //    }
-            //}
-            //else
-            //{
-            //    CurrentPose = Pose.Standing;
-
-            //    if (PreviousPose == Pose.Crouching)
-            //    {
-            //        Position.Y -= 12;
-            //    }
-            //}
-            //#endregion
 
             Velocity.Y += Gravity * ((float)gameTime.ElapsedGameTime.TotalSeconds * 60f);
 
@@ -469,32 +431,18 @@ namespace ArenaPlatformer1
             #endregion
 
             #region Shoot
+            #region Gun is not a flamethrower
             if (CurrentGun != GunType.Flamethrower)
             {
                 if (CurrentGamePadState.IsButtonDown(CurrentShootButton))
                 {
-                    if (InAir == false)
-                        Velocity.X = 0f;
-
                     if (GunAmmo > 0)
                     {
                         StickAngle = MathHelper.ToDegrees((float)Math.Atan2(MoveStick.Y, -MoveStick.X));
                         num = 4 + (int)Math.Round(StickAngle / 45f, 0);
-
-                        //switch (CurrentFacing)
-                        //{
-                        //    case Facing.Left:
-                        //        CreatePlayerShoot(new Vector2(-35, 0));
-                        //        break;
-
-                        //    case Facing.Right:
-                        //        CreatePlayerShoot(new Vector2(35, 0));
-                        //        break;
-                        //}
-
                         //GunAmmo--;
-                    }
-                }                
+                    } 
+                }
 
                 if (CurrentGamePadState.IsButtonUp(CurrentShootButton) &&
                     PreviousGamePadState.IsButtonDown(CurrentShootButton))
@@ -520,10 +468,9 @@ namespace ArenaPlatformer1
 
                         CreatePlayerShoot(temp2 * 35);
                     }
-
-                    MoveShootTime.X = 0;
                 }
-            }
+            } 
+            #endregion
 
             if (CurrentGamePadState.IsButtonDown(CurrentShootButton) &&
                 PreviousGamePadState.IsButtonDown(CurrentShootButton))

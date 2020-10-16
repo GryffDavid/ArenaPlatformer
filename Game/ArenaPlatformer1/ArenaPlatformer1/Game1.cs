@@ -534,7 +534,6 @@ namespace ArenaPlatformer1
 
         protected void LoadGameContent()
         {
-            //LoadLevel("Level3.lvl");
             MovingObject.Map = CurrentMap;
 
             GrenadeList = new List<Grenade>();
@@ -604,81 +603,81 @@ namespace ArenaPlatformer1
                 }
             }
 
-            #region Guns
+            Grenade.Texture = GameContentManager.Load<Texture2D>("GrenadeTexture");
+
             RocketLauncher.Texture = GameContentManager.Load<Texture2D>("Gun");
             FlameThrower.Texture = GameContentManager.Load<Texture2D>("Gun");
-
-            RocketLauncher launcher = new RocketLauncher()
-            {
-                Position = new Vector2(200, 200)
-            };
-            launcher.LoadContent(Content);
-            ItemList.Add(launcher);            
-
-            FlameThrower flameThrower = new FlameThrower()
-            {
-                Position = new Vector2(800, 500)
-            };
-            flameThrower.LoadContent(Content);
-            ItemList.Add(flameThrower);
-            
-            FlameThrower flameThrower2 = new FlameThrower()
-            {
-                Position = new Vector2(300, 500)
-            };
-            flameThrower2.LoadContent(Content);
-            ItemList.Add(flameThrower2);
-            #endregion
-
-            #region Traps
-            MinePickup.Texture = GameContentManager.Load<Texture2D>("Blank");
-            MinePickup mine = new MinePickup()
-            {
-                Position = new Vector2(500, 500)
-            };
-            mine.LoadContent(GameContentManager);
-            ItemList.Add(mine);
-            #endregion
 
             Player.ShieldTexture = GameContentManager.Load<Texture2D>("PlayerShield");
             Player.MeleeEffectTexture = GameContentManager.Load<Texture2D>("MeleeEffect1");
             Player.GunTexture = GameContentManager.Load<Texture2D>("Gun");
-
-            ShieldPickup.Texture = GameContentManager.Load<Texture2D>("Crate");
-            ShieldPickup shieldPickup = new ShieldPickup()
-            {
-                Position = new Vector2(1200, 800)
-            };
-            shieldPickup.LoadContent(GameContentManager);
-
-            ItemList.Add(shieldPickup);
-
             Player.BlueFlagTexture = GameContentManager.Load<Texture2D>("BlueFlag");
             Player.RedFlagTexture = GameContentManager.Load<Texture2D>("RedFlag");
 
-            #region Red Flag
+            MinePickup.Texture = GameContentManager.Load<Texture2D>("Blank");
+            ShieldPickup.Texture = GameContentManager.Load<Texture2D>("Crate");
+
             RedFlag.Texture = GameContentManager.Load<Texture2D>("RedFlag");
-            RedFlag redFlag = new RedFlag()
-            {
-                Position = new Vector2(400, 400)
-            };
-            redFlag.Initialize();
-            ItemList.Add(redFlag); 
-            #endregion
-
-            #region Blue Flag
             BlueFlag.Texture = GameContentManager.Load<Texture2D>("BlueFlag");
-            BlueFlag blueFlag = new BlueFlag()
-            {
-                Position = new Vector2(900, 400)
-            };
-            blueFlag.Initialize();
-            ItemList.Add(blueFlag); 
-            #endregion
 
-            Grenade.Texture = GameContentManager.Load<Texture2D>("GrenadeTexture");                        
             Emitter.Map = CurrentMap;
             Trap.Map = CurrentMap;
+
+            //#region Guns
+            //RocketLauncher launcher = new RocketLauncher()
+            //{
+            //    Position = new Vector2(200, 200)
+            //};
+            //launcher.LoadContent(Content);
+            //ItemList.Add(launcher);            
+
+            //FlameThrower flameThrower = new FlameThrower()
+            //{
+            //    Position = new Vector2(800, 500)
+            //};
+            //flameThrower.LoadContent(Content);
+            //ItemList.Add(flameThrower);
+
+            //FlameThrower flameThrower2 = new FlameThrower()
+            //{
+            //    Position = new Vector2(300, 500)
+            //};
+            //flameThrower2.LoadContent(Content);
+            //ItemList.Add(flameThrower2);
+            //#endregion
+
+            //ShieldPickup shieldPickup = new ShieldPickup()
+            //{
+            //    Position = new Vector2(1200, 800)
+            //};
+            //shieldPickup.LoadContent(GameContentManager);
+            //ItemList.Add(shieldPickup);
+
+            //MinePickup mine = new MinePickup() { Position = new Vector2(500, 500) };
+            //mine.LoadContent(GameContentManager);
+            //ItemList.Add(mine);
+
+            //#region Red Flag
+
+            ////RedFlag redFlag = new RedFlag()
+            ////{
+            ////    Position = new Vector2(400, 400)
+            ////};
+            ////redFlag.Initialize();
+            ////ItemList.Add(redFlag); 
+            //#endregion
+
+            //#region Blue Flag
+
+            //BlueFlag blueFlag = new BlueFlag()
+            //{
+            //    Position = new Vector2(900, 400)
+            //};
+            //blueFlag.Initialize();
+            //ItemList.Add(blueFlag); 
+            //#endregion
+
+
 
             Texture = GameContentManager.Load<Texture2D>("Backgrounds/Texture");
             NormalTexture = GameContentManager.Load<Texture2D>("Backgrounds/NormalTexture");            
