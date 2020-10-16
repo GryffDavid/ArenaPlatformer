@@ -57,7 +57,10 @@ namespace ArenaPlatformer1
 
             ObjectsInArea = new List<MovingObject>[HorizontalAreasCount, VerticalAreasCount];
             ItemSpawnList = new List<ItemSpawn>();
-            //ItemSpawnList.Add(new ItemSpawn(ItemType.Shield, new Vector2(100, 100)));
+
+            ItemType[] spawnItems = new ItemType[1];
+            spawnItems[0] = ItemType.Shield;
+            ItemSpawnList.Add(new ItemSpawn(spawnItems, new Vector2(100, 100)));
 
             for (int y = 0; y < VerticalAreasCount; y++)
             {

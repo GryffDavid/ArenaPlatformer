@@ -19,7 +19,7 @@ namespace ArenaPlatformer1
         /// <summary>
         /// The type of object that this spawn will create
         /// </summary>
-        public ItemType ItemSpawnType;
+        public ItemType[] ItemSpawnType;
 
         /// <summary>
         /// X = CurrentSpawnTime, Y = MaxSpawnTime
@@ -28,7 +28,7 @@ namespace ArenaPlatformer1
 
         public Vector2 Position;        
 
-        public ItemSpawn(ItemType itemType, Vector2 position)
+        public ItemSpawn(ItemType[] itemType, Vector2 position)
         {
             ItemSpawnType = itemType;
             Position = position;
@@ -56,14 +56,18 @@ namespace ArenaPlatformer1
 
         public void SpawnItem()
         {
-            switch (ItemSpawnType)
+            ItemType thing = ItemSpawnType[Random.Next(0, ItemSpawnType.Length)];
+
+            switch (thing)
             {
                 case ItemType.Shield:
                     {
-                        ItemList.Add(new ShieldPickup(Position));
+                        Item spawn = new ShieldPickup(Position);
+                        spawn.SpawnSource = this;
+                        ItemList.Add(spawn);
                     }
                     break;
-            }            
+            }
         }
     }
 }

@@ -538,6 +538,7 @@ namespace ArenaPlatformer1
                         {
                             case ItemType.Shield:
                                 {
+                                    Item.SpawnSource.SpawnTime.X = 0;
                                     ShieldActive = true;
                                     removeItem = true;
                                 }

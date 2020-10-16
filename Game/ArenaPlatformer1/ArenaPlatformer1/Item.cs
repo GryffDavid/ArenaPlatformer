@@ -20,6 +20,7 @@ namespace ArenaPlatformer1
         public Vector2 Position;
         public Rectangle DestinationRectangle, CollisionRectangle;
         public Texture2D Texture;
-        public ItemType ItemType;
+        public ItemSpawn SpawnSource;
+        public ItemType ItemType;        
     }
 }
