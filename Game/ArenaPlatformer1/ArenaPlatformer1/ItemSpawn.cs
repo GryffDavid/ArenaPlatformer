@@ -8,25 +8,20 @@ using Microsoft.Xna.Framework.Content;
 
 namespace ArenaPlatformer1
 {
-    /// <summary>
-    /// An object that can spawn an Item for the player to pick up
-    /// </summary>
+    [Serializable]
+    public enum ItemType { Shield };
+
+    [Serializable]
     public class ItemSpawn
     {
         static Random Random = new Random();
+
+        [NonSerialized]
         public static List<Item> ItemList;
 
-        /// <summary>
-        /// The type of object that this spawn will create
-        /// </summary>
         public ItemType[] ItemSpawnType;
-
-        /// <summary>
-        /// X = CurrentSpawnTime, Y = MaxSpawnTime
-        /// </summary>
         public Vector2 SpawnTime = new Vector2(0, 6000);
-
-        public Vector2 Position;        
+        public Vector2 Position;
 
         public ItemSpawn(ItemType[] itemType, Vector2 position)
         {
@@ -51,7 +46,7 @@ namespace ArenaPlatformer1
 
         public void Draw(SpriteBatch spriteBatch)
         {
-            
+
         }
 
         public void SpawnItem()

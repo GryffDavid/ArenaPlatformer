@@ -17,6 +17,7 @@ namespace ArenaPlatformer1
 
         //Collision tiles
         private TileType[,] Tiles;
+        public ItemSpawn[] ItemSpawnList;
 
         //Draw data
         public Tile[,] DrawTiles;
@@ -38,8 +39,6 @@ namespace ArenaPlatformer1
         
         int HorizontalAreasCount;
         int VerticalAreasCount;
-
-        public List<ItemSpawn> ItemSpawnList;
         
         public Map()
         {
@@ -56,12 +55,6 @@ namespace ArenaPlatformer1
             VerticalAreasCount = (int)Math.Ceiling((float)1080 / (float)TreeGridHeight);
 
             ObjectsInArea = new List<MovingObject>[HorizontalAreasCount, VerticalAreasCount];
-            ItemSpawnList = new List<ItemSpawn>();
-
-            ItemType[] spawnItems = new ItemType[1];
-            spawnItems[0] = ItemType.Shield;
-            ItemSpawnList.Add(new ItemSpawn(spawnItems, new Vector2(100, 100)));
-
             for (int y = 0; y < VerticalAreasCount; y++)
             {
                 for (var x = 0; x < HorizontalAreasCount; x++)
@@ -124,7 +117,7 @@ namespace ArenaPlatformer1
 
         public void Update(GameTime gameTime)
         {
-            foreach (ItemSpawn spawn in ItemSpawnList)
+            foreach (ItemSpawn spawn in ItemSpawnList.Where(Spawn => Spawn != null))
             {
                 spawn.Update(gameTime);
             }

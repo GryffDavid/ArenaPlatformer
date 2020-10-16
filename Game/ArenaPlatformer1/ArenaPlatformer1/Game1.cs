@@ -85,10 +85,7 @@ namespace ArenaPlatformer1
         RedTeam
     };
 
-    public enum ItemType
-    {
-        Shield
-    };
+   
     #endregion
 
     #region Events
@@ -1820,8 +1817,7 @@ namespace ArenaPlatformer1
 
             IFormatter formatter = new BinaryFormatter();
             formatter.Binder = new SerializationHelper();
-
-
+            
             Stream stream = new FileStream(newPath, FileMode.Open);
             Map loadMap = (Map)formatter.Deserialize(stream);
 
