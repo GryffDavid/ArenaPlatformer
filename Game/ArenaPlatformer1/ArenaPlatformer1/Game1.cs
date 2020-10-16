@@ -52,7 +52,9 @@ namespace ArenaPlatformer1
         MainMenu,
         ModeSelect,
         Playing,
-        LevelCreator
+        LevelSelect,
+        LevelCreator,
+        Paused
     };
 
     public enum DebuffType
@@ -261,6 +263,9 @@ namespace ArenaPlatformer1
         Camera Camera = new Camera();
 
         Rectangle ScreenRectangle = new Rectangle(0, 0, 1920, 1080);
+
+        List<string> LevelList = new List<string>();
+        int SelectedLevelIndex = 0;
 
         int BlueTeamScore = 0;
         int RedTeamScore = 0;
@@ -529,7 +534,7 @@ namespace ArenaPlatformer1
 
         protected void LoadGameContent()
         {
-            LoadLevel();
+            //LoadLevel("Level3.lvl");
             MovingObject.Map = CurrentMap;
 
             GrenadeList = new List<Grenade>();
@@ -811,8 +816,8 @@ namespace ArenaPlatformer1
 
                                 if (PlayerJoinButtons[i].Occupied == true)
                                 {
-                                    LoadGameContent();
-                                    GameState = GameState.Playing;
+                                    ListLevels();                                    
+                                    GameState = GameState.LevelSelect;
                                 }
 
                                 PlayerJoinButtons[i].Occupied = true;
@@ -886,6 +891,15 @@ namespace ArenaPlatformer1
                 #region Playing
                 case GameState.Playing:
                     {
+                        for (int i = 0; i < 4; i++)
+                        {
+                            if (CurrentGamePadStates[i].IsButtonUp(Buttons.Start) &&
+                                PreviousGamePadStates[i].IsButtonDown(Buttons.Start))
+                            {
+                                GameState = GameState.Paused;
+                            }
+                        }
+
                         if (CurrentMouseState.LeftButton == ButtonState.Released &&
                             PreviousMouseState.LeftButton == ButtonState.Pressed &&
                             this.IsActive == true)
@@ -1060,7 +1074,49 @@ namespace ArenaPlatformer1
                         EmitterList.RemoveAll(Emitter => Emitter.AddMore == false);
                     }
                     break;
-                    #endregion
+                #endregion
+
+                case GameState.LevelSelect:
+                    {
+                        for (int i = 0; i < 4; i++)
+                        {
+                            PlayerJoinButtons[i].Update(gameTime);
+                            
+                            if (CurrentGamePadStates[i].IsButtonUp(Buttons.DPadDown) &&
+                                PreviousGamePadStates[i].IsButtonDown(Buttons.DPadDown))
+                            {
+                                SelectedLevelIndex++;
+                            }
+
+                            if (CurrentGamePadStates[i].IsButtonUp(Buttons.DPadUp) &&
+                                PreviousGamePadStates[i].IsButtonDown(Buttons.DPadUp))
+                            {
+                                SelectedLevelIndex--;
+                            }
+
+                            if (CurrentGamePadStates[i].IsButtonUp(Buttons.A) &&
+                                PreviousGamePadStates[i].IsButtonDown(Buttons.A))
+                            {
+                                LoadLevel(Path.GetFileName(LevelList[SelectedLevelIndex]));
+                                LoadGameContent();
+                                GameState = GameState.Playing;
+                            }
+                        }
+                    }
+                    break;
+
+                case GameState.Paused:
+                    {
+                        for (int i = 0; i < 4; i++)
+                        {
+                            if (CurrentGamePadStates[i].IsButtonUp(Buttons.Start) &&
+                                PreviousGamePadStates[i].IsButtonDown(Buttons.Start))
+                            {                             
+                                GameState = GameState.Playing;
+                            }
+                        }
+                    }
+                    break;
             }
 
             for (int i = 0; i < 4; i++)
@@ -1111,9 +1167,13 @@ namespace ArenaPlatformer1
 
                 #region Playing
                 case GameState.Playing:
+                case GameState.Paused:
                     {
-                        DoubleBuffer.GlobalStartFrame(gameTime);
-                        RenderManager.DoFrame();
+                        if (GameState == GameState.Playing)
+                        {
+                            DoubleBuffer.GlobalStartFrame(gameTime);
+                            RenderManager.DoFrame();
+                        }
 
                         #region Emissive
                         #region Draw to EmissiveMap
@@ -1155,7 +1215,7 @@ namespace ArenaPlatformer1
 
                         #region Draw to ColorMap                        
                         GraphicsDevice.SetRenderTarget(ColorMap);
-                        GraphicsDevice.Clear(Color.Gray);
+                        GraphicsDevice.Clear(Color.LightGray);
                         spriteBatch.Begin(SpriteSortMode.BackToFront, BlendState.AlphaBlend);
                         
                         foreach (Player player in Players.Where(Player => Player != null))
@@ -1163,7 +1223,7 @@ namespace ArenaPlatformer1
                             player.Draw(spriteBatch);
                         }
 
-                        spriteBatch.Draw(Texture, new Rectangle(0, 0, 1920, 1080), null, Color.White, 0, Vector2.Zero, SpriteEffects.None, 1);
+                        //spriteBatch.Draw(Texture, new Rectangle(0, 0, 1920, 1080), null, Color.White, 0, Vector2.Zero, SpriteEffects.None, 1);
                         
                         foreach (Projectile projectile in ProjectileList)
                         {
@@ -1296,7 +1356,10 @@ namespace ArenaPlatformer1
 
                         #endregion
 
-                        DoubleBuffer.SubmitRender();
+                        if (GameState == GameState.Playing)
+                        {
+                            DoubleBuffer.SubmitRender();
+                        }
                     }
                     break;
                 #endregion
@@ -1315,8 +1378,29 @@ namespace ArenaPlatformer1
                         
                         spriteBatch.End();
                     }
-                    break; 
+                    break;
                 #endregion
+
+                case GameState.LevelSelect:
+                    {
+                        GraphicsDevice.SetRenderTarget(MenuRenderTarget);
+                        GraphicsDevice.Clear(Color.Black);
+                        spriteBatch.Begin();
+                        spriteBatch.DrawString(Font1, "Level Select", new Vector2(32, 32), Color.White);
+
+                        for (int i = 0; i < LevelList.Count; i++)
+                        {
+                            Color col = Color.Gray;
+
+                            if (SelectedLevelIndex == i)
+                                col = Color.White;
+
+                            spriteBatch.DrawString(Font1, LevelList[i], new Vector2(32, 64 + (25 * i)), col);
+                        }
+
+                        spriteBatch.End();
+                    }
+                    break;
             }
 
             #region Draw UI
@@ -1349,7 +1433,7 @@ namespace ArenaPlatformer1
             }
 
             if (DebugBoxes == true)
-                if (GameState == GameState.Playing)
+            if (GameState == GameState.Playing)
             {
                 for (int x = 0; x < 30; x++)
                 {
@@ -1432,7 +1516,7 @@ namespace ArenaPlatformer1
             }
 
             if (TileBoxes == true)
-                if (GameState == GameState.Playing)
+            if (GameState == GameState.Playing)
             {
                 foreach (Tile tile in CurrentMap.DrawTiles)
                 {
@@ -1449,23 +1533,26 @@ namespace ArenaPlatformer1
             }
 
             #region Player 1 info
-            for (int i = 0; i < Players.Count(); i++)
+            if (GameState == GameState.Playing)
             {
-                if (Players[i] != null)
+                for (int i = 0; i < Players.Count(); i++)
                 {
-                    Players[i].HealthBar.Draw(spriteBatch);
-                    //int y = 16;
-                    //spriteBatch.DrawString(Font1, "Health: " + Players[i].Health.X.ToString() + "/" + Players[i].Health.Y.ToString(), new Vector2(256 + (i * 256), y), Color.Red);
-                    //y += 16;
-                    //spriteBatch.DrawString(Font1, "Trap: " + Players[i].CurrentTrap.ToString(), new Vector2(256 + (i * 256), y), Color.Red);
-                    //y += 16;
-                    //spriteBatch.DrawString(Font1, "Trap Ammo: " + Players[i].TrapAmmo.ToString(), new Vector2(256 + (i * 256), y), Color.Red);
-                    //y += 16;
-                    //spriteBatch.DrawString(Font1, "Gun: " + Players[i].CurrentGun.ToString(), new Vector2(256 + (i * 256), y), Color.Red);
-                    //y += 16;
-                    //spriteBatch.DrawString(Font1, "Gun Ammo: " + Players[i].GunAmmo.ToString(), new Vector2(256 + (i * 256), y), Color.Red);
-                    //y += 16;
-                    //spriteBatch.DrawString(Font1, "Deahts: " + Players[i].Deaths.ToString(), new Vector2(256 + (i * 256), y), Color.Red);
+                    if (Players[i] != null)
+                    {
+                        Players[i].HealthBar.Draw(spriteBatch);
+                        //int y = 16;
+                        //spriteBatch.DrawString(Font1, "Health: " + Players[i].Health.X.ToString() + "/" + Players[i].Health.Y.ToString(), new Vector2(256 + (i * 256), y), Color.Red);
+                        //y += 16;
+                        //spriteBatch.DrawString(Font1, "Trap: " + Players[i].CurrentTrap.ToString(), new Vector2(256 + (i * 256), y), Color.Red);
+                        //y += 16;
+                        //spriteBatch.DrawString(Font1, "Trap Ammo: " + Players[i].TrapAmmo.ToString(), new Vector2(256 + (i * 256), y), Color.Red);
+                        //y += 16;
+                        //spriteBatch.DrawString(Font1, "Gun: " + Players[i].CurrentGun.ToString(), new Vector2(256 + (i * 256), y), Color.Red);
+                        //y += 16;
+                        //spriteBatch.DrawString(Font1, "Gun Ammo: " + Players[i].GunAmmo.ToString(), new Vector2(256 + (i * 256), y), Color.Red);
+                        //y += 16;
+                        //spriteBatch.DrawString(Font1, "Deahts: " + Players[i].Deaths.ToString(), new Vector2(256 + (i * 256), y), Color.Red);
+                    }
                 }
             }
             #endregion
@@ -1480,7 +1567,9 @@ namespace ArenaPlatformer1
             GraphicsDevice.Clear(Color.Black);
             spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Additive, null, null, null, null, Camera.Transform);
 
-            if (GameState != GameState.Playing && GameState != GameState.LevelCreator)
+            if (GameState != GameState.Playing && 
+                GameState != GameState.LevelCreator &&
+                GameState != GameState.Paused)
             {
                 spriteBatch.Draw(MenuRenderTarget, MenuRenderTarget.Bounds, Color.White);
             }
@@ -1689,11 +1778,11 @@ namespace ArenaPlatformer1
             return one + Random.NextDouble() * (two - one);
         }
 
-        public void LoadLevel()
+        public void LoadLevel(string levelName)
         {
             string dir = Environment.CurrentDirectory;
             string newPath = Path.GetFullPath(Path.Combine(dir, @"..\..\..\..\..\..\Levels\\"));
-            newPath += "Level3.lvl";
+            newPath += levelName;
 
             IFormatter formatter = new BinaryFormatter();
             formatter.Binder = new SerializationHelper();
@@ -1708,6 +1797,17 @@ namespace ArenaPlatformer1
             CurrentMap.LoadContent(Content);
             CurrentMap.Initialize();
         }
+
+        public void ListLevels()
+        {
+            string dir = Environment.CurrentDirectory;
+            string newPath = Path.GetFullPath(Path.Combine(dir, @"..\..\..\..\..\..\Levels"));
+
+            var thing = Directory.GetFiles(newPath, "*.lvl");
+
+            LevelList.AddRange(thing);
+        }
+
 
         sealed class SerializationHelper : SerializationBinder
         {

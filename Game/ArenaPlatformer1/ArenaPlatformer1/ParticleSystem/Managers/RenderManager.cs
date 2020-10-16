@@ -15,9 +15,7 @@ namespace ArenaPlatformer1
         private GameTime GameTime;
 
         protected ChangeBuffer MessageBuffer;
-
-        //Texture2D Texture;
-
+        
         public RenderManager(DoubleBuffer doubleBuffer)
         {
             DoubleBuffer = doubleBuffer;

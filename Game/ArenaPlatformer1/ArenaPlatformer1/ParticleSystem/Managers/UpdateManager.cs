@@ -34,9 +34,7 @@ namespace ArenaPlatformer1
             {
                 ParticleData gameData = ParticleDataObjects[i];
                 float Rot;
-
-
-
+                
                 #region Handle particle rotation
                 if (gameData.RotateVelocity == true)
                 {
@@ -47,19 +45,14 @@ namespace ArenaPlatformer1
                     Rot = gameData.Rotation + MathHelper.ToRadians(gameData.RotationIncrement) * ((float)gameTime.ElapsedGameTime.TotalSeconds * 60.0f);
                 }
                 #endregion
-
-
+                
                 gameData.Update(gameTime);
-
-
+                
                 #region Update position
 
                 Vector2 newPos = gameData.Position + gameData.Velocity;
                 #endregion
-
-
-
-
+                
                 float percTime = gameData.CurrentTime / gameData.MaxTime;
 
                 #region Fade transparency
@@ -87,14 +80,7 @@ namespace ArenaPlatformer1
                 #region Fade Colours
                 Color newCol = Color.Lerp(gameData.StartColor, gameData.EndColor, percTime);
                 #endregion
-
-
-
-
-
-
-
-
+                
                 //transparency = MathHelper.Lerp(gameData.StartingTransparency, 0, percTime);
 
                 ChangeMessage msg = new ChangeMessage()
