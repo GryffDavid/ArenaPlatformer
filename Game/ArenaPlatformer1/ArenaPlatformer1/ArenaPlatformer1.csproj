@@ -75,7 +75,6 @@
     <Compile Include="Items\CratePickup.cs" />
     <Compile Include="Explosion.cs" />
     <Compile Include="Grenade.cs" />
-    <Compile Include="Items\Guns\FlameThrower.cs" />
     <Compile Include="Items\Guns\Gun.cs" />
     <Compile Include="Items\Guns\RocketLauncher.cs" />
     <Compile Include="HealthBar.cs" />

@@ -14,12 +14,8 @@ namespace ArenaPlatformer1
 
     public class Player : MovingObject
     {
-        public static Player[] Players = new Player[4];
         public PlayerIndex PlayerIndex;
-        public static Random Random = new Random();
-
-        public HealthBar HealthBar;
-
+        
         #region Events
         public event PlayerShootHappenedEventHandler PlayerShootHappened;
         public void CreatePlayerShoot(Vector2 velocity)
@@ -82,6 +78,8 @@ namespace ArenaPlatformer1
         #endregion
 
         #region Shared Static
+        public static Random Random = new Random();
+        public static Player[] Players = new Player[4];
         public static List<Item> ItemList;
         public static List<Trap> TrapList;
         public static List<Projectile> ProjectileList;
@@ -110,7 +108,7 @@ namespace ArenaPlatformer1
                         HeadTexture;
 
         public static Texture2D RedFlagTexture, BlueFlagTexture;
-        public static Texture2D ShieldTexture, MeleeEffectTexture;
+        public static Texture2D ShieldTexture;
         public static Texture2D GunTexture;
         #endregion
 
@@ -128,6 +126,7 @@ namespace ArenaPlatformer1
         bool InAir = true;
         bool DoubleJumped = false;
 
+        public Vector2 BarrelEnd;        
         public Vector2 AimDirection, MaxSpeed;
         public float Gravity;
 
@@ -136,8 +135,10 @@ namespace ArenaPlatformer1
 
         Pose CurrentPose = Pose.Standing;
         Pose PreviousPose = Pose.Standing;
+
+        public Rectangle DestinationRectangle;
         #endregion
-        
+
         #region Gameplay Variables
         public int Deaths = 0;
         public int GunAmmo = 15;
@@ -148,6 +149,11 @@ namespace ArenaPlatformer1
         public TrapType CurrentTrap;
 
         public Vector2 Health = new Vector2(100, 100);
+        public HealthBar HealthBar;
+        #endregion
+
+        #region Timing
+        public Vector2 RespawnTime;
         #endregion
 
         /// <summary>
@@ -157,17 +163,13 @@ namespace ArenaPlatformer1
         public bool IsShooting = false;
         public bool WasShooting = false;
         public bool ShieldActive = false;
-
-        public Emitter flameEmitter;
-
+        
         /// <summary>
         /// Used to purchase upgrades and items between levels
         /// </summary>
         public int Credits;
 
         public FlagState CurrentFlagState;
-
-        //On team red or blue?
         public TeamColor TeamColor;
 
         #region Debuff
@@ -191,20 +193,6 @@ namespace ArenaPlatformer1
         }
         #endregion
 
-        public Vector2 RespawnTime, MeleeTime;
-
-        //The delay between firing a shot and being able to move again
-        public Vector2 MoveShootTime = new Vector2(0, 150);
-
-        public Vector2 MeleeCooldownTime = new Vector2(0, 500);
-
-        public Vector2 BarrelEnd;
-
-        public Rectangle DestinationRectangle, MeleeCollisionRectangle;
-
-        public float AimAngle, StickAngle;
-        float num = 0;
-        
         public Player(PlayerIndex playerIndex)
         {
             PlayerIndex = playerIndex;
@@ -225,7 +213,7 @@ namespace ArenaPlatformer1
 
         public new void Initialize()
         {
-
+            base.Initialize();
         }
 
         public void LoadContent(ContentManager content)
@@ -327,7 +315,6 @@ namespace ArenaPlatformer1
             #region Jump
             if (CurrentGamePadState.IsButtonDown(CurrentJumpButton) &&
                 PreviousGamePadState.IsButtonUp(CurrentJumpButton) &&
-                //Velocity.Y >= 0 &&
                 DoubleJumped == false)
             {
                 if (InAir == true)
@@ -357,7 +344,6 @@ namespace ArenaPlatformer1
                 CurrentFacing = Facing.Right;
             }
             #endregion
-
 
             Velocity.X += (MoveStick.X * 3f);
 
@@ -431,90 +417,35 @@ namespace ArenaPlatformer1
             #endregion
 
             #region Shoot
-            #region Gun is not a flamethrower
-            if (CurrentGun != GunType.Flamethrower)
+            switch (CurrentGun)
             {
-                if (CurrentGamePadState.IsButtonDown(CurrentShootButton))
-                {
-                    if (GunAmmo > 0)
+                #region RocketLauncher
+                case GunType.RocketLauncher:
                     {
-                        StickAngle = MathHelper.ToDegrees((float)Math.Atan2(MoveStick.Y, -MoveStick.X));
-                        num = 4 + (int)Math.Round(StickAngle / 45f, 0);
-                        //GunAmmo--;
-                    } 
-                }
-
-                if (CurrentGamePadState.IsButtonUp(CurrentShootButton) &&
-                    PreviousGamePadState.IsButtonDown(CurrentShootButton))
-                {
-                    //The player is not aiming the stick, use the facing direction.
-                    if (MoveStick == Vector2.Zero)
-                    {
-                        switch (CurrentFacing)
+                        if (PreviousGamePadState.IsButtonUp(CurrentShootButton) &&
+                            CurrentGamePadState.IsButtonDown(CurrentShootButton))
                         {
-                            case Facing.Left:
-                                CreatePlayerShoot(new Vector2(-35, 0));
-                                break;
-
-                            case Facing.Right:
-                                CreatePlayerShoot(new Vector2(35, 0));
-                                break;
-                        }
-                    }
-                    else //Player is aiming with the stick, fire in the direction;
-                    {
-                        float temp1 = MathHelper.ToRadians(num * 45);
-                        Vector2 temp2 = new Vector2((float)Math.Cos(temp1), (float)Math.Sin(temp1));
-
-                        CreatePlayerShoot(temp2 * 35);
-                    }
-                }
-            } 
-            #endregion
-
-            if (CurrentGamePadState.IsButtonDown(CurrentShootButton) &&
-                PreviousGamePadState.IsButtonDown(CurrentShootButton))
-            {
-                switch (CurrentGun)
-                {
-                    case GunType.Flamethrower:
-                        {
-                            IsShooting = true;
-
-                            if (flameEmitter != null)
+                            switch (CurrentFacing)
                             {
-                                Vector2 rang = new Vector2(
-                                            MathHelper.ToDegrees(-(float)Math.Atan2(AimDirection.Y, AimDirection.X)) - 5,
-                                            MathHelper.ToDegrees(-(float)Math.Atan2(AimDirection.Y, AimDirection.X)) + 5);
+                                case Facing.Left:
+                                    CreatePlayerShoot(new Vector2(-35, 0));
+                                    break;
 
-                                rang.X += 10 * (float)Math.Sin(gameTime.TotalGameTime.TotalSeconds*5);
-                                rang.Y += 10 * (float)Math.Sin(gameTime.TotalGameTime.TotalSeconds*5);
-
-                                flameEmitter.AngleRange = rang;
+                                case Facing.Right:
+                                    CreatePlayerShoot(new Vector2(35, 0));
+                                    break;
                             }
-
                         }
-                        break;
-                }
-            }
-
-            if (CurrentGamePadState.IsButtonUp(CurrentShootButton) &&
-                PreviousGamePadState.IsButtonUp(CurrentShootButton))
-            {
-                IsShooting = false;
-            }
-
-            if (IsShooting == false && WasShooting == true && flameEmitter != null)
-            {
-                flameEmitter.AddMore = false;
-            }
+                    }
+                    break; 
+                    #endregion
+            }      
             #endregion
 
             #region Grenade
             if (CurrentGamePadState.IsButtonDown(CurrentGrenadeButton) &&
                 PreviousGamePadState.IsButtonUp(CurrentGrenadeButton))
             {
-                //Create grenades!
                 CreatePlayerGrenade();
             }
             #endregion
@@ -525,68 +456,14 @@ namespace ArenaPlatformer1
             {
                 if (TrapAmmo > 0)
                 {
-                    //Create traps!
                     CreatePlaceTrap(Position, TrapType.Mine);
                     TrapAmmo--;
                 }
             }
             #endregion
-
-            #region Melee Attack
-            if (CurrentGamePadState.IsButtonDown(CurrentMeleeButton) &&
-                PreviousGamePadState.IsButtonUp(CurrentMeleeButton) &&
-                MeleeCooldownTime.X >= MeleeCooldownTime.Y)
-            {
-                MeleeTime.Y = 100f;
-
-                MeleeCooldownTime.X = 0;
-            }
-            #endregion
-
-            if (MeleeCooldownTime.X < MeleeCooldownTime.Y)
-            {
-                MeleeCooldownTime.X += (float)gameTime.ElapsedGameTime.TotalMilliseconds;
-            }
-
-            #region Melee Collisions
-            for (int i = 0; i < Players.Length; i++)
-            {
-                if (Players[i] != null && i != (int)(PlayerIndex))
-                {
-                    if (Players[i].MeleeCollisionRectangle != null &&
-                        Players[i].MeleeCollisionRectangle.Width > 0)
-                    {
-                        if (CollisionRectangle.Intersects(Players[i].MeleeCollisionRectangle))
-                        {
-                            Health.X = 0;
-                        }
-                    }
-                }
-            }
-            #endregion
-
-            if (MeleeTime.Y > 0)
-            {
-                MeleeTime.X += (float)gameTime.ElapsedGameTime.TotalMilliseconds;
-                
-                if (AimDirection.X < 0)
-                {
-                    MeleeCollisionRectangle = new Rectangle((int)(Position.X - (HalfSize.X) - 40), (int)(Position.Y - HalfSize.Y), 40, (int)Size.Y);
-                }
-                else
-                {
-                    MeleeCollisionRectangle = new Rectangle((int)(Position.X + (HalfSize.X)), (int)(Position.Y - HalfSize.Y), 40, (int)Size.Y);
-                }
-
-                if (MeleeTime.X >= MeleeTime.Y)
-                {
-                    MeleeCollisionRectangle = new Rectangle(0, 0, 0, 0);
-                    MeleeTime = Vector2.Zero;
-                }
-            }
-
-                #region Change Animation Direction
-                switch (CurrentFacing)
+            
+            #region Change Animation Direction
+            switch (CurrentFacing)
             {
                 #region Left
                 case Facing.Left:
@@ -680,14 +557,6 @@ namespace ArenaPlatformer1
                                 GunAmmo += 15;
                             }
 
-                            #region Disable the flame emitter if another gun is picked up
-                            if ((Item as Gun).GunType != GunType.Flamethrower)
-                            {
-                                if (flameEmitter != null)
-                                    flameEmitter = null;
-                            }
-                            #endregion
-
                             if ((Item as Gun).GunType == CurrentGun)
                             {
                                 removeItem = false;
@@ -703,15 +572,6 @@ namespace ArenaPlatformer1
                                         }
                                         break;
                                     #endregion
-
-                                    #region Flamethrower
-                                    case GunType.Flamethrower:
-                                        {
-                                            CurrentGun = GunType.Flamethrower;
-                                            //CurrentDebuff = new DebuffData(DebuffType.ScrambleButtons, new Vector2(0, 15000));
-                                        }
-                                        break;
-                                        #endregion
                                 }
                             }
                         }
@@ -767,6 +627,17 @@ namespace ArenaPlatformer1
                 {
                     if (Trap.Active == true && Trap.CollisionRectangle.Intersects(CollisionRectangle))
                     {
+                        switch (Trap.TrapType)
+                        {
+                            #region Fire
+                            case TrapType.Fire:
+                                {
+
+                                }
+                                break;
+                            #endregion
+                        }
+
                         Health.X -= 20;
                         Trap.Reset();
                     }
@@ -826,7 +697,6 @@ namespace ArenaPlatformer1
                 #endregion
 
                 Deaths++;
-                flameEmitter = null;
                 IsShooting = false;
                 WasShooting = false;
                 CreatePlayerDied();
@@ -855,22 +725,6 @@ namespace ArenaPlatformer1
             #endregion
 
             BarrelEnd = Position + new Vector2(AimDirection.X * 28, -12);
-
-            if (flameEmitter != null)
-            {
-                flameEmitter.Update(gameTime);
-                flameEmitter.Position = BarrelEnd;
-                flameEmitter.SpeedRange = new Vector2(
-                    6 + Math.Abs(Velocity.X * 2),
-                    8 + Math.Abs(Velocity.X * 2));
-
-                if (Math.Abs(Velocity.X) > 0)
-                {
-                    flameEmitter.Friction.X = 0;
-                }
-
-                flameEmitter.Friction.Y = 0.05f;
-            }
         }
 
         public void Draw(SpriteBatch spriteBatch)
@@ -878,12 +732,12 @@ namespace ArenaPlatformer1
             if (CurrentAnimation != null)
                 CurrentAnimation.Draw(spriteBatch, Position);
 
-            if (CurrentGamePadState.IsButtonDown(ShootButton))
-            {
-                spriteBatch.Draw(GunTexture, new Rectangle((int)Position.X, (int)Position.Y, GunTexture.Width, GunTexture.Height), null, Color.White,
-                    MathHelper.ToRadians(num * 45),
-                    new Vector2(0, GunTexture.Height / 2), SpriteEffects.None, 0);
-            }
+            //if (CurrentGamePadState.IsButtonDown(ShootButton))
+            //{
+            //    spriteBatch.Draw(GunTexture, new Rectangle((int)Position.X, (int)Position.Y, GunTexture.Width, GunTexture.Height), null, Color.White,
+            //        MathHelper.ToRadians(num * 45),
+            //        new Vector2(0, GunTexture.Height / 2), SpriteEffects.None, 0);
+            //}
 
             #region Draw the flag
             switch (CurrentFlagState)
@@ -908,21 +762,6 @@ namespace ArenaPlatformer1
 
         public void DrawEmissive(SpriteBatch spriteBatch)
         {
-            #region Draw the Melee effect
-            if (MeleeTime.Y > 0)
-            {
-                //new Vector2(MeleeCollisionRectangle.X - MeleeCollisionRectangle.Width, MeleeCollisionRectangle.Y)
-                float perc = ((MeleeTime.Y / 100) * MeleeTime.X) / 100f;
-                Rectangle sourceRectangle = new Rectangle(0, 0, MeleeEffectTexture.Width, (int)(MeleeEffectTexture.Height * perc));
-                Rectangle drawRect = new Rectangle(MeleeCollisionRectangle.X, MeleeCollisionRectangle.Y, MeleeCollisionRectangle.Width, (int)(MeleeCollisionRectangle.Height * perc));
-                
-                if (AimDirection.X > 0)
-                    spriteBatch.Draw(MeleeEffectTexture, drawRect, sourceRectangle, Color.DeepSkyBlue, 0, Vector2.Zero, SpriteEffects.None, 0);
-                else
-                    spriteBatch.Draw(MeleeEffectTexture, drawRect, sourceRectangle, Color.DeepSkyBlue, 0, Vector2.Zero, SpriteEffects.FlipHorizontally, 0);
-            } 
-            #endregion
-
             #region Draw the Shield
             if (ShieldActive == true)
             {
@@ -986,57 +825,6 @@ namespace ArenaPlatformer1
                 graphics.DrawUserIndexedPrimitives(PrimitiveType.LineStrip, Vertices, 0, 4, Indices, 0, 6, VertexPositionColorTexture.VertexDeclaration);
             }
             #endregion
-
-
-            #region Draw the MeleeCollisionRectangle
-            VertexPositionColorTexture[] Vertices2 = new VertexPositionColorTexture[4];
-            int[] Indices2 = new int[8];
-
-            Vertices2[0] = new VertexPositionColorTexture()
-            {
-                Color = Color.White,
-                Position = new Vector3(MeleeCollisionRectangle.Left, MeleeCollisionRectangle.Top, 0),
-                TextureCoordinate = new Vector2(0, 0)
-            };
-
-            Vertices2[1] = new VertexPositionColorTexture()
-            {
-                Color = Color.White,
-                Position = new Vector3(MeleeCollisionRectangle.Right - 1, MeleeCollisionRectangle.Top, 0),
-                TextureCoordinate = new Vector2(1, 0)
-            };
-
-            Vertices2[2] = new VertexPositionColorTexture()
-            {
-                Color = Color.White,
-                Position = new Vector3(MeleeCollisionRectangle.Right - 1, MeleeCollisionRectangle.Bottom - 1, 0),
-                TextureCoordinate = new Vector2(1, 1)
-            };
-
-            Vertices2[3] = new VertexPositionColorTexture()
-            {
-                Color = Color.White,
-                Position = new Vector3(MeleeCollisionRectangle.Left, MeleeCollisionRectangle.Bottom - 1, 0),
-                TextureCoordinate = new Vector2(0, 1)
-            };
-
-            Indices2[0] = 0;
-            Indices2[1] = 1;
-
-            Indices2[2] = 2;
-            Indices2[3] = 3;
-
-            Indices2[4] = 0;
-
-            Indices2[5] = 2;
-            Indices2[6] = 0;
-
-            foreach (EffectPass pass in basicEffect.CurrentTechnique.Passes)
-            {
-                pass.Apply();
-                graphics.DrawUserIndexedPrimitives(PrimitiveType.LineStrip, Vertices2, 0, 4, Indices2, 0, 6, VertexPositionColorTexture.VertexDeclaration);
-            }
-            #endregion
         }
 
 
@@ -1066,6 +854,13 @@ namespace ArenaPlatformer1
             CurrentShootButton = ShootButton;
             CurrentGrenadeButton = GrenadeButton;
             CurrentTrapButton = TrapButton;
+        }
+
+
+        public void Respawn()
+        {
+            Vector2 index = Map.FindSpawn();
+            Position = Map.GetTilePosition((int)index.X, (int)index.Y) + (Map.TileSize * new Vector2(0.5f, 1f));
         }
     }
 }

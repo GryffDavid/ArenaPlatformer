@@ -94,6 +94,8 @@ namespace ArenaPlatformer1
         public void Initialize()
         {
             //HalfSize = Size / 2;
+            Areas = new List<Vector2>();
+            IDsInAreas = new List<int>();
         }
 
         public virtual void Update(GameTime gameTime)

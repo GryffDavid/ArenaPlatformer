@@ -13,6 +13,8 @@ namespace ArenaPlatformer1
     [Serializable]
     public class Map
     {
+        public static Random Random = new Random();
+
         //Collision tiles
         private TileType[,] Tiles;
 
@@ -24,82 +26,23 @@ namespace ArenaPlatformer1
 
         //The size of the map in tiles
         public Vector2 MapSize = new Vector2(30, 17);
+
+        public List<Vector2> SpawnTiles;
         
         public int TreeGridWidth = 64;        
         public int TreeGridHeight = 64;
         
         public List<MovingObject>[,] ObjectsInArea;
+
+        public List<Light> LightList;
         
         int HorizontalAreasCount;
         int VerticalAreasCount;
-
+        
         public Map()
         {
             Tiles = new TileType[(int)MapSize.X, (int)MapSize.Y];
-            DrawTiles = new Tile[(int)MapSize.X, (int)MapSize.Y];
-
-            //for (int x = 0; x < (int)MapSize.X; x++)
-            //{
-            //    for (int y = 0; y < (int)MapSize.Y; y++)
-            //    {
-            //        Tiles[x, y] = TileType.Empty;
-            //    }
-            //}
-
-            //#region Add tiles
-            //#region Border
-            //for (int x = 0; x < MapSize.X; x++)
-            //{
-            //    Tiles[x, 0] = TileType.Solid;
-            //}
-
-            //for (int x = 0; x < MapSize.X; x++)
-            //{
-            //    Tiles[x, (int)MapSize.Y - 1] = TileType.Solid;
-            //}
-
-            //for (int y = 0; y < MapSize.Y; y++)
-            //{
-            //    Tiles[0, y] = TileType.Solid;
-            //}
-
-            //for (int y = 0; y < MapSize.Y; y++)
-            //{
-            //    Tiles[(int)MapSize.X - 1, y] = TileType.Solid;
-            //}
-            //#endregion
-
-            //Tiles[3, 11] = TileType.Solid;
-            //Tiles[4, 11] = TileType.BouncePad;
-
-            //for (int x = 10; x < 21; x++)
-            //{
-            //    Tiles[x, 13] = TileType.Solid;
-            //}
-
-            //for (int x = 5; x < 10; x++)
-            //{
-            //    Tiles[x, 14] = TileType.Solid;
-            //}
-
-            //for (int x = 5; x < 10; x++)
-            //{
-            //    Tiles[x, 11] = TileType.Solid;
-            //}
-
-            //for (int x = 20; x < 25; x++)
-            //{
-            //    Tiles[x, 12] = TileType.Solid;
-            //}
-
-            //for (int y = 5; y < 10; y++)
-            //{
-            //    Tiles[8, y] = TileType.Solid;
-            //}
-
-            //Tiles[6, (int)MapSize.Y - 1] = TileType.BouncePad;
-            //Tiles[5, (int)MapSize.Y - 1] = TileType.BouncePad;
-            //#endregion
+            DrawTiles = new Tile[(int)MapSize.X, (int)MapSize.Y];            
         }
 
         public void Initialize()
@@ -118,42 +61,55 @@ namespace ArenaPlatformer1
                 {
                     ObjectsInArea[x, y] = new List<MovingObject>();
                 }
-            }
-    }
+            }            
+        }
 
         public void LoadContent(ContentManager content)
         {
             DrawTiles = new Tile[(int)MapSize.X, (int)MapSize.Y];
+            SpawnTiles = new List<Vector2>();
+            LightList = new List<Light>();
 
             for (int x = 0; x < (int)MapSize.X; x++)
             {
                 for (int y = 0; y < (int)MapSize.Y; y++)
                 {
-                    if (Tiles[x, y] == TileType.Solid)
+                    switch (Tiles[x, y])
                     {
-                        Tile drawTile = new Tile()
-                        {
-                            Size = TileSize,
-                            Position = new Vector2(x * TileSize.X, y * TileSize.Y)
-                        };
-                        drawTile.Index = new Vector2(x, y);
-                        drawTile.LoadContent(content);
-                        
-                        DrawTiles[x, y] = drawTile;
-                    }
+                        case TileType.Spawn:
+                            {
+                                SpawnTiles.Add(new Vector2(x, y));
+                            }
+                            break;
 
-                    if (Tiles[x, y] == TileType.BouncePad)
-                    {
-                        Tile drawTile = new Tile()
-                        {
-                            Size = TileSize,
-                            Position = new Vector2(x * TileSize.X, y * TileSize.Y),
-                            Color = Color.Red
-                        };
-                        drawTile.Index = new Vector2(x, y);
-                        drawTile.LoadContent(content);
+                        case TileType.Solid:
+                            {
+                                Tile drawTile = new Tile()
+                                {
+                                    Size = TileSize,
+                                    Position = new Vector2(x * TileSize.X, y * TileSize.Y)
+                                };
+                                drawTile.Index = new Vector2(x, y);
+                                drawTile.LoadContent(content);
 
-                        DrawTiles[x, y] = drawTile;
+                                DrawTiles[x, y] = drawTile;
+                            }
+                            break;
+
+                        case TileType.BouncePad:
+                            {
+                                Tile drawTile = new Tile()
+                                {
+                                    Size = TileSize,
+                                    Position = new Vector2(x * TileSize.X, y * TileSize.Y),
+                                    Color = Color.Red
+                                };
+                                drawTile.Index = new Vector2(x, y);
+                                drawTile.LoadContent(content);
+
+                                DrawTiles[x, y] = drawTile;
+                            }
+                            break;
                     }
                 }
             }
@@ -417,6 +373,14 @@ namespace ArenaPlatformer1
             }
         }
 
-        
+        public Vector2 FindSpawn()
+        {
+            if (SpawnTiles.Count == 0)
+            {
+                return new Vector2(5, 5);
+            }
+            else
+                return SpawnTiles[Random.Next(0, SpawnTiles.Count)];
+        }        
     }
 }

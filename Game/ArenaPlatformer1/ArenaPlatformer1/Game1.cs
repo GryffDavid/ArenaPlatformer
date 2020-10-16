@@ -42,7 +42,6 @@ namespace ArenaPlatformer1
     {
         RocketLauncher,
         BeamGun,
-        Flamethrower,
         GrenadeLauncher,
         Shotgun
     };
@@ -220,7 +219,7 @@ namespace ArenaPlatformer1
 
         Matrix Projection = Matrix.CreateOrthographicOffCenter(0, 1920, 1080, 0, 0, 1);
 
-        List<Light> LightList = new List<Light>();
+        //List<Light> LightList = new List<Light>();
         List<Solid> SolidList = new List<Solid>();
 
         //Color AmbientLight = new Color(0.1f, 0.1f, 0.1f, 1f);
@@ -266,6 +265,9 @@ namespace ArenaPlatformer1
 
         List<string> LevelList = new List<string>();
         int SelectedLevelIndex = 0;
+
+        List<string> PauseMenuOptions = new List<string>() {"Level Select", "Main Menu", "Exit"};
+        int SelectedPauseMenu = 0;
 
         int BlueTeamScore = 0;
         int RedTeamScore = 0;
@@ -352,7 +354,7 @@ namespace ArenaPlatformer1
                 EmitterList.Add(emitter);
             }
 
-            e.Player.Position = new Vector2(100, 100 + 64);
+            e.Player.Respawn();
             e.Player.Health.X = 100;
             e.Player.GunAmmo = 50;
             e.Player.Velocity = new Vector2(0, 0);
@@ -539,7 +541,7 @@ namespace ArenaPlatformer1
             GrenadeList = new List<Grenade>();
 
             Player.Players = Players;
-
+            
             ProjectileList = new List<Projectile>();
             Player.ProjectileList = ProjectileList;
 
@@ -584,7 +586,7 @@ namespace ArenaPlatformer1
             ParticleTexture = GameContentManager.Load<Texture2D>("Particles/diamond");
             #endregion
 
-            LightList.Add(new Light()
+            CurrentMap.LightList.Add(new Light()
             {
                 Color = Color.OrangeRed,
                 Active = true,
@@ -606,10 +608,8 @@ namespace ArenaPlatformer1
             Grenade.Texture = GameContentManager.Load<Texture2D>("GrenadeTexture");
 
             RocketLauncher.Texture = GameContentManager.Load<Texture2D>("Gun");
-            FlameThrower.Texture = GameContentManager.Load<Texture2D>("Gun");
 
             Player.ShieldTexture = GameContentManager.Load<Texture2D>("PlayerShield");
-            Player.MeleeEffectTexture = GameContentManager.Load<Texture2D>("MeleeEffect1");
             Player.GunTexture = GameContentManager.Load<Texture2D>("Gun");
             Player.BlueFlagTexture = GameContentManager.Load<Texture2D>("BlueFlag");
             Player.RedFlagTexture = GameContentManager.Load<Texture2D>("RedFlag");
@@ -686,9 +686,7 @@ namespace ArenaPlatformer1
         protected override void LoadContent()
         {
             spriteBatch = new SpriteBatch(GraphicsDevice);
-
             
-
             #region Lighting
             Buffer2 = new RenderTarget2D(GraphicsDevice, 1920, 1080, false, SurfaceFormat.Rgba64, DepthFormat.None, 1, RenderTargetUsage.PreserveContents);
             Buffer1 = new RenderTarget2D(GraphicsDevice, 1920, 1080);
@@ -749,9 +747,9 @@ namespace ArenaPlatformer1
 
             Font1 = Content.Load<SpriteFont>("Font1");
 
-            CurrentMap = new Map();
-            CurrentMap.Initialize();
-            CurrentMap.LoadContent(Content);
+            //CurrentMap = new Map();
+            //CurrentMap.Initialize();
+            //CurrentMap.LoadContent(Content);
 
             Texture2D ButtonTexture = Content.Load<Texture2D>("Blank");
 
@@ -782,6 +780,10 @@ namespace ArenaPlatformer1
 
         }
 
+        protected void UnloadGameContent()
+        {
+            GameContentManager.Unload();
+        }
 
         
         protected override void Update(GameTime gameTime)
@@ -791,7 +793,7 @@ namespace ArenaPlatformer1
 
             for (int i = 0; i < 4; i++)
             {
-                CurrentGamePadStates[i] = GamePad.GetState((PlayerIndex)i);
+                 CurrentGamePadStates[i] = GamePad.GetState((PlayerIndex)i);
             }
 
             switch (GameState)
@@ -912,7 +914,7 @@ namespace ArenaPlatformer1
                                 Size = 800
                             };
 
-                            LightList.Add(light);                           
+                            CurrentMap.LightList.Add(light);                           
                         }
 
                         for (int i = 0; i < 4; i++)
@@ -974,7 +976,7 @@ namespace ArenaPlatformer1
 
                         ProjectileList.RemoveAll(Projectile => !ScreenRectangle.Contains(new Point((int)Projectile.Position.X, (int)Projectile.Position.Y)));
 
-                        LightList[0].Position = new Vector3(Mouse.GetState().X, Mouse.GetState().Y, 0);                        
+                        CurrentMap.LightList[0].Position = new Vector3(Mouse.GetState().X, Mouse.GetState().Y, 0);                        
 
                         #region Turn on diagnostics with F3
                         if (CurrentKeyboardState.IsKeyUp(Keys.F3) &&
@@ -1006,31 +1008,31 @@ namespace ArenaPlatformer1
                             CurrentMap.UpdateAreas(player);
                             player.CollisionDataList.Clear();
 
-                            if (player.IsShooting == true && 
-                                player.WasShooting == false)
-                            {
-                                switch (player.CurrentGun)
-                                {
-                                    case GunType.Flamethrower:
-                                        {
-                                            if (player.flameEmitter == null)
-                                            {
-                                                player.flameEmitter = new Emitter(ToonSmoke3,
-                                                new Vector2(player.Position.X, player.Position.Y), new Vector2(60, 120), new Vector2(6, 8),
-                                                new Vector2(650, 800), 1f, false, new Vector2(-10, 10), new Vector2(-1, 1), new Vector2(0.05f, 0.06f),
-                                                new Color(255, 128, 0, 6), Color.Black,
-                                                -0.005f, -0.4f, 16, 6, false, new Vector2(0, 720), true, 0.1f,
-                                                null, null, null, null, null, false, new Vector2(0.02f, 0.01f), null, null,
-                                                null, null, null, true, null);
-                                            }
-                                            else
-                                            {
-                                                player.flameEmitter.AddMore = true;
-                                            }
-                                        }
-                                        break;
-                                }
-                            }
+                            //if (player.IsShooting == true && 
+                            //    player.WasShooting == false)
+                            //{
+                            //    switch (player.CurrentGun)
+                            //    {
+                            //        case GunType.Flamethrower:
+                            //            {
+                            //                if (player.flameEmitter == null)
+                            //                {
+                            //                    player.flameEmitter = new Emitter(ToonSmoke3,
+                            //                    new Vector2(player.Position.X, player.Position.Y), new Vector2(60, 120), new Vector2(6, 8),
+                            //                    new Vector2(650, 800), 1f, false, new Vector2(-10, 10), new Vector2(-1, 1), new Vector2(0.05f, 0.06f),
+                            //                    new Color(255, 128, 0, 6), Color.Black,
+                            //                    -0.005f, -0.4f, 16, 6, false, new Vector2(0, 720), true, 0.1f,
+                            //                    null, null, null, null, null, false, new Vector2(0.02f, 0.01f), null, null,
+                            //                    null, null, null, true, null);
+                            //                }
+                            //                else
+                            //                {
+                            //                    player.flameEmitter.AddMore = true;
+                            //                }
+                            //            }
+                            //            break;
+                            //    }
+                            //}
                         }
 
                         foreach (Projectile projectile in ProjectileList)
@@ -1075,12 +1077,25 @@ namespace ArenaPlatformer1
                     break;
                 #endregion
 
+                #region Level Select
                 case GameState.LevelSelect:
                     {
+                        if (EmitterList != null)
+                            EmitterList.Clear();
+
+                        if (ProjectileList != null)
+                            ProjectileList.Clear();
+
+                        if (ItemList != null)
+                            ItemList.Clear();
+
+                        if (TrapList != null)
+                            TrapList.Clear();
+
                         for (int i = 0; i < 4; i++)
                         {
-                            PlayerJoinButtons[i].Update(gameTime);
-                            
+                            //PlayerJoinButtons[i].Update(gameTime);
+
                             if (CurrentGamePadStates[i].IsButtonUp(Buttons.DPadDown) &&
                                 PreviousGamePadStates[i].IsButtonDown(Buttons.DPadDown))
                             {
@@ -1103,19 +1118,53 @@ namespace ArenaPlatformer1
                         }
                     }
                     break;
+                #endregion
 
+                #region Paused
                 case GameState.Paused:
                     {
                         for (int i = 0; i < 4; i++)
                         {
                             if (CurrentGamePadStates[i].IsButtonUp(Buttons.Start) &&
                                 PreviousGamePadStates[i].IsButtonDown(Buttons.Start))
-                            {                             
+                            {
                                 GameState = GameState.Playing;
+                            }
+
+                            if (CurrentGamePadStates[i].IsButtonUp(Buttons.A) &&
+                                PreviousGamePadStates[i].IsButtonDown(Buttons.A))
+                            {
+                                switch (SelectedPauseMenu)
+                                {
+                                    case 0:
+                                        {
+                                            UnloadGameContent();
+                                            foreach (Player player in Players)
+                                            {
+                                                if (player != null)
+                                                    player.Initialize();
+                                            }
+                                            GameState = GameState.LevelSelect;
+                                        }
+                                        break;
+                                }
+                            }
+
+                            if (CurrentGamePadStates[i].IsButtonUp(Buttons.DPadDown) &&
+                                PreviousGamePadStates[i].IsButtonDown(Buttons.DPadDown))
+                            {
+                                SelectedPauseMenu++;
+                            }
+
+                            if (CurrentGamePadStates[i].IsButtonUp(Buttons.DPadUp) &&
+                                PreviousGamePadStates[i].IsButtonDown(Buttons.DPadUp))
+                            {
+                                SelectedPauseMenu--;
                             }
                         }
                     }
-                    break;
+                    break; 
+                    #endregion
             }
 
             for (int i = 0; i < 4; i++)
@@ -1278,7 +1327,7 @@ namespace ArenaPlatformer1
                         GraphicsDevice.SetRenderTarget(LightMap);
                         GraphicsDevice.Clear(Color.Transparent);
 
-                        foreach (Light light in LightList)
+                        foreach (Light light in CurrentMap.LightList)
                         {
                             if (light.Active == true)
                             {
@@ -1429,6 +1478,20 @@ namespace ArenaPlatformer1
                 {
                     spriteBatch.DrawString(Font1, "ResetTime: " + trap.ResetTime.ToString(), new Vector2(trap.DestinationRectangle.Right, trap.DestinationRectangle.Top), Color.White);
                 }
+            }
+
+            if (GameState == GameState.Paused)
+            {
+                for (int i = 0; i < PauseMenuOptions.Count; i++)
+                {
+                    Color col = Color.Gray;
+
+                    if (SelectedPauseMenu == i)
+                        col = Color.White;
+
+                    spriteBatch.DrawString(Font1, PauseMenuOptions[i], new Vector2(32, 64 + (25 * i)), col);
+                }
+
             }
 
             if (DebugBoxes == true)
@@ -1779,6 +1842,8 @@ namespace ArenaPlatformer1
 
         public void LoadLevel(string levelName)
         {
+            CurrentMap = new Map();
+
             string dir = Environment.CurrentDirectory;
             string newPath = Path.GetFullPath(Path.Combine(dir, @"..\..\..\..\..\..\Levels\\"));
             newPath += levelName;
@@ -1791,7 +1856,7 @@ namespace ArenaPlatformer1
             Map loadMap = (Map)formatter.Deserialize(stream);
 
             stream.Close();
-
+            
             CurrentMap = loadMap;
             CurrentMap.LoadContent(Content);
             CurrentMap.Initialize();
