@@ -385,6 +385,13 @@ namespace ArenaPlatformer1
             else
                 RotateVelocity = false;
 
+            //if (RotateVelocity == true)
+            //{
+            //    AngleRange = new Vector2(
+            //                    -(MathHelper.ToDegrees((float)Math.Atan2(-Velocity.Y, -Velocity.X))) - 20,
+            //                    -(MathHelper.ToDegrees((float)Math.Atan2(-Velocity.Y, -Velocity.X))) + 20);
+            //}
+            
             if (reduceDensity != null)
                 ReduceDensity = reduceDensity.Value;
             else
@@ -430,6 +437,7 @@ namespace ArenaPlatformer1
                 //After halftime, begin reducing the density from 100% down to 0% as the time continues to expire                    
                 //Interval = MathHelper.Lerp((float)Interval, (float)(Interval * 5), 0.0001f);
                 float PercentageThrough = ((float)CurrentTime / (ActiveSeconds * 1000)) * 100;
+                
 
                 if (PercentageThrough >= 50)
                     Interval = StartingInterval + (Interval / 100 * PercentageThrough);

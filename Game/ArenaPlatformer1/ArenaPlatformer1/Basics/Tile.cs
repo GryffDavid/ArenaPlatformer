@@ -10,7 +10,7 @@ namespace ArenaPlatformer1
 {
     public enum TileType { Empty, Solid, Death, Slow, BouncePad, RedFlag, BlueFlag, Spawn };
 
-    public class Tile
+    public class Tile : CollisionSolid
     {
         public TileType TileType;
         Texture2D Texture;
@@ -28,6 +28,9 @@ namespace ArenaPlatformer1
             Texture = content.Load<Texture2D>("Blank");
             DestinationRectangle = new Rectangle((int)Position.X, (int)Position.Y, 64, 64);
             CollisionRectangle = new Rectangle((int)Position.X, (int)Position.Y, 64, 64);
+            BoundingBox = new BoundingBox(
+                new Vector3(Position.X, Position.Y, 0),
+                new Vector3(Position.X + DestinationRectangle.Width, Position.Y + DestinationRectangle.Height, 0));
         }
 
         public void Update(GameTime gameTime)

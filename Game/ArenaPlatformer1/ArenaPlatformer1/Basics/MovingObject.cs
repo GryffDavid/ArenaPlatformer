@@ -8,7 +8,7 @@ using Microsoft.Xna.Framework.Content;
 
 namespace ArenaPlatformer1
 {
-    public class MovingObject
+    public class MovingObject : CollisionSolid
     {
         #region CollisionData Struct
         public struct CollisionData
@@ -51,7 +51,6 @@ namespace ArenaPlatformer1
 
         public Texture2D Texture;
         public Rectangle CollisionRectangle;
-        public BoundingBox BoundingBox;
         public Vector2 Position, PreviousPosition, Velocity, Size, HalfSize, Center;
         public bool IsKinematic = false;
 

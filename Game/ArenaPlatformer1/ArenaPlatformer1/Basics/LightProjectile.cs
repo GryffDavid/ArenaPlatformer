@@ -10,7 +10,7 @@ namespace ArenaPlatformer1
 {
     public enum LightProjectileType
     {
-        MachineGun
+        Shotgun
     };
 
     public abstract class LightProjectile

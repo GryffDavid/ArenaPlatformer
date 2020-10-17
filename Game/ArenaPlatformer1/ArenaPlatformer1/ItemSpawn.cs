@@ -9,7 +9,7 @@ using Microsoft.Xna.Framework.Content;
 namespace ArenaPlatformer1
 {
     [Serializable]
-    public enum ItemType { Shield };
+    public enum ItemType { Shield, Shotgun, RocketLauncher };
 
     [Serializable]
     public class ItemSpawn
@@ -51,18 +51,15 @@ namespace ArenaPlatformer1
 
         public void SpawnItem()
         {
-            ItemType thing = ItemSpawnType[Random.Next(0, ItemSpawnType.Length)];
+            ItemType itemType = ItemSpawnType[Random.Next(0, ItemSpawnType.Length)];            
+            Type spawnObject = Type.GetType(this.GetType().Namespace.ToString() + "." + itemType.ToString() + "Pickup");            
+            Item spawnItem = (Activator.CreateInstance(spawnObject, Position) as Item);
 
-            switch (thing)
+            if (spawnItem != null)
             {
-                case ItemType.Shield:
-                    {
-                        Item spawn = new ShieldPickup(Position);
-                        spawn.SpawnSource = this;
-                        ItemList.Add(spawn);
-                    }
-                    break;
-            }
+                spawnItem.SpawnSource = this;
+                ItemList.Add(spawnItem);
+            }            
         }
     }
 }

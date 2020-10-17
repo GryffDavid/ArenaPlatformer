@@ -72,9 +72,11 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Basics\Animation.cs" />
+    <Compile Include="Basics\CollisionSolid.cs" />
     <Compile Include="Basics\Explosion.cs" />
     <Compile Include="Basics\Grenade.cs" />
     <Compile Include="Basics\HealthBar.cs" />
+    <Compile Include="BulletTrail.cs" />
     <Compile Include="Item.cs" />
     <Compile Include="ItemSpawn.cs" />
     <Compile Include="Lighting\CrepuscularLight.cs" />
@@ -96,6 +98,8 @@
     <Compile Include="ParticleSystem\Managers\RenderManager.cs" />
     <Compile Include="ParticleSystem\Managers\UpdateManager.cs" />
     <Compile Include="Pickups\ShieldPickup.cs" />
+    <Compile Include="Pickups\RocketLauncherPickup.cs" />
+    <Compile Include="Pickups\ShotgunPickup.cs" />
     <Compile Include="Player.cs" />
     <Compile Include="Basics\Projectile.cs" />
     <Compile Include="Projectiles\Bullet.cs" />

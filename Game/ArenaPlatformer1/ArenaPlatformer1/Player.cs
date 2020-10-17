@@ -217,7 +217,7 @@ namespace ArenaPlatformer1
             Gravity = 0.6f;
             Size = new Vector2(59, 98);
             CurrentFlagState = FlagState.NoFlag;
-            CurrentGun = GunType.Shotgun;
+            CurrentGun = GunType.RocketLauncher;
             IsKinematic = true;
 
             HealthBar = new HealthBar()
@@ -457,16 +457,38 @@ namespace ArenaPlatformer1
                     break;
                 #endregion
 
+                #region Shotgun
                 case GunType.Shotgun:
                     {
                         if (PreviousGamePadState.IsButtonUp(CurrentShootButton) &&
                             CurrentGamePadState.IsButtonDown(CurrentShootButton))
                         {
-                            LightProjectile newProjectile = new ShotgunProjectile(Position, new Vector2(1, 0), 10);
-                            CreateLightProjectile(newProjectile, this);
+                            Vector2 direction = Vector2.Zero;
+
+                            switch (CurrentFacing)
+                            {
+                                case Facing.Left:
+                                    direction = new Vector2(-1, 0);
+                                    break;
+
+                                case Facing.Right:
+                                    direction = new Vector2(1, 0);
+                                    break;
+                            }
+
+                            for (int i = 0; i < 8; i++)
+                            {
+                                float angle = MathHelper.ToRadians((float)Math.Atan2(direction.Y, direction.X) + Random.Next(-15, 15));
+
+                                direction = new Vector2((float)Math.Cos(angle), (float)Math.Sin(angle)) * AimDirection.X;
+
+                                LightProjectile newProjectile = new ShotgunProjectile(BarrelEnd, direction, 10);
+                                CreateLightProjectile(newProjectile, this);
+                            }
                         }
                     }
-                    break;
+                    break; 
+                    #endregion
             }      
             #endregion
 
@@ -569,8 +591,21 @@ namespace ArenaPlatformer1
                         {
                             case ItemType.Shield:
                                 {
-                                    //Item.SpawnSource.SpawnTime.X = 0;
                                     ShieldActive = true;
+                                    removeItem = true;
+                                }
+                                break;
+
+                            case ItemType.Shotgun:
+                                {
+                                    CurrentGun = GunType.Shotgun;
+                                    removeItem = true;
+                                }
+                                break;
+
+                            case ItemType.RocketLauncher:
+                                {
+                                    CurrentGun = GunType.RocketLauncher;
                                     removeItem = true;
                                 }
                                 break;
