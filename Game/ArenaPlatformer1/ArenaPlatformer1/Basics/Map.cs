@@ -17,7 +17,7 @@ namespace ArenaPlatformer1
 
         //Collision tiles
         private TileType[,] Tiles;
-        public ItemSpawn[] ItemSpawnList;
+        public ItemSpawn[] ItemSpawnArray;
 
         //Draw data
         public Tile[,] DrawTiles;
@@ -117,10 +117,11 @@ namespace ArenaPlatformer1
 
         public void Update(GameTime gameTime)
         {
-            foreach (ItemSpawn spawn in ItemSpawnList.Where(Spawn => Spawn != null))
-            {
-                spawn.Update(gameTime);
-            }
+            if (ItemSpawnArray != null)
+                foreach (ItemSpawn spawn in ItemSpawnArray.Where(Spawn => Spawn != null))
+                {
+                    spawn.Update(gameTime);
+                }
         }
 
         public void Draw(SpriteBatch spriteBatch)
