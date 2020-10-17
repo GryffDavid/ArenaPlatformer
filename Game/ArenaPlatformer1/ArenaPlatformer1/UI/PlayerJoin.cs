@@ -35,7 +35,8 @@ namespace ArenaPlatformer1
             {
                 if (Player.TeamColor == TeamColor.RedTeam)
                     CurrentColor = Color.Red;
-                else
+
+                if (Player.TeamColor == TeamColor.BlueTeam)
                     CurrentColor = Color.Blue;
             }
             else

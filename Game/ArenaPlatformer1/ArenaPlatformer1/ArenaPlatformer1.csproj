@@ -74,6 +74,8 @@
     <Compile Include="Basics\Animation.cs" />
     <Compile Include="Basics\CollisionSolid.cs" />
     <Compile Include="Basics\Explosion.cs" />
+    <Compile Include="Liquid.cs" />
+    <Compile Include="Metaball.cs" />
     <Compile Include="ParticleSystem\Gib.cs" />
     <Compile Include="Basics\Grenade.cs" />
     <Compile Include="Basics\HealthBar.cs" />

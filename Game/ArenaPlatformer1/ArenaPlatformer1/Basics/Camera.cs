@@ -57,5 +57,12 @@ namespace ArenaPlatformer1
             ShakeCount = shakeCount;
             Shakes = 0;
         }
+
+        public void CancelShake()
+        {
+            ShakeCount = 0;
+            Shakes = 0;
+            Position = Vector2.Zero;
+        }
     }
 }

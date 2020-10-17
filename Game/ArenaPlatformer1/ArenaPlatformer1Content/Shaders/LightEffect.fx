@@ -144,9 +144,9 @@ PixelToFrame PointLightShader(VertexToPixel PSIn) : COLOR0
 	float3 normal;
 
 	if (depthMap.r > lightDepth && depthMap.a == 1)
-	normal = float4(0,0,0,1);
+		normal = float4(0,0,0,1);
 	else
-	normal = (2.0f * (tex2D(NormalMapSampler, PSIn.TexCoord))) - 1.0f;
+		normal = (2.0f * (tex2D(NormalMapSampler, PSIn.TexCoord))) - 1.0f;
 
 
 	//The angle of the pixel based on the normal map interpretation

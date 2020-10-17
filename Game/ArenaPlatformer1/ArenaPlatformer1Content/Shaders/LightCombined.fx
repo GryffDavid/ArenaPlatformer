@@ -41,8 +41,8 @@ float3 halfVec = float3(0, 0, 1);
 float2 offset = float2(0.5/1920.0, 0.5/1080.0);
 float specVal = 0.008;
 
-//float ambientOcclusion = float4(0.25, 0.25, 0.25, 255);
-float ambientOcclusion = float4(0.05, 0.05, 0.05, 255);
+float ambientOcclusion = float4(0.25, 0.25, 0.25, 255);
+//float ambientOcclusion = float4(1.0, 1.0, 1.0, 255);
 
 float4 CombinedPixelShader(float4 color : COLOR0, float2 texCoords : TEXCOORD0) : COLOR0
 {	

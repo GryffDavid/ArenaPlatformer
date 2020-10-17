@@ -130,6 +130,8 @@ namespace ArenaPlatformer1
         //public static Texture2D GrenadeIcon;
         #endregion
 
+        Texture2D SkullIcon;
+
         #region Controls
         GamePadThumbSticks Sticks;
         Buttons JumpButton, ShootButton, GrenadeButton, TrapButton, MeleeButton;
@@ -158,6 +160,7 @@ namespace ArenaPlatformer1
         #endregion
 
         #region Gameplay Variables
+        public int Score = 0;
         public int Deaths = 0;
         public int GunAmmo = 15;
         public int TrapAmmo = 0;
@@ -214,6 +217,9 @@ namespace ArenaPlatformer1
         Vector2 ShotTiming = new Vector2(0, 200);
         Vector2 GrenadeTiming = new Vector2(0, 1500 );
 
+        //Index of the player that last did damage to this player
+        public int LastDamageSource;
+
         public Player(PlayerIndex playerIndex)
         {
             PlayerIndex = playerIndex;
@@ -261,28 +267,11 @@ namespace ArenaPlatformer1
 
             #region Load Textures
             RunRightTexture = content.Load<Texture2D>("Player" + ((int)PlayerIndex + 1) + "/Running/RunRight");
-            RunRightUpTexture = content.Load<Texture2D>("Player" + ((int)PlayerIndex + 1) + "/Running/RunRightUp");
-            RunRightDownTexture = content.Load<Texture2D>("Player" + ((int)PlayerIndex + 1) + "/Running/RunRightDown");
-
             RunLeftTexture = content.Load<Texture2D>("Player" + ((int)PlayerIndex + 1) + "/Running/RunLeft");
-            RunLeftUpTexture = content.Load<Texture2D>("Player" + ((int)PlayerIndex + 1) + "/Running/RunLeftUp");
-            RunLeftDownTexture = content.Load<Texture2D>("Player" + ((int)PlayerIndex + 1) + "/Running/RunLeftDown");
-
             StandRightTexture = content.Load<Texture2D>("Player" + ((int)PlayerIndex + 1) + "/Standing/StandRight");
-            StandRightUpTexture = content.Load<Texture2D>("Player" + ((int)PlayerIndex + 1) + "/Standing/StandRightUp");
-            StandRightDownTexture = content.Load<Texture2D>("Player" + ((int)PlayerIndex + 1) + "/Standing/StandRightDown");
-
             StandLeftTexture = content.Load<Texture2D>("Player" + ((int)PlayerIndex + 1) + "/Standing/StandLeft");
-            StandLeftUpTexture = content.Load<Texture2D>("Player" + ((int)PlayerIndex + 1) + "/Standing/StandLeftUp");
-            StandLeftDownTexture = content.Load<Texture2D>("Player" + ((int)PlayerIndex + 1) + "/Standing/StandLeftDown");
-
             JumpRightTexture = content.Load<Texture2D>("Player" + ((int)PlayerIndex + 1) + "/Jumping/JumpRight");
-            JumpRightUpTexture = content.Load<Texture2D>("Player" + ((int)PlayerIndex + 1) + "/Jumping/JumpRightUp");
-            JumpRightDownTexture = content.Load<Texture2D>("Player" + ((int)PlayerIndex + 1) + "/Jumping/JumpRightDown");
-
             JumpLeftTexture = content.Load<Texture2D>("Player" + ((int)PlayerIndex + 1) + "/Jumping/JumpLeft");
-            JumpLeftUpTexture = content.Load<Texture2D>("Player" + ((int)PlayerIndex + 1) + "/Jumping/JumpLeftUp");
-            JumpLeftDownTexture = content.Load<Texture2D>("Player" + ((int)PlayerIndex + 1) + "/Jumping/JumpLeftDown");
 
             CrouchRightTexture = content.Load<Texture2D>("Player" + ((int)PlayerIndex + 1) + "/CrouchRight");
             CrouchLeftTexture = content.Load<Texture2D>("Player" + ((int)PlayerIndex + 1) + "/CrouchLeft");
@@ -290,32 +279,22 @@ namespace ArenaPlatformer1
 
             #region Set up animations
             RunRightAnimation = new Animation(RunRightTexture, 12, 50);
-            RunRightUpAnimation = new Animation(RunRightUpTexture, 8, 50);
-            RunRightDownAnimation = new Animation(RunRightDownTexture, 8, 50);
 
             RunLeftAnimation = new Animation(RunLeftTexture, 12, 50);
-            RunLeftUpAnimation = new Animation(RunLeftUpTexture, 8, 50);
-            RunLeftDownAnimation = new Animation(RunLeftDownTexture, 8, 50);
 
-            StandLeftAnimation = new Animation(StandLeftTexture, 6, 50);
-            StandLeftUpAnimation = new Animation(StandLeftUpTexture, 1, 50);
-            StandLeftDownAnimation = new Animation(StandLeftDownTexture, 1, 50);
+            StandLeftAnimation = new Animation(StandLeftTexture, 1, 50);
 
-            StandRightAnimation = new Animation(StandRightTexture, 6, 50);
-            StandRightUpAnimation = new Animation(StandRightUpTexture, 1, 50);
-            StandRightDownAnimation = new Animation(StandRightDownTexture, 1, 50);
+            StandRightAnimation = new Animation(StandRightTexture, 1, 50);
 
             JumpLeftAnimation = new Animation(JumpLeftTexture, 1, 50);
-            JumpLeftUpAnimation = new Animation(JumpLeftUpTexture, 1, 50);
-            JumpLeftDownAnimation = new Animation(JumpLeftDownTexture, 1, 50);
 
             JumpRightAnimation = new Animation(JumpRightTexture, 1, 50);
-            JumpRightUpAnimation = new Animation(JumpRightUpTexture, 1, 50);
-            JumpRightDownAnimation = new Animation(JumpRightDownTexture, 1, 50);
 
             CrouchRightAnimation = new Animation(CrouchRightTexture, 1, 50);
-            CrouchLeftAnimation = new Animation(CrouchLeftTexture, 1, 50); 
+            CrouchLeftAnimation = new Animation(CrouchLeftTexture, 1, 50);
             #endregion
+
+            SkullIcon = content.Load<Texture2D>("Icons/SkullIcon");
 
             CurrentAnimation = StandRightAnimation;
         }
@@ -368,7 +347,7 @@ namespace ArenaPlatformer1
                 }
 
                 #region Move stick left
-                if (MoveStick.X < 0f)
+                if (MoveStick.X < -0.15f)
                 {
                     AimDirection.X = -1f;
                     CurrentFacing = Facing.Left;
@@ -376,14 +355,15 @@ namespace ArenaPlatformer1
                 #endregion
 
                 #region Move stick right
-                if (MoveStick.X > 0f)
+                if (MoveStick.X > 0.15f)
                 {
                     AimDirection.X = 1f;
                     CurrentFacing = Facing.Right;
                 }
                 #endregion
 
-                Velocity.X += (MoveStick.X * 3f);
+                if (Math.Abs(MoveStick.X) > 0.15f)
+                    Velocity.X += (MoveStick.X * 3f);
 
                 if (CurrentPose == Pose.Standing)
                 {
@@ -422,7 +402,7 @@ namespace ArenaPlatformer1
                 }
                 #endregion
 
-                #region Stop Moving
+                #region Stop Moving 
                 if (MoveStick.X == 0)
                 {
                     if (InAir == false)
@@ -604,7 +584,14 @@ namespace ArenaPlatformer1
 
                                             case TeamColor.RedTeam:
                                                 {
-                                                    ItemList.Add(new RedFlagPickup(Map.RedFlagSpawn * 64));
+                                                    if (Item.Position != (Map.RedFlagSpawn * 64))
+                                                    {
+                                                        ItemList.Add(new RedFlagPickup(Map.RedFlagSpawn * 64));
+                                                    }
+                                                    else
+                                                    {
+                                                        removeItem = false;
+                                                    }
                                                 }
                                                 break;
                                         }
@@ -617,7 +604,14 @@ namespace ArenaPlatformer1
                                         {
                                             case TeamColor.BlueTeam:
                                                 {
-                                                    ItemList.Add(new BlueFlagPickup(Map.BlueFlagSpawn * 64));
+                                                    if (Item.Position != (Map.BlueFlagSpawn * 64))
+                                                    {
+                                                        ItemList.Add(new BlueFlagPickup(Map.BlueFlagSpawn * 64));
+                                                    }
+                                                    else
+                                                    {
+                                                        removeItem = false;
+                                                    }
                                                 }
                                                 break;
 
@@ -715,7 +709,7 @@ namespace ArenaPlatformer1
                         #endregion
 
                         if (removeItem == true)
-                                ItemList.Remove(Item);
+                            ItemList.Remove(Item);
                         }
                     });
                 #endregion
@@ -750,6 +744,8 @@ namespace ArenaPlatformer1
                         if (Projectile.PlayerIndex != PlayerIndex &&
                             Projectile.CollisionRectangle.Intersects(CollisionRectangle))
                         {
+                            LastDamageSource = (int)Projectile.PlayerIndex;
+
                             Projectile.Active = false;
 
                             if (ShieldActive == true)
@@ -759,7 +755,7 @@ namespace ArenaPlatformer1
                             else
                             {
                                 Health.X = 0;
-                            }
+                            }                            
                         }
                     });
                 #endregion
@@ -877,33 +873,40 @@ namespace ArenaPlatformer1
         public void DrawInfo(SpriteBatch spriteBatch, GraphicsDevice graphics, BasicEffect basicEffect)
         {
             #region Draw the collision box for debugging
+            Color Color = Color.Red;
+
+            if (TeamColor == TeamColor.BlueTeam)
+            {
+                Color = Color.Blue;
+            }
+
             VertexPositionColorTexture[] Vertices = new VertexPositionColorTexture[4];
             int[] Indices = new int[8];
 
             Vertices[0] = new VertexPositionColorTexture()
             {
-                Color = Color.Red,
+                Color = Color,
                 Position = new Vector3(CollisionRectangle.Left, CollisionRectangle.Top, 0),
                 TextureCoordinate = new Vector2(0, 0)
             };
 
             Vertices[1] = new VertexPositionColorTexture()
             {
-                Color = Color.Red,
+                Color = Color,
                 Position = new Vector3(CollisionRectangle.Right - 1, CollisionRectangle.Top, 0),
                 TextureCoordinate = new Vector2(1, 0)
             };
 
             Vertices[2] = new VertexPositionColorTexture()
             {
-                Color = Color.Red,
+                Color = Color,
                 Position = new Vector3(CollisionRectangle.Right - 1, CollisionRectangle.Bottom - 1, 0),
                 TextureCoordinate = new Vector2(1, 1)
             };
 
             Vertices[3] = new VertexPositionColorTexture()
             {
-                Color = Color.Red,
+                Color = Color,
                 Position = new Vector3(CollisionRectangle.Left, CollisionRectangle.Bottom - 1, 0),
                 TextureCoordinate = new Vector2(0, 1)
             };
@@ -939,6 +942,11 @@ namespace ArenaPlatformer1
                 new Rectangle(0, Game1.GrenadeIcon.Height - height, Game1.GrenadeIcon.Width, height), Color.White);
 
             spriteBatch.Draw(Game1.GrenadeIcon, new Rectangle(40 + (480 * (int)PlayerIndex), 40+25+10, 24, 24), Color.White * 0.5f);
+
+            for (int i = 0; i < Deaths; i++)
+            {
+                spriteBatch.Draw(SkullIcon, new Vector2(40 + (480 * (int)PlayerIndex) + (32*i), 40 + 25 + 10 + 24), Color.White);
+            }
         }
 
 
