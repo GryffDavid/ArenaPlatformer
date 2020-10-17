@@ -1,14 +1,13 @@
 float4x4 Projection;
 
-void SpriteVertexShader(inout float2 texCoord : TEXCOORD0,
-	inout float4 position : SV_Position)
+void SpriteVertexShader(inout float2 texCoord : TEXCOORD0, inout float4 position : SV_Position)
 {
 	position = mul(position, Projection);
 }
 
 uniform extern texture ScreenTexture;
 
-sampler ScreenS = sampler_state
+sampler ScreenSampler = sampler_state
 {
 	Texture = <ScreenTexture>;
 	magfilter = POINT;
@@ -19,38 +18,44 @@ sampler ScreenS = sampler_state
 };
 
 const float2 Resolution = float2(1920, 1080);
-float2 SourcePos;
 float4 WaveParams;
 float CurrentTime;
 float2 CenterCoords;
 
 float4 PixelShaderFunction(float2 fragCoord: TEXCOORD0) : COLOR
 {
-	float2 HalfPixel = float2(0.5 / Resolution.x, 0.5 / Resolution.y);
+	float3 WaveParams = float3(10.0, 0.5, 0.1);
 
-	float3 waveParams = float3(10.0, 0.8, 6.1);
-	float2 tmp = CenterCoords;
-	float2 uv = fragCoord.xy;
-	float2 texCoord = uv;
+	float ratio = Resolution.x / Resolution.y;
 
-	float dist = distance(uv, tmp);
+	//vec2 WaveCentre = vec2(0.5, 0.5)* vec2(ratio, 1.0);   
+	float2 WaveCentre = CenterCoords * float2(ratio, 1.0);
+	//float2 texCoord = fragCoord.xy / Resolution.xy;
+	float Dist = distance(fragCoord * float2(ratio, 1.0), WaveCentre);
+	
+	float4 Color = tex2D(ScreenSampler, fragCoord);
 
-	float4 original = tex2D(ScreenS, texCoord + HalfPixel);
-
-	if ((dist <= ((CurrentTime)+waveParams.z)) && 
-		(dist >= ((CurrentTime)-waveParams.z)))
+	//Only distort the pixels within the parameter distance from the centre
+	if ((Dist <= ((CurrentTime) + (WaveParams.z))) &&
+		(Dist >= ((CurrentTime) - (WaveParams.z))))
 	{
-		float diff = (dist - (CurrentTime));
-		float powDiff = (1.0 - pow(abs(diff*waveParams.x), waveParams.y));
+		//The pixel offset distance based on the input parameters
+		float Diff = (Dist - CurrentTime);
+		float ScaleDiff = (1.0 - pow(abs(Diff * WaveParams.x), WaveParams.y));
+		float DiffTime = (Diff  * ScaleDiff);
 
-		float diffTime = diff * powDiff;
-		float2 diffUV = normalize(uv - tmp);
-		texCoord = uv + ((diffUV * diffTime) / (CurrentTime * 3000 * dist));
-		original = tex2D(ScreenS, texCoord + HalfPixel);
-		original += (original * powDiff) / (CurrentTime * 1000 * dist);
+		//The direction of the distortion
+		float2 DiffTexCoord = normalize(fragCoord * float2(ratio, 1.0) - WaveCentre);
+
+		//Perform the distortion and reduce the effect over time
+		fragCoord += ((DiffTexCoord * DiffTime) / (CurrentTime * Dist * 4.0));
+		Color = tex2D(ScreenSampler, fragCoord);
+
+		//Blow out the color and reduce the effect over time
+		Color += (Color * ScaleDiff) / ((CurrentTime + 2.25) * Dist * 4.0);
 	}
 
-	return original;
+	return Color;
 }
 
 technique

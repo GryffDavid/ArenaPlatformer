@@ -774,8 +774,21 @@ namespace ArenaPlatformer1
             #endregion
 
             ShockWaveEffect.Parameters["CenterCoords"].SetValue(new Vector2(1 / (1920 / explosion.Position.X), 1 / (1080 / explosion.Position.Y)));
-            ShockWaveEffect.Parameters["WaveParams"].SetValue(new Vector4(1, 0.5f, 0.06f, 60));
+            ShockWaveEffect.Parameters["WaveParams"].SetValue(new Vector4(10, 0.5f, 0.1f, 60));
             ShockWaveEffect.Parameters["CurrentTime"].SetValue(0);
+
+            Light light = new Light()
+            {
+                Color = Color.DarkOrange,
+                Active = true,
+                Power = 1.7f,
+                Position = new Vector3(explosion.Position.X, explosion.Position.Y, 100),
+                Size = 800,
+                CurTime = 0,
+                MaxTime = 100
+            };
+
+            CurrentMap.LightList.Add(light);
 
             foreach (Player player in Players.Where(Player => Player != null))
             {
@@ -1239,6 +1252,11 @@ namespace ArenaPlatformer1
                             {
                                 CurrentGameState = GameState.Paused;
                             }
+                        }
+
+                        foreach (Light light in CurrentMap.LightList)
+                        {
+                            light.Update(gameTime);
                         }
 
                         if (CurrentMouseState.LeftButton == ButtonState.Released &&
