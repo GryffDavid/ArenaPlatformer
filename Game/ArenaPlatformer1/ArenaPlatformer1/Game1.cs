@@ -97,6 +97,12 @@ namespace ArenaPlatformer1
         public Vector2 Velocity;
     }
 
+    public delegate void LightProjectileHappenedEventHandler(object source, LightProjectileEventArgs e);
+    public class LightProjectileEventArgs : EventArgs
+    {
+        public LightProjectile Projectile { get; set; }
+    }
+
     //A player is throwing a grenade
     public delegate void PlayerGrenadeHappenedEventHandler(object source, PlayerGrenadeEventArgs e);
     public class PlayerGrenadeEventArgs : EventArgs
@@ -120,7 +126,7 @@ namespace ArenaPlatformer1
         public Player Player { get; set; }
     }
     #endregion
-
+    
     #region Debuff Data Struct
     public struct DebuffData
     {
@@ -251,7 +257,6 @@ namespace ArenaPlatformer1
         List<Item> ItemList;
         List<Grenade> GrenadeList;
         List<Projectile> ProjectileList;
-        List<MovingObject> MovingObjectList;
         List<MovingPlatform> MovingPlatformList;
         #endregion
 
@@ -260,6 +265,8 @@ namespace ArenaPlatformer1
         bool DebugBoxes = false;
         bool TileBoxes = false;
         bool didDraw = false;
+
+        List<MyRay> myRayList = new List<MyRay>();
         #endregion
 
         #region Fonts
@@ -273,6 +280,8 @@ namespace ArenaPlatformer1
         List<string> PauseMenuOptions = new List<string>() { "Level Select", "Main Menu", "Exit" };
         int SelectedPauseMenu = 0;
         #endregion
+
+
         
 
         public void OnPlayerShoot(object source, PlayerShootEventArgs e)
@@ -301,6 +310,34 @@ namespace ArenaPlatformer1
             rocket.EmitterList.Add(emitter);
 
 
+        }
+
+        public void OnLightProjectileFired(object source, LightProjectileEventArgs e)
+        {
+            LightProjectile projectile = e.Projectile;
+
+            Action CheckCollision = () =>
+            {
+                Vector2 sourcePosition = projectile.Position;
+
+                List<Player> Intersections = Players.ToList().FindAll(movingObject => movingObject != null && movingObject.BoundingBox.Intersects(projectile.Ray) < 250);
+                Intersections.Remove((source as Player));
+
+                myRayList.Add(new MyRay()
+                {
+                    position = new Vector3(projectile.Position, 0),
+                    direction = projectile.Ray.Direction,
+                    length = 250
+                });
+
+                foreach (Player player in Intersections)
+                {
+                    player.Health.X = 0;
+                }
+
+            };
+
+            CheckCollision();
         }
 
         public void OnPlaceTrap(object source, PlaceTrapEventArgs e)
@@ -552,8 +589,7 @@ namespace ArenaPlatformer1
             ItemList = new List<Item>();
             Player.ItemList = ItemList;
             ItemSpawn.ItemList = ItemList;
-
-            MovingObjectList = new List<MovingObject>();
+            
             MovingPlatformList = new List<MovingPlatform>();
 
             //MovingPlatform platform1 = new MovingPlatform()
@@ -833,6 +869,7 @@ namespace ArenaPlatformer1
                                 Players[i].LoadContent(Content);
 
                                 Players[i].PlayerShootHappened += OnPlayerShoot;
+                                Players[i].LightProjectileHappened += OnLightProjectileFired;
                                 Players[i].PlaceTrapHappened += OnPlaceTrap;
                                 Players[i].PlayerDiedHappened += OnPlayerDied;
                                 Players[i].PlayerGrenadeHappened += OnPlayerGrenade;
@@ -1465,7 +1502,35 @@ namespace ArenaPlatformer1
             if (DebugBoxes == true)
             if (CurrentGameState == GameState.Playing)
             {
-                for (int x = 0; x < 30; x++)
+                foreach (MyRay ray in myRayList)
+                {
+                    //Draw the debug bounding boxes here
+                    VertexPositionColor[] Vertices = new VertexPositionColor[2];
+                    int[] Indices = new int[2];
+
+                    Vertices[0] = new VertexPositionColor()
+                    {
+                        Color = Color.Orange,
+                        Position = ray.position
+                    };
+
+                    Vertices[1] = new VertexPositionColor()
+                    {
+                        Color = Color.Orange,
+                        Position = ray.position + (ray.direction * ray.length)
+                    };
+
+                    Indices[0] = 0;
+                    Indices[1] = 1;
+
+                    foreach (EffectPass pass in BasicEffect.CurrentTechnique.Passes)
+                    {
+                        pass.Apply();
+                        GraphicsDevice.DrawUserIndexedPrimitives(PrimitiveType.LineStrip, Vertices, 0, 2, Indices, 0, 1, VertexPositionColorTexture.VertexDeclaration);
+                    }
+                }
+
+                    for (int x = 0; x < 30; x++)
                 {
                     for (int y = 0; y < 17; y++)
                     {

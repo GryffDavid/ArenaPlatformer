@@ -51,6 +51,7 @@ namespace ArenaPlatformer1
 
         public Texture2D Texture;
         public Rectangle CollisionRectangle;
+        public BoundingBox BoundingBox;
         public Vector2 Position, PreviousPosition, Velocity, Size, HalfSize, Center;
         public bool IsKinematic = false;
 

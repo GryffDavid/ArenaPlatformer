@@ -75,6 +75,22 @@ namespace ArenaPlatformer1
                     Player = this
                 });
         }
+
+        public event LightProjectileHappenedEventHandler LightProjectileHappened;
+        public void CreateLightProjectile(LightProjectile lightProjectile, object source)
+        {
+            OnLightProjectileFired(lightProjectile, source);
+        }
+        protected virtual void OnLightProjectileFired(LightProjectile lightProjectile, object source)
+        {
+            LightProjectileHappened?.Invoke(this,
+                new LightProjectileEventArgs()
+                {
+                    //Projectile = new ShotgunProjectile(Position, new Vector2(0, 0), 10)
+                    Projectile = lightProjectile
+                });
+        }
+
         #endregion
 
         #region Shared Static
@@ -201,6 +217,7 @@ namespace ArenaPlatformer1
             Gravity = 0.6f;
             Size = new Vector2(59, 98);
             CurrentFlagState = FlagState.NoFlag;
+            CurrentGun = GunType.Shotgun;
             IsKinematic = true;
 
             HealthBar = new HealthBar()
@@ -437,8 +454,19 @@ namespace ArenaPlatformer1
                             }
                         }
                     }
-                    break; 
-                    #endregion
+                    break;
+                #endregion
+
+                case GunType.Shotgun:
+                    {
+                        if (PreviousGamePadState.IsButtonUp(CurrentShootButton) &&
+                            CurrentGamePadState.IsButtonDown(CurrentShootButton))
+                        {
+                            LightProjectile newProjectile = new ShotgunProjectile(Position, new Vector2(1, 0), 10);
+                            CreateLightProjectile(newProjectile, this);
+                        }
+                    }
+                    break;
             }      
             #endregion
 
@@ -517,6 +545,9 @@ namespace ArenaPlatformer1
                                                  (int)(Position.Y - CurrentAnimation.FrameSize.Y / 2),
                                                  (int)CurrentAnimation.FrameSize.X,
                                                  (int)CurrentAnimation.FrameSize.Y);
+
+            BoundingBox = new BoundingBox(new Vector3(Position - (CurrentAnimation.FrameSize / 2), 0),
+                                          new Vector3(Position + (CurrentAnimation.FrameSize / 2), 0));
 
             #region Update Animations
             if (CurrentAnimation != null)
