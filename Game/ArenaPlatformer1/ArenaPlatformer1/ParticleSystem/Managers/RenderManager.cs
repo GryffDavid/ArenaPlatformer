@@ -39,6 +39,7 @@ namespace ArenaPlatformer1
 
                     case ChangeMessageType.UpdateParticle:
                         {
+                            //TODO: Got an out of index error here. Very, very unusual and possibly very intermittent
                             RenderDataObjects[msg.ID].Position = msg.Position;
                             RenderDataObjects[msg.ID].Rotation = msg.Rotation;
                             RenderDataObjects[msg.ID].Color = msg.Color;

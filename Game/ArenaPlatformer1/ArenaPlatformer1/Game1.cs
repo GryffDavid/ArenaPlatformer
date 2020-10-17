@@ -84,6 +84,13 @@ namespace ArenaPlatformer1
         RedTeam
     };
 
+    public enum GameType
+    {
+        DeathMatch, //Play continuosly until a score limit or time limit is reached. The player with most kills wins
+        LastMan, //Play a series of matches that are won by the last person left alive
+        CTF //Play rounds of Capture the flag. Best of 5 wins the whole game
+    };
+
    
     #endregion
 
@@ -174,6 +181,7 @@ namespace ArenaPlatformer1
         SpriteBatch spriteBatch;
 
         GameState CurrentGameState;
+        GameType CurrentGameType;
 
         Player[] Players = new Player[4];
         PlayerJoin[] PlayerJoinButtons = new PlayerJoin[4];
@@ -252,7 +260,7 @@ namespace ArenaPlatformer1
 
         #region Effects
         Effect BlurEffect, LightCombined, LightEffect;
-        Effect RaysEffect, DepthEffect;
+        Effect RaysEffect, DepthEffect, ShockWaveEffect;
         #endregion
 
         #region Lists
@@ -281,6 +289,9 @@ namespace ArenaPlatformer1
 
         List<string> PauseMenuOptions = new List<string>() { "Level Select", "Main Menu", "Exit" };
         int SelectedPauseMenu = 0;
+
+        List<string> ModeSelectOptions = new List<string>() { "Death Match", "Last Man Standing", "Capture the Flag" };
+        int SelectedModeMenu = 0;
         #endregion
 
         //float LightZ = 0;
@@ -289,6 +300,10 @@ namespace ArenaPlatformer1
 
         List<BulletTrail> BulletTrailList = new List<BulletTrail>();
         List<Gib> GibList = new List<Gib>();
+        List<VerletObject> VerletList = new List<VerletObject>();
+
+        public int CurrentMatchNumber, MaxMatchNumber;
+        public int ScoreLimit;
         
         public void OnPlayerShoot(object source, PlayerShootEventArgs e)
         {
@@ -328,6 +343,8 @@ namespace ArenaPlatformer1
             }
 
             LightProjectile projectile = e.Projectile;
+
+            //VerletList.Add(new VerletObject(e.Projectile.Position, new Vector2(Math.Sign(projectile.Ray.Direction.X) * Random.Next(2, 8), Random.Next(3, 10))));
 
             switch (projectile.LightProjectileType)
             {
@@ -617,10 +634,24 @@ namespace ArenaPlatformer1
                 GibList.Add(newGib);
             }
 
-            e.Player.Respawn();
             e.Player.Health.X = 100;
             e.Player.GunAmmo = 50;
             e.Player.Velocity = new Vector2(0, 0);
+            e.Player.Active = false;
+
+            if (CurrentGameType == GameType.DeathMatch)
+            {
+                e.Player.Respawn();                
+            }
+
+            if (CurrentGameType == GameType.LastMan)
+            {
+                //Only one player left. That player is the winner of this match
+                if (Players.Count(player => player != null && player.Active == true) == 1)
+                {
+                    CurrentMatchNumber++;
+                }
+            }
         }
 
         public void OnExplosionHappened(object source, ExplosionEventArgs e)
@@ -742,6 +773,10 @@ namespace ArenaPlatformer1
             //Camera.Shake(15, 1.5f);
             #endregion
 
+            ShockWaveEffect.Parameters["CenterCoords"].SetValue(new Vector2(1 / (1920 / explosion.Position.X), 1 / (1080 / explosion.Position.Y)));
+            ShockWaveEffect.Parameters["WaveParams"].SetValue(new Vector4(1, 0.5f, 0.06f, 60));
+            ShockWaveEffect.Parameters["CurrentTime"].SetValue(0);
+
             foreach (Player player in Players.Where(Player => Player != null))
             {
                 float dist = Vector2.Distance(new Vector2(player.DestinationRectangle.Center.X, player.DestinationRectangle.Center.Y), explosion.Position);
@@ -752,6 +787,7 @@ namespace ArenaPlatformer1
                 if (dist < explosion.BlastRadius)
                 {
                     player.Health.X -= 50;
+
 
 
                     //if (e.Explosion.Source == player)
@@ -910,6 +946,7 @@ namespace ArenaPlatformer1
             
             Emitter.Map = CurrentMap;
             Trap.Map = CurrentMap;
+            VerletObject.Node.Map = CurrentMap;
 
             //#region Guns
             //RocketLauncher launcher = new RocketLauncher()
@@ -998,9 +1035,11 @@ namespace ArenaPlatformer1
             LightCombined = Content.Load<Effect>("Shaders/LightCombined");
             LightEffect = Content.Load<Effect>("Shaders/LightEffect");
             RaysEffect = Content.Load<Effect>("Shaders/Crepuscular");
+            ShockWaveEffect = Content.Load<Effect>("Shaders/Shockwave");
 
             RaysEffect.Parameters["Projection"].SetValue(Projection);
             BlurEffect.Parameters["Projection"].SetValue(Projection);
+            ShockWaveEffect.Parameters["Projection"].SetValue(Projection);
 
             LightVertices = new VertexPositionColorTexture[4];
             LightVertices[0] = new VertexPositionColorTexture(new Vector3(-1, 1, 0), Color.White, new Vector2(0, 0));
@@ -1115,7 +1154,7 @@ namespace ArenaPlatformer1
                                 if (PlayerJoinButtons[i].Occupied == true)
                                 {
                                     ListLevels();                                    
-                                    CurrentGameState = GameState.LevelSelect;
+                                    CurrentGameState = GameState.ModeSelect;
                                 }
 
                                 PlayerJoinButtons[i].Occupied = true;
@@ -1141,12 +1180,12 @@ namespace ArenaPlatformer1
                             #endregion
                         }
 
-                        //If all 4 players have joined, move to the next menu without waiting for a button press
-                        //No need to wait because all slots are full
-                        if (PlayerJoinButtons.All(Button => Button.Occupied == true))
-                        {
-                            CurrentGameState = GameState.ModeSelect;
-                        }
+                        ////If all 4 players have joined, move to the next menu without waiting for a button press
+                        ////No need to wait because all slots are full
+                        //if (PlayerJoinButtons.All(Button => Button.Occupied == true))
+                        //{
+                        //    CurrentGameState = GameState.ModeSelect;
+                        //}
                     }
                     break;
                 #endregion
@@ -1156,16 +1195,34 @@ namespace ArenaPlatformer1
                     {
                         for (int i = 0; i < 4; i++)
                         {
+                            //PlayerJoinButtons[i].Update(gameTime);
+
+                            if (CurrentGamePadStates[i].IsButtonUp(Buttons.DPadDown) &&
+                                PreviousGamePadStates[i].IsButtonDown(Buttons.DPadDown))
+                            {
+                                SelectedModeMenu++;
+                            }
+
+                            if (CurrentGamePadStates[i].IsButtonUp(Buttons.DPadUp) &&
+                                PreviousGamePadStates[i].IsButtonDown(Buttons.DPadUp))
+                            {
+                                SelectedModeMenu--;
+                            }
+
+                            if (CurrentGamePadStates[i].IsButtonUp(Buttons.A) &&
+                                PreviousGamePadStates[i].IsButtonDown(Buttons.A))
+                            {
+                                //LoadLevel(Path.GetFileName(LevelList[SelectedLevelIndex]));
+                                //LoadGameContent();
+                                //CurrentGameState = GameState.Playing;
+                                CurrentGameType = (GameType)SelectedModeMenu;
+                                CurrentGameState = GameState.LevelSelect;
+                            }
+
                             if (CurrentGamePadStates[i].IsButtonUp(Buttons.B) &&
                                 PreviousGamePadStates[i].IsButtonDown(Buttons.B))
                             {
                                 CurrentGameState = GameState.MainMenu;
-                            }
-
-                            if (CurrentGamePadStates[i].IsButtonUp(Buttons.Start) &&
-                                PreviousGamePadStates[i].IsButtonDown(Buttons.Start))
-                            {
-                                CurrentGameState = GameState.Playing;
                             }
                         }
                     }
@@ -1200,10 +1257,17 @@ namespace ArenaPlatformer1
                             CurrentMap.LightList.Add(light);                           
                         }
 
+                        ShockWaveEffect.Parameters["CurrentTime"].SetValue(ShockWaveEffect.Parameters["CurrentTime"].GetValueSingle() + (float)(gameTime.ElapsedGameTime.TotalSeconds));
+
                         foreach (Gib gib in GibList)
                         {
                             gib.Update(gameTime);
                             gib.UpdateEmitters(gameTime);                            
+                        }
+
+                        foreach (VerletObject verlet in VerletList)
+                        {
+                            verlet.Update(gameTime);
                         }
 
                         GibList.RemoveAll(Gib => Gib.Active == false);
@@ -1391,17 +1455,17 @@ namespace ArenaPlatformer1
                 #region Level Select
                 case GameState.LevelSelect:
                     {
-                        if (EmitterList != null)
-                            EmitterList.Clear();
+                        //if (EmitterList != null)
+                        //    EmitterList.Clear();
 
-                        if (ProjectileList != null)
-                            ProjectileList.Clear();
+                        //if (ProjectileList != null)
+                        //    ProjectileList.Clear();
 
-                        //if (ItemList != null)
-                            //ItemList.Clear();
+                        ////if (ItemList != null)
+                        //    //ItemList.Clear();
 
-                        if (TrapList != null)
-                            TrapList.Clear();
+                        //if (TrapList != null)
+                        //    TrapList.Clear();
 
                         for (int i = 0; i < 4; i++)
                         {
@@ -1461,6 +1525,19 @@ namespace ArenaPlatformer1
                                                 if (player != null)
                                                     player.Initialize();
                                             }
+
+                                            if (EmitterList != null)
+                                                EmitterList.Clear();
+
+                                            if (ProjectileList != null)
+                                                ProjectileList.Clear();
+
+                                            //if (ItemList != null)
+                                            //ItemList.Clear();
+
+                                            if (TrapList != null)
+                                                TrapList.Clear();
+
                                             CurrentGameState = GameState.LevelSelect;
                                         }
                                         break;
@@ -1524,6 +1601,16 @@ namespace ArenaPlatformer1
                         GraphicsDevice.Clear(Color.Black);
                         spriteBatch.Begin();
                         spriteBatch.DrawString(Font1, "Mode Select", new Vector2(32, 32), Color.White);
+
+                        for (int i = 0; i < ModeSelectOptions.Count; i++)
+                        {
+                            Color col = Color.Gray;
+
+                            if (SelectedModeMenu == i)
+                                col = Color.White;
+
+                            spriteBatch.DrawString(Font1, ModeSelectOptions[i], new Vector2(32, 64 + (25 * i)), col);
+                        }
 
                         spriteBatch.End();
                     }
@@ -1608,7 +1695,13 @@ namespace ArenaPlatformer1
                             gib.Draw(spriteBatch);
                         }
 
-                        //spriteBatch.Draw(Texture, new Rectangle(0, 0, 1920, 1080), null, Color.White, 0, Vector2.Zero, SpriteEffects.None, 1);
+                        foreach (VerletObject verlet in VerletList)
+                        {
+                            verlet.Draw(ShotgunShell, spriteBatch);
+                        }
+
+
+                        spriteBatch.Draw(Texture, new Rectangle(0, 0, 1920, 1080), null, Color.White, 0, Vector2.Zero, SpriteEffects.None, 1);
 
                         foreach (Projectile projectile in ProjectileList)
                         {
@@ -1745,6 +1838,13 @@ namespace ArenaPlatformer1
                         //}
                         spriteBatch.End();
                         #endregion
+
+                        GraphicsDevice.SetRenderTarget(Buffer1);
+                        GraphicsDevice.Clear(Color.Transparent);
+                        spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, null, null, null, ShockWaveEffect);
+                        spriteBatch.Draw(FinalMap, FinalMap.Bounds, Color.White);
+                        spriteBatch.End();
+
 
                         #region Occlusion Map
 
@@ -2004,9 +2104,8 @@ namespace ArenaPlatformer1
             }
             else
             {
-                spriteBatch.Draw(FinalMap, FinalMap.Bounds, Color.White);
+                spriteBatch.Draw(Buffer1, Buffer1.Bounds, Color.White);
                 spriteBatch.Draw(BlurMap, BlurMap.Bounds, Color.White);
-
             }
 
             spriteBatch.End();

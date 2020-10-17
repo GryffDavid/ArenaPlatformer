@@ -15,6 +15,7 @@ namespace ArenaPlatformer1
     public class Player : MovingObject
     {
         public PlayerIndex PlayerIndex;
+        public bool Active = true;
         
         #region Events
         public event PlayerShootHappenedEventHandler PlayerShootHappened;
@@ -327,268 +328,270 @@ namespace ArenaPlatformer1
             PreviousKeyboardState = CurrentKeyboardState;
             PreviousMouseState = CurrentMouseState;
             WasShooting = IsShooting;
-            
-            HealthBar.Update(Health);
-            SpecialBar.Update(new Vector2(87, 100));
 
-            #region Control States
-            CurrentGamePadState = GamePad.GetState(PlayerIndex);
-            CurrentKeyboardState = Keyboard.GetState();
-            CurrentMouseState = Mouse.GetState();
-
-            Sticks = CurrentGamePadState.ThumbSticks;
-            MoveStick = Sticks.Left;
-            AimStick = Sticks.Right; 
-            #endregion
-            
-            #region Jump
-            if (CurrentGamePadState.IsButtonDown(CurrentJumpButton) &&
-                PreviousGamePadState.IsButtonUp(CurrentJumpButton) &&
-                DoubleJumped == false)
+            if (Active == true)
             {
-                if (InAir == true)
-                {
-                    DoubleJumped = true;
-                    Velocity.Y -= 15f;
-                }
-                else
-                {
-                    Velocity.Y = -15f;
-                }
-            }
-            #endregion
+                HealthBar.Update(Health);
+                SpecialBar.Update(new Vector2(87, 100));
 
-            if (CurrentGamePadState.IsButtonDown(Buttons.LeftStick) &&
-                PreviousGamePadState.IsButtonUp(Buttons.LeftStick))
-            {
-                Health.X = 0;
-            }
+                #region Control States
+                CurrentGamePadState = GamePad.GetState(PlayerIndex);
+                CurrentKeyboardState = Keyboard.GetState();
+                CurrentMouseState = Mouse.GetState();
 
-            #region Move stick left
-            if (MoveStick.X < 0f)
-            {
-                AimDirection.X = -1f;
-                CurrentFacing = Facing.Left;
-            }
-            #endregion
-
-            #region Move stick right
-            if (MoveStick.X > 0f)
-            {
-                AimDirection.X = 1f;
-                CurrentFacing = Facing.Right;
-            }
-            #endregion
-
-            Velocity.X += (MoveStick.X * 3f);
-
-            if (CurrentPose == Pose.Standing)
-            {
-                Size = new Vector2(59, 98);
-            }
-            else
-            {
-                Size = new Vector2(59, 74);
-            }
-
-            Velocity.Y += Gravity * ((float)gameTime.ElapsedGameTime.TotalSeconds * 60f);
-
-            base.Update(gameTime);
-
-            #region Collision Reactions
-            if (PushesBottomTile == true)
-            {
-                Velocity.Y = 0;
-                InAir = false;
-                DoubleJumped = false;
-            }
-            else
-            {
-                InAir = true;
-            }
-
-            if (PushesTopTile == true)
-            {
-                Velocity.Y = 0;
-            }
-
-            if (PushesLeftTile == true ||
-                PushesRightTile == true)
-            {
-                Velocity.X = 0;
-            }
-            #endregion
-
-            #region Stop Moving
-            if (MoveStick.X == 0)
-            {
-                if (InAir == false)
-                    Velocity.X = 0f;
-                else
-                    Velocity.X *= 0.98f;
-            }
-            #endregion
-
-            #region Limit Speed
-            if (Velocity.X > MaxSpeed.X)
-            {
-                Velocity.X = MaxSpeed.X;
-            }
-
-            if (Velocity.X < -MaxSpeed.X)
-            {
-                Velocity.X = -MaxSpeed.X;
-            }
-
-            //if (Velocity.Y < -25)
-            //{
-            //    Velocity.Y = -25;
-            //}
-
-            //if (Velocity.Y > 25)
-            //{
-            //    Velocity.Y = 25;
-            //}
-            #endregion
-
-            Shoot(gameTime);
-
-            #region Grenade
-            if (GrenadeTiming.X >= GrenadeTiming.Y)
-            {
-                if (CurrentGamePadState.IsButtonDown(CurrentGrenadeButton) &&
-                    PreviousGamePadState.IsButtonUp(CurrentGrenadeButton))
-                {
-                    CreatePlayerGrenade();
-                    GrenadeTiming.X = 0;
-                }
-            }
-            else
-            {
-                GrenadeTiming.X += (float)gameTime.ElapsedGameTime.TotalMilliseconds;
-            }
-            #endregion
-
-            #region Trap
-            if (CurrentGamePadState.IsButtonDown(CurrentTrapButton) &&
-                PreviousGamePadState.IsButtonUp(CurrentTrapButton))
-            {
-                if (TrapAmmo > 0)
-                {
-                    CreatePlaceTrap(Position, TrapType.Mine);
-                    TrapAmmo--;
-                }
-            }
-            #endregion
-            
-            #region Change Animation Direction
-            switch (CurrentFacing)
-            {
-                #region Left
-                case Facing.Left:
-                    {
-                        AimDirection = new Vector2(-1, 0);
-
-                        if (InAir == false)
-                        {
-                            if (Velocity.X != 0)
-                                CurrentAnimation = RunLeftAnimation;
-                            else
-                            {
-                                if (CurrentPose == Pose.Standing)
-                                    CurrentAnimation = StandLeftAnimation;
-                                else
-                                    CurrentAnimation = CrouchLeftAnimation;
-                            }
-                        }
-                        else
-                            CurrentAnimation = JumpLeftAnimation;
-                    }
-                    break;
+                Sticks = CurrentGamePadState.ThumbSticks;
+                MoveStick = Sticks.Left;
+                AimStick = Sticks.Right;
                 #endregion
 
-                #region Right
-                case Facing.Right:
-                    {
-                        AimDirection = new Vector2(1, 0);
-
-                        if (InAir == false)
-                        {
-                            if (Velocity.X != 0)
-                                CurrentAnimation = RunRightAnimation;
-                            else
-                            {
-                                if (CurrentPose == Pose.Standing)
-                                    CurrentAnimation = StandRightAnimation;
-                                else
-                                    CurrentAnimation = CrouchRightAnimation;
-                            }
-                        }
-                        else
-                            CurrentAnimation = JumpRightAnimation;
-                    }
-                    break; 
-                    #endregion
-            }
-            #endregion
-
-            DestinationRectangle = new Rectangle((int)(Position.X - CurrentAnimation.FrameSize.X / 2),
-                                                 (int)(Position.Y - CurrentAnimation.FrameSize.Y / 2),
-                                                 (int)CurrentAnimation.FrameSize.X,
-                                                 (int)CurrentAnimation.FrameSize.Y);
-
-            BoundingBox = new BoundingBox(new Vector3(Position - (CurrentAnimation.FrameSize / 2), 0),
-                                          new Vector3(Position + (CurrentAnimation.FrameSize / 2), 0));
-
-            #region Update Animations
-            if (CurrentAnimation != null)
-            {
-                CurrentAnimation.Position = Position;
-                CurrentAnimation.Update(gameTime, DestinationRectangle);
-            }
-            #endregion            
-
-            #region Item Collisions
-            if (ItemList != null)
-                ItemList.ForEach(Item =>
+                #region Jump
+                if (CurrentGamePadState.IsButtonDown(CurrentJumpButton) &&
+                    PreviousGamePadState.IsButtonUp(CurrentJumpButton) &&
+                    DoubleJumped == false)
                 {
-                    bool removeItem = true;
-
-                    if (Item.CollisionRectangle.Intersects(CollisionRectangle))
+                    if (InAir == true)
                     {
-                        switch (Item.ItemType)
+                        DoubleJumped = true;
+                        Velocity.Y -= 15f;
+                    }
+                    else
+                    {
+                        Velocity.Y = -15f;
+                    }
+                }
+                #endregion
+
+                if (CurrentGamePadState.IsButtonDown(Buttons.LeftStick) &&
+                    PreviousGamePadState.IsButtonUp(Buttons.LeftStick))
+                {
+                    Health.X = 0;
+                }
+
+                #region Move stick left
+                if (MoveStick.X < 0f)
+                {
+                    AimDirection.X = -1f;
+                    CurrentFacing = Facing.Left;
+                }
+                #endregion
+
+                #region Move stick right
+                if (MoveStick.X > 0f)
+                {
+                    AimDirection.X = 1f;
+                    CurrentFacing = Facing.Right;
+                }
+                #endregion
+
+                Velocity.X += (MoveStick.X * 3f);
+
+                if (CurrentPose == Pose.Standing)
+                {
+                    Size = new Vector2(59, 98);
+                }
+                else
+                {
+                    Size = new Vector2(59, 74);
+                }
+
+                Velocity.Y += Gravity * ((float)gameTime.ElapsedGameTime.TotalSeconds * 60f);
+
+                base.Update(gameTime);
+
+                #region Collision Reactions
+                if (PushesBottomTile == true)
+                {
+                    Velocity.Y = 0;
+                    InAir = false;
+                    DoubleJumped = false;
+                }
+                else
+                {
+                    InAir = true;
+                }
+
+                if (PushesTopTile == true)
+                {
+                    Velocity.Y = 0;
+                }
+
+                if (PushesLeftTile == true ||
+                    PushesRightTile == true)
+                {
+                    Velocity.X = 0;
+                }
+                #endregion
+
+                #region Stop Moving
+                if (MoveStick.X == 0)
+                {
+                    if (InAir == false)
+                        Velocity.X = 0f;
+                    else
+                        Velocity.X *= 0.98f;
+                }
+                #endregion
+
+                #region Limit Speed
+                if (Velocity.X > MaxSpeed.X)
+                {
+                    Velocity.X = MaxSpeed.X;
+                }
+
+                if (Velocity.X < -MaxSpeed.X)
+                {
+                    Velocity.X = -MaxSpeed.X;
+                }
+
+                //if (Velocity.Y < -25)
+                //{
+                //    Velocity.Y = -25;
+                //}
+
+                //if (Velocity.Y > 25)
+                //{
+                //    Velocity.Y = 25;
+                //}
+                #endregion
+
+                Shoot(gameTime);
+
+                #region Grenade
+                if (GrenadeTiming.X >= GrenadeTiming.Y)
+                {
+                    if (CurrentGamePadState.IsButtonDown(CurrentGrenadeButton) &&
+                        PreviousGamePadState.IsButtonUp(CurrentGrenadeButton))
+                    {
+                        CreatePlayerGrenade();
+                        GrenadeTiming.X = 0;
+                    }
+                }
+                else
+                {
+                    GrenadeTiming.X += (float)gameTime.ElapsedGameTime.TotalMilliseconds;
+                }
+                #endregion
+
+                #region Trap
+                if (CurrentGamePadState.IsButtonDown(CurrentTrapButton) &&
+                    PreviousGamePadState.IsButtonUp(CurrentTrapButton))
+                {
+                    if (TrapAmmo > 0)
+                    {
+                        CreatePlaceTrap(Position, TrapType.Mine);
+                        TrapAmmo--;
+                    }
+                }
+                #endregion
+
+                #region Change Animation Direction
+                switch (CurrentFacing)
+                {
+                    #region Left
+                    case Facing.Left:
                         {
-                            case ItemType.Shield:
-                                {
-                                    ShieldActive = true;
-                                    removeItem = true;
-                                }
-                                break;
+                            AimDirection = new Vector2(-1, 0);
 
-                            case ItemType.Shotgun:
+                            if (InAir == false)
+                            {
+                                if (Velocity.X != 0)
+                                    CurrentAnimation = RunLeftAnimation;
+                                else
                                 {
-                                    CurrentGun = GunType.Shotgun;
-                                    ShotTiming = new Vector2(0, 1000);
-                                    removeItem = true;
+                                    if (CurrentPose == Pose.Standing)
+                                        CurrentAnimation = StandLeftAnimation;
+                                    else
+                                        CurrentAnimation = CrouchLeftAnimation;
                                 }
-                                break;
-
-                            case ItemType.RocketLauncher:
-                                {
-                                    CurrentGun = GunType.RocketLauncher;
-                                    ShotTiming = new Vector2(0, 2000);
-                                    removeItem = true;
-                                }
-                                break;
-
-                            case ItemType.MachineGun:
-                                {
-                                    ShotTiming = new Vector2(0, 200);
-                                    CurrentGun = GunType.MachineGun;
-                                    removeItem = true;
-                                }
-                                break;
+                            }
+                            else
+                                CurrentAnimation = JumpLeftAnimation;
                         }
+                        break;
+                    #endregion
+
+                    #region Right
+                    case Facing.Right:
+                        {
+                            AimDirection = new Vector2(1, 0);
+
+                            if (InAir == false)
+                            {
+                                if (Velocity.X != 0)
+                                    CurrentAnimation = RunRightAnimation;
+                                else
+                                {
+                                    if (CurrentPose == Pose.Standing)
+                                        CurrentAnimation = StandRightAnimation;
+                                    else
+                                        CurrentAnimation = CrouchRightAnimation;
+                                }
+                            }
+                            else
+                                CurrentAnimation = JumpRightAnimation;
+                        }
+                        break;
+                        #endregion
+                }
+                #endregion
+
+                DestinationRectangle = new Rectangle((int)(Position.X - CurrentAnimation.FrameSize.X / 2),
+                                                     (int)(Position.Y - CurrentAnimation.FrameSize.Y / 2),
+                                                     (int)CurrentAnimation.FrameSize.X,
+                                                     (int)CurrentAnimation.FrameSize.Y);
+
+                BoundingBox = new BoundingBox(new Vector3(Position - (CurrentAnimation.FrameSize / 2), 0),
+                                              new Vector3(Position + (CurrentAnimation.FrameSize / 2), 0));
+
+                #region Update Animations
+                if (CurrentAnimation != null)
+                {
+                    CurrentAnimation.Position = Position;
+                    CurrentAnimation.Update(gameTime, DestinationRectangle);
+                }
+                #endregion
+
+                #region Item Collisions
+                if (ItemList != null)
+                    ItemList.ForEach(Item =>
+                    {
+                        bool removeItem = true;
+
+                        if (Item.CollisionRectangle.Intersects(CollisionRectangle))
+                        {
+                            switch (Item.ItemType)
+                            {
+                                case ItemType.Shield:
+                                    {
+                                        ShieldActive = true;
+                                        removeItem = true;
+                                    }
+                                    break;
+
+                                case ItemType.Shotgun:
+                                    {
+                                        CurrentGun = GunType.Shotgun;
+                                        ShotTiming = new Vector2(0, 1000);
+                                        removeItem = true;
+                                    }
+                                    break;
+
+                                case ItemType.RocketLauncher:
+                                    {
+                                        CurrentGun = GunType.RocketLauncher;
+                                        ShotTiming = new Vector2(0, 2000);
+                                        removeItem = true;
+                                    }
+                                    break;
+
+                                case ItemType.MachineGun:
+                                    {
+                                        ShotTiming = new Vector2(0, 200);
+                                        CurrentGun = GunType.MachineGun;
+                                        removeItem = true;
+                                    }
+                                    break;
+                            }
 
                         #region Old
                         //#region Item is a TrapPickup
@@ -674,120 +677,121 @@ namespace ArenaPlatformer1
                         #endregion
 
                         if (removeItem == true)
-                            ItemList.Remove(Item);
-                    }
-                });
-            #endregion
+                                ItemList.Remove(Item);
+                        }
+                    });
+                #endregion
 
-            #region Trap Collisions
-            if (TrapList != null)
-                TrapList.ForEach(Trap =>
-                {
-                    if (Trap.Active == true && Trap.CollisionRectangle.Intersects(CollisionRectangle))
+                #region Trap Collisions
+                if (TrapList != null)
+                    TrapList.ForEach(Trap =>
                     {
-                        switch (Trap.TrapType)
+                        if (Trap.Active == true && Trap.CollisionRectangle.Intersects(CollisionRectangle))
                         {
+                            switch (Trap.TrapType)
+                            {
                             #region Fire
                             case TrapType.Fire:
-                                {
+                                    {
 
+                                    }
+                                    break;
+                                #endregion
+                        }
+
+                            Health.X -= 20;
+                            Trap.Reset();
+                        }
+                    });
+                #endregion
+
+                #region Projectile Collisions
+                if (ProjectileList != null)
+                    ProjectileList.ForEach(Projectile =>
+                    {
+                        if (Projectile.PlayerIndex != PlayerIndex &&
+                            Projectile.CollisionRectangle.Intersects(CollisionRectangle))
+                        {
+                            Projectile.Active = false;
+
+                            if (ShieldActive == true)
+                            {
+                                ShieldActive = false;
+                            }
+                            else
+                            {
+                                Health.X = 0;
+                            }
+                        }
+                    });
+                #endregion
+
+                #region Player Died
+                if (Health.X <= 0)
+                {
+                    //#region Flag behaviour
+                    //switch (CurrentFlagState)
+                    //{
+                    //    case FlagState.NoFlag:
+                    //        break;
+
+                    //    case FlagState.HasRed:
+                    //        {
+                    //            RedFlag replacementFlag = new RedFlag() { Position = Position };
+                    //            replacementFlag.Initialize();
+
+                    //            ItemList.Add(replacementFlag);
+                    //            CurrentFlagState = FlagState.NoFlag;
+                    //        }
+                    //        break;
+
+                    //    case FlagState.HasBlue:
+                    //        {
+                    //            BlueFlag replacementFlag = new BlueFlag() { Position = Position };
+                    //            replacementFlag.Initialize();
+
+                    //            ItemList.Add(replacementFlag);
+                    //            CurrentFlagState = FlagState.NoFlag;
+                    //        }
+                    //        break;
+                    //} 
+                    //#endregion
+
+                    Deaths++;
+                    IsShooting = false;
+                    WasShooting = false;
+                    CreatePlayerDied();
+                    UnscrambleButtons();
+                }
+                #endregion
+
+                #region Debuffs
+                if (_CurrentDebuff.Active == true)
+                {
+                    _CurrentDebuff.Update(gameTime);
+
+                    //The debuff has expired based on the previous Update                
+                    if (_CurrentDebuff.Active == false)
+                    {
+                        switch (_CurrentDebuff.DebuffType)
+                        {
+                            case DebuffType.ScrambleButtons:
+                                {
+                                    UnscrambleButtons();
                                 }
                                 break;
-                            #endregion
                         }
-
-                        Health.X -= 20;
-                        Trap.Reset();
-                    }
-                });
-            #endregion
-
-            #region Projectile Collisions
-            if (ProjectileList != null)
-                ProjectileList.ForEach(Projectile =>
-                {
-                    if (Projectile.PlayerIndex != PlayerIndex &&
-                        Projectile.CollisionRectangle.Intersects(CollisionRectangle))
-                    {
-                        Projectile.Active = false;
-
-                        if (ShieldActive == true)
-                        {
-                            ShieldActive = false;
-                        }
-                        else
-                        {
-                            Health.X = 0;
-                        }                        
-                    }
-                });
-            #endregion
-
-            #region Player Died
-            if (Health.X <= 0)
-            {
-                //#region Flag behaviour
-                //switch (CurrentFlagState)
-                //{
-                //    case FlagState.NoFlag:
-                //        break;
-
-                //    case FlagState.HasRed:
-                //        {
-                //            RedFlag replacementFlag = new RedFlag() { Position = Position };
-                //            replacementFlag.Initialize();
-
-                //            ItemList.Add(replacementFlag);
-                //            CurrentFlagState = FlagState.NoFlag;
-                //        }
-                //        break;
-
-                //    case FlagState.HasBlue:
-                //        {
-                //            BlueFlag replacementFlag = new BlueFlag() { Position = Position };
-                //            replacementFlag.Initialize();
-
-                //            ItemList.Add(replacementFlag);
-                //            CurrentFlagState = FlagState.NoFlag;
-                //        }
-                //        break;
-                //} 
-                //#endregion
-
-                Deaths++;
-                IsShooting = false;
-                WasShooting = false;
-                CreatePlayerDied();
-                UnscrambleButtons();
-            }
-            #endregion
-
-            #region Debuffs
-            if (_CurrentDebuff.Active == true)
-            {
-                _CurrentDebuff.Update(gameTime);
-
-                //The debuff has expired based on the previous Update                
-                if (_CurrentDebuff.Active == false)
-                {
-                    switch (_CurrentDebuff.DebuffType)
-                    {
-                        case DebuffType.ScrambleButtons:
-                            {
-                                UnscrambleButtons();
-                            }
-                            break;
                     }
                 }
-            }
-            #endregion
+                #endregion
 
-            BarrelEnd = Position + new Vector2(AimDirection.X * 28, -12);
+                BarrelEnd = Position + new Vector2(AimDirection.X * 28, -12);
+            }
         }
 
         public void Draw(SpriteBatch spriteBatch)
         {
-            if (CurrentAnimation != null)
+            if (CurrentAnimation != null && Active == true)
                 CurrentAnimation.Draw(spriteBatch, Position);
 
             //if (CurrentGamePadState.IsButtonDown(ShootButton))
@@ -934,6 +938,7 @@ namespace ArenaPlatformer1
             Vector2 index = Map.FindSpawn();
             Position = Map.GetTilePosition((int)index.X, (int)index.Y) + (Map.TileSize * new Vector2(0.5f, 1f));
             Velocity = Vector2.Zero;
+            Active = true;
         }
 
         public void Shoot(GameTime gameTime)

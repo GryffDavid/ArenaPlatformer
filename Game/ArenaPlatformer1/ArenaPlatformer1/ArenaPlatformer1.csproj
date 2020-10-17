@@ -118,6 +118,7 @@
     <Compile Include="Traps\SpikesTrap.cs" />
     <Compile Include="UI\PlayerJoin.cs" />
     <Compile Include="Basics\Camera.cs" />
+    <Compile Include="VerletObject.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="aOtherStuff\Game.ico" />
