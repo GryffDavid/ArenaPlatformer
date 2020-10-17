@@ -191,7 +191,8 @@ namespace ArenaPlatformer1
         Rectangle ScreenRectangle = new Rectangle(0, 0, 1920, 1080);
         
         #region RenderTargets
-        RenderTarget2D UIRenderTarget, GameRenderTarget, MenuRenderTarget; 
+        RenderTarget2D UIRenderTarget, GameRenderTarget, MenuRenderTarget;
+        RenderTarget2D ParticleRenderTarget;
         #endregion
         
         #region Control States
@@ -301,6 +302,7 @@ namespace ArenaPlatformer1
         List<BulletTrail> BulletTrailList = new List<BulletTrail>();
         List<Gib> GibList = new List<Gib>();
         List<VerletObject> VerletList = new List<VerletObject>();
+        List<ShockWave> ShockWaveList = new List<ShockWave>();
 
         public int CurrentMatchNumber, MaxMatchNumber;
         public int ScoreLimit;
@@ -371,7 +373,7 @@ namespace ArenaPlatformer1
                             position = new Vector3(projectile.Position, 0),
                             direction = projectile.Ray.Direction,
                             length = 800
-                        });
+                        });                        
                     }
                     break; 
                 #endregion
@@ -676,7 +678,7 @@ namespace ArenaPlatformer1
 
             Emitter Emitter = new Emitter(ToonSmoke3,
                     new Vector2(explosion.Position.X, explosion.Position.Y), new Vector2(60, 120), new Vector2(1, 1),
-                    new Vector2(500, 1000), 1f, false, new Vector2(-10, 10), new Vector2(-1, 1), new Vector2(0.05f, 0.06f), 
+                    new Vector2(500, 1000), 1f, false, new Vector2(-10, 10), new Vector2(-1, 1), new Vector2(0.05f, 0.06f),
                     new Color(255, 128, 0, 6), Color.Black,
                     -0.005f, 0.4f, 50, 10, false, new Vector2(0, 720), true, 0.1f,
                     null, null, null, null, null, false, null, null, null,
@@ -710,7 +712,7 @@ namespace ArenaPlatformer1
             };
             EmitterList.Add(ExplosionEmitter3);
 
-            Emitter BOOMEmitter = new Emitter(BOOMParticle, 
+            Emitter BOOMEmitter = new Emitter(BOOMParticle,
                     new Vector2(explosion.Position.X, explosion.Position.Y - 12),
                     new Vector2(0, 0), new Vector2(0.001f, 0.001f), new Vector2(400, 400), 1f, false,
                     new Vector2(-25, 25), new Vector2(0, 0), new Vector2(0.35f, 0.35f),
@@ -773,9 +775,12 @@ namespace ArenaPlatformer1
             //Camera.Shake(15, 1.5f);
             #endregion
 
-            ShockWaveEffect.Parameters["CenterCoords"].SetValue(new Vector2(1 / (1920 / explosion.Position.X), 1 / (1080 / explosion.Position.Y)));
-            ShockWaveEffect.Parameters["WaveParams"].SetValue(new Vector4(10, 0.5f, 0.1f, 60));
-            ShockWaveEffect.Parameters["CurrentTime"].SetValue(0);
+            //ShockWaveEffect.Parameters["CenterCoords"].SetValue(new Vector2(1 / (1920 / explosion.Position.X), 1 / (1080 / explosion.Position.Y)));
+            //ShockWaveEffect.Parameters["WaveParams"].SetValue(new Vector4(10, 0.5f, 0.1f, 60));
+            //ShockWaveEffect.Parameters["CurrentTime"].SetValue(0);
+            
+            ShockWaveList.Add(new ShockWave(new Vector2(1 / (1920 / explosion.Position.X), 1 / (1080 / explosion.Position.Y)), new Vector3(10.0f, 2.5f, 0.1f), 400));
+
 
             Light light = new Light()
             {
@@ -1090,6 +1095,7 @@ namespace ArenaPlatformer1
             UIRenderTarget = new RenderTarget2D(GraphicsDevice, 1920, 1080);
             GameRenderTarget = new RenderTarget2D(GraphicsDevice, 1920, 1080);
             MenuRenderTarget = new RenderTarget2D(GraphicsDevice, 1920, 1080);
+            ParticleRenderTarget = new RenderTarget2D(GraphicsDevice, 1920, 1080);
 
             Font1 = Content.Load<SpriteFont>("Font1");
 
@@ -1259,6 +1265,13 @@ namespace ArenaPlatformer1
                             light.Update(gameTime);
                         }
 
+                        foreach (ShockWave shockWave in ShockWaveList)
+                        {
+                            shockWave.Update(gameTime);
+                        }
+
+                        ShockWaveList.RemoveAll(Shock => Shock.Active == false);
+
                         if (CurrentMouseState.LeftButton == ButtonState.Released &&
                             PreviousMouseState.LeftButton == ButtonState.Pressed &&
                             this.IsActive == true)
@@ -1275,7 +1288,7 @@ namespace ArenaPlatformer1
                             CurrentMap.LightList.Add(light);                           
                         }
 
-                        ShockWaveEffect.Parameters["CurrentTime"].SetValue(ShockWaveEffect.Parameters["CurrentTime"].GetValueSingle() + (float)(gameTime.ElapsedGameTime.TotalSeconds));
+                        //ShockWaveEffect.Parameters["CurrentTime"].SetValue(ShockWaveEffect.Parameters["CurrentTime"].GetValueSingle() + (float)(gameTime.ElapsedGameTime.TotalSeconds));
 
                         foreach (Gib gib in GibList)
                         {
@@ -1698,11 +1711,21 @@ namespace ArenaPlatformer1
                         #endregion
                         #endregion
 
+                        //GraphicsDevice.SetRenderTarget(ParticleRenderTarget);
+                        //GraphicsDevice.Clear(Color.Transparent);
+                        //spriteBatch.Begin();
+                        //RenderManager.DrawLit(spriteBatch);
+                        ////foreach (Player player in Players.Where(Player => Player != null))
+                        //{
+                        //    player.Draw(spriteBatch);
+                        //}
+                        //spriteBatch.End();
+
                         #region Draw to ColorMap                        
                         GraphicsDevice.SetRenderTarget(ColorMap);
                         GraphicsDevice.Clear(Color.LightGray);
                         spriteBatch.Begin(SpriteSortMode.BackToFront, BlendState.AlphaBlend);
-                        
+
                         foreach (Player player in Players.Where(Player => Player != null))
                         {
                             player.Draw(spriteBatch);
@@ -1717,7 +1740,6 @@ namespace ArenaPlatformer1
                         {
                             verlet.Draw(ShotgunShell, spriteBatch);
                         }
-
 
                         spriteBatch.Draw(Texture, new Rectangle(0, 0, 1920, 1080), null, Color.White, 0, Vector2.Zero, SpriteEffects.None, 1);
 
@@ -1760,15 +1782,19 @@ namespace ArenaPlatformer1
                         spriteBatch.Draw(EmissiveMap, EmissiveMap.Bounds, Color.White);
 
                         RenderManager.DrawLit(spriteBatch);
+                        //spriteBatch.Draw(ParticleRenderTarget, ParticleRenderTarget.Bounds, Color.White);
                         spriteBatch.End();
-                        #endregion
+
                         
+                        #endregion
+
                         #region Draw to NormalMap
                         GraphicsDevice.SetRenderTarget(NormalMap);
                         GraphicsDevice.Clear(new Color(127, 127, 255));
                         spriteBatch.Begin();
                         //spriteBatch.Draw(NormalTexture, new Rectangle(0, 0, 1920, 1080), Color.White);
-                        CurrentMap.Draw(spriteBatch);
+                        //CurrentMap.Draw(spriteBatch);
+                        //spriteBatch.Draw(ParticleRenderTarget, ParticleRenderTarget.Bounds, Color.Gray);
                         spriteBatch.End();
                         #endregion
 
@@ -1857,11 +1883,35 @@ namespace ArenaPlatformer1
                         spriteBatch.End();
                         #endregion
 
-                        GraphicsDevice.SetRenderTarget(Buffer1);
-                        GraphicsDevice.Clear(Color.Transparent);
-                        spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, null, null, null, ShockWaveEffect);
-                        spriteBatch.Draw(FinalMap, FinalMap.Bounds, Color.White);
-                        spriteBatch.End();
+                        if (ShockWaveList.Count(Shock => Shock.Active == true) > 0)
+                        {
+                            foreach (ShockWave shockWave in ShockWaveList)
+                            {
+                                ShockWaveEffect.Parameters["CenterCoords"].SetValue(shockWave.Position);
+                                ShockWaveEffect.Parameters["WaveParams"].SetValue(new Vector4(10, 0.5f, 0.1f, 60));
+                                ShockWaveEffect.Parameters["CurrentTime"].SetValue(shockWave.CurrentTime/1000f);
+
+                                GraphicsDevice.SetRenderTarget(Buffer1);
+                                GraphicsDevice.Clear(Color.Transparent);
+                                spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, null, null, null, ShockWaveEffect);
+                                spriteBatch.Draw(FinalMap, FinalMap.Bounds, Color.White);
+                                spriteBatch.End();
+
+                                GraphicsDevice.SetRenderTarget(FinalMap);
+                                GraphicsDevice.Clear(Color.Transparent);
+                                spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend);
+                                spriteBatch.Draw(Buffer1, Buffer1.Bounds, Color.White);
+                                spriteBatch.End();
+                            }
+                        }
+                        //else
+                        //{
+                        //    GraphicsDevice.SetRenderTarget(Buffer1);
+                        //    GraphicsDevice.Clear(Color.Transparent);
+                        //    spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend);
+                        //    spriteBatch.Draw(FinalMap, FinalMap.Bounds, Color.White);
+                        //    spriteBatch.End();
+                        //}
 
 
                         #region Occlusion Map
@@ -2122,7 +2172,7 @@ namespace ArenaPlatformer1
             }
             else
             {
-                spriteBatch.Draw(Buffer1, Buffer1.Bounds, Color.White);
+                spriteBatch.Draw(FinalMap, FinalMap.Bounds, Color.White);
                 spriteBatch.Draw(BlurMap, BlurMap.Bounds, Color.White);
             }
 

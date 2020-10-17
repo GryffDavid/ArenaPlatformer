@@ -112,6 +112,7 @@
     <Compile Include="Game1.cs" />
     <Compile Include="Basics\Tile.cs" />
     <Compile Include="Basics\Trap.cs" />
+    <Compile Include="ShockWave.cs" />
     <Compile Include="Traps\BeamTrap.cs" />
     <Compile Include="Traps\BouncePadTrap.cs" />
     <Compile Include="Traps\Mine.cs" />

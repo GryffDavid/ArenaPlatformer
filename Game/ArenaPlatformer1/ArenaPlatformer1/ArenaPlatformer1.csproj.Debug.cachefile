@@ -122,3 +122,13 @@ Content\Shaders\Depth.xnb
 Content\Shaders\LightCombined.xnb
 Content\Shaders\LightEffect.xnb
 Content\Shaders\Shockwave.xnb
+Content\Player1\Running\RunLeft1.xnb
+Content\Player1\Running\RunRight2.xnb
+Content\Player1\Jumping\JumpLeft2.xnb
+Content\Player1\Jumping\JumpRight2.xnb
+Content\Player1\Standing\StandLeft2.xnb
+Content\Player1\Standing\StandRight2.xnb
+Content\Player1\Running\RunLeft2.xnb
+Content\Player1\Running\RunRight1.xnb
+Content\Player1\Jumping\JumpLeft1.xnb
+Content\Player1\Jumping\JumpRight1.xnb

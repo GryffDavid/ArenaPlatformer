@@ -289,19 +289,19 @@ namespace ArenaPlatformer1
             #endregion
 
             #region Set up animations
-            RunRightAnimation = new Animation(RunRightTexture, 8, 50);
+            RunRightAnimation = new Animation(RunRightTexture, 12, 50);
             RunRightUpAnimation = new Animation(RunRightUpTexture, 8, 50);
             RunRightDownAnimation = new Animation(RunRightDownTexture, 8, 50);
 
-            RunLeftAnimation = new Animation(RunLeftTexture, 8, 50);
+            RunLeftAnimation = new Animation(RunLeftTexture, 12, 50);
             RunLeftUpAnimation = new Animation(RunLeftUpTexture, 8, 50);
             RunLeftDownAnimation = new Animation(RunLeftDownTexture, 8, 50);
 
-            StandLeftAnimation = new Animation(StandLeftTexture, 1, 50);
+            StandLeftAnimation = new Animation(StandLeftTexture, 6, 50);
             StandLeftUpAnimation = new Animation(StandLeftUpTexture, 1, 50);
             StandLeftDownAnimation = new Animation(StandLeftDownTexture, 1, 50);
 
-            StandRightAnimation = new Animation(StandRightTexture, 1, 50);
+            StandRightAnimation = new Animation(StandRightTexture, 6, 50);
             StandRightUpAnimation = new Animation(StandRightUpTexture, 1, 50);
             StandRightDownAnimation = new Animation(StandRightDownTexture, 1, 50);
 
@@ -374,7 +374,9 @@ namespace ArenaPlatformer1
                     CurrentFacing = Facing.Left;
                 }
                 #endregion
+                #region  
 
+                #endregion
                 #region Move stick right
                 if (MoveStick.X > 0f)
                 {
@@ -785,7 +787,7 @@ namespace ArenaPlatformer1
                 }
                 #endregion
 
-                BarrelEnd = Position + new Vector2(AimDirection.X * 28, -12);
+                BarrelEnd = Position + new Vector2(AimDirection.X * 28, 10);
             }
         }
 

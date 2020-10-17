@@ -24,7 +24,7 @@ float2 CenterCoords;
 
 float4 PixelShaderFunction(float2 fragCoord: TEXCOORD0) : COLOR
 {
-	float3 WaveParams = float3(10.0, 0.5, 0.1);
+	//float3 WaveParams = float3(10.0, 2.5, 0.1);
 
 	float ratio = Resolution.x / Resolution.y;
 
@@ -37,7 +37,8 @@ float4 PixelShaderFunction(float2 fragCoord: TEXCOORD0) : COLOR
 
 	//Only distort the pixels within the parameter distance from the centre
 	if ((Dist <= ((CurrentTime) + (WaveParams.z))) &&
-		(Dist >= ((CurrentTime) - (WaveParams.z))))
+		(Dist >= ((CurrentTime) - (WaveParams.z))) &&
+		CurrentTime < 0.4)
 	{
 		//The pixel offset distance based on the input parameters
 		float Diff = (Dist - CurrentTime);
@@ -48,11 +49,11 @@ float4 PixelShaderFunction(float2 fragCoord: TEXCOORD0) : COLOR
 		float2 DiffTexCoord = normalize(fragCoord * float2(ratio, 1.0) - WaveCentre);
 
 		//Perform the distortion and reduce the effect over time
-		fragCoord += ((DiffTexCoord * DiffTime) / (CurrentTime * Dist * 4.0));
+		fragCoord += ((DiffTexCoord * DiffTime) / (CurrentTime * Dist * 200.0));
 		Color = tex2D(ScreenSampler, fragCoord);
 
 		//Blow out the color and reduce the effect over time
-		Color += (Color * ScaleDiff) / ((CurrentTime + 2.25) * Dist * 4.0);
+		Color += (Color * ScaleDiff) / ((CurrentTime + 2.25) * Dist * 120.0);
 	}
 
 	return Color;
