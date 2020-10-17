@@ -14,10 +14,27 @@ namespace ArenaPlatformer1
         public Vector2 HealthValue, Position, Size;
         public Player Player;
         public float HealthPerc;
+        public Color BackColor, FrontColor;
 
-        public HealthBar()
+        public HealthBar(Color? frontColor = null, Color? backColor = null)
         {
+            if (frontColor == null)
+            {
+                FrontColor = Color.Red;
+            }
+            else
+            {
+                FrontColor = frontColor.Value;
+            }
 
+            if (backColor == null)
+            {
+                BackColor = Color.White;
+            }
+            else
+            {
+                BackColor = backColor.Value;
+            }
         }
 
         public void LoadContent()
@@ -25,16 +42,16 @@ namespace ArenaPlatformer1
 
         }
 
-        public void Update(GameTime gameTime)
+        public void Update(Vector2 healthValue)
         {
-            HealthValue = Player.Health;
-            HealthPerc = ((100f / HealthValue.Y) * HealthValue.X)/100f;
+            HealthValue = healthValue;
+            HealthPerc = ((100f / HealthValue.Y) * HealthValue.X) / 100f;
         }
 
         public void Draw(SpriteBatch spriteBatch)
         {
-            spriteBatch.Draw(Texture, new Rectangle((int)Position.X, (int)Position.Y, (int)Size.X, (int)Size.Y), Color.White);
-            spriteBatch.Draw(Texture, new Rectangle((int)Position.X, (int)Position.Y, (int)(Size.X * HealthPerc), (int)Size.Y), Color.Red);
+            spriteBatch.Draw(Texture, new Rectangle((int)Position.X, (int)Position.Y, (int)Size.X, (int)Size.Y), BackColor);
+            spriteBatch.Draw(Texture, new Rectangle((int)Position.X, (int)Position.Y, (int)(Size.X * HealthPerc), (int)Size.Y), FrontColor);
         }
     }
 }

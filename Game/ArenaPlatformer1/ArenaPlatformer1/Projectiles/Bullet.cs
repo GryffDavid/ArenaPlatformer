@@ -10,7 +10,7 @@ namespace ArenaPlatformer1
 {
     class Bullet : Projectile
     {
-        public static Texture2D Texture;
+        public new static Texture2D Texture;
 
         public Bullet()
         {

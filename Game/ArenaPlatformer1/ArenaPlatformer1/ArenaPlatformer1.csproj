@@ -74,6 +74,7 @@
     <Compile Include="Basics\Animation.cs" />
     <Compile Include="Basics\CollisionSolid.cs" />
     <Compile Include="Basics\Explosion.cs" />
+    <Compile Include="ParticleSystem\Gib.cs" />
     <Compile Include="Basics\Grenade.cs" />
     <Compile Include="Basics\HealthBar.cs" />
     <Compile Include="BulletTrail.cs" />
@@ -88,6 +89,7 @@
     <Compile Include="Basics\Map.cs" />
     <Compile Include="Basics\MovingObject.cs" />
     <Compile Include="Basics\MovingPlatform.cs" />
+    <Compile Include="LightProjectiles\MachineGunProjectile.cs" />
     <Compile Include="LightProjectiles\ShotgunProjectile.cs" />
     <Compile Include="ParticleSystem\Buffers\ChangeBuffer.cs" />
     <Compile Include="ParticleSystem\Buffers\ChangeMessage.cs" />
@@ -97,6 +99,7 @@
     <Compile Include="ParticleSystem\Emitter.cs" />
     <Compile Include="ParticleSystem\Managers\RenderManager.cs" />
     <Compile Include="ParticleSystem\Managers\UpdateManager.cs" />
+    <Compile Include="Pickups\MachineGunPickup.cs" />
     <Compile Include="Pickups\ShieldPickup.cs" />
     <Compile Include="Pickups\RocketLauncherPickup.cs" />
     <Compile Include="Pickups\ShotgunPickup.cs" />
@@ -128,7 +131,9 @@
       <XnaReferenceType>Content</XnaReferenceType>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="Guns\" />
+  </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">
       <Visible>False</Visible>

@@ -10,7 +10,7 @@ namespace ArenaPlatformer1
 {
     class Rocket : Projectile
     {
-        public static Texture2D Texture;
+        public new static Texture2D Texture;
         Vector2 myVel;
 
 

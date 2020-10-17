@@ -50,9 +50,8 @@ namespace ArenaPlatformer1
     public enum GunType
     {
         RocketLauncher,
-        BeamGun,
-        GrenadeLauncher,
-        Shotgun
+        Shotgun,
+        MachineGun
     };
 
     public enum DebuffType
@@ -204,11 +203,15 @@ namespace ArenaPlatformer1
 
         #region Textures
         #region Particle Textures
-        Texture2D ExplosionParticle2, BOOMParticle, SplodgeParticle,
+        Texture2D ExplosionParticle2, BOOMParticle, SNAPParticle, PINGParticle, SplodgeParticle,
                   HitEffectParticle, ToonSmoke2, ToonSmoke3, ParticleTexture;
         #endregion
 
         Texture2D Block, Texture, NormalTexture;
+
+        #region Icon Textures
+        public static Texture2D GrenadeIcon;
+        #endregion
         #endregion
 
         #region Lighting
@@ -223,7 +226,7 @@ namespace ArenaPlatformer1
         List<PolygonShadow> ShadowList = new List<PolygonShadow>();
         List<MyRay> RayList = new List<MyRay>();
 
-        BasicEffect BasicEffect;
+        BasicEffect BasicEffect, BulletTrailEffect;
 
         public static BlendState BlendBlack = new BlendState()
         {
@@ -264,7 +267,6 @@ namespace ArenaPlatformer1
         bool DrawDiagnostics = false;
         bool DebugBoxes = false;
         bool TileBoxes = false;
-        bool didDraw = false;
 
         List<MyRay> myRayList = new List<MyRay>();
         #endregion
@@ -283,7 +285,10 @@ namespace ArenaPlatformer1
 
         //float LightZ = 0;
 
+        Texture2D ShotgunShell;
+
         List<BulletTrail> BulletTrailList = new List<BulletTrail>();
+        List<Gib> GibList = new List<Gib>();
         
         public void OnPlayerShoot(object source, PlayerShootEventArgs e)
         {
@@ -324,45 +329,79 @@ namespace ArenaPlatformer1
 
             LightProjectile projectile = e.Projectile;
 
-            myRayList.Add(new MyRay()
+            switch (projectile.LightProjectileType)
             {
-                position = new Vector3(projectile.Position, 0),
-                direction = projectile.Ray.Direction,
-                length = 250
-            });
+                #region Shotgun
+                case LightProjectileType.Shotgun:
+                    {
+                        //ShellCasing shell = new ShellCasing(projectile.Position, new Vector2(12, -5), ShotgunShell);
+                        //ShellCasingList.Add(shell);
+                        //myRayList.Add(new MyRay()
+                        //{
+                        //    position = new Vector3(projectile.Position, 0),
+                        //    direction = projectile.Ray.Direction,
+                        //    length = 250
+                        //});
+                    }
+                    break; 
+                #endregion
 
-            Action CheckCollision = () =>
+                #region MachineGun
+                case LightProjectileType.MachineGun:
+                    {
+                        myRayList.Add(new MyRay()
+                        {
+                            position = new Vector3(projectile.Position, 0),
+                            direction = projectile.Ray.Direction,
+                            length = 800
+                        });
+                    }
+                    break; 
+                #endregion
+            }
+            
+            void CheckCollision()
             {
                 float? hitDist;
                 Vector2 endPosition;
                 Vector2 sourcePosition = projectile.Position;
-                List<Player> PlayerIntersections = Players.ToList().FindAll(movingObject => movingObject != null && movingObject != source && movingObject.BoundingBox.Intersects(projectile.Ray) < 250);
+                List<CollisionSolid> ObjectList = new List<CollisionSolid>();
+                List<Player> PlayerIntersections = new List<Player>();
                 List<Tile> TileIntersections = new List<Tile>();
+                CollisionSolid colObject = new CollisionSolid();
+
+                //Vector2 angleRange = new Vector2(
+                //                        MathHelper.ToDegrees(-(float)Math.Atan2(projectile.Ray.Direction.Y, projectile.Ray.Direction.X)) - 180 - 60,
+                //                        MathHelper.ToDegrees(-(float)Math.Atan2(projectile.Ray.Direction.Y, projectile.Ray.Direction.X)) - 180 + 60);
+
+                Vector2 angleRange = GetAngleRange(projectile, 60);
 
                 for (int x = 0; x < CurrentMap.DrawTiles.GetLength(0); x++)
                 {
                     for (int y = 0; y < CurrentMap.DrawTiles.GetLength(1); y++)
                     {
-                        if (CurrentMap.DrawTiles[x, y] != null && CurrentMap.DrawTiles[x, y].BoundingBox.Intersects(projectile.Ray) < 250)
+                        if (CurrentMap.DrawTiles[x, y] != null && 
+                            CurrentMap.DrawTiles[x, y].BoundingBox.Intersects(projectile.Ray) < projectile.RangeLength)
                         {
                             TileIntersections.Add(CurrentMap.DrawTiles[x, y]);
                         }
                     }
                 }
 
-                endPosition = new Vector2(sourcePosition.X + (projectile.Ray.Direction.X * Random.Next(150, 250)),
-                                          sourcePosition.Y + (projectile.Ray.Direction.Y * Random.Next(150, 250)));
+                PlayerIntersections = Players.ToList().FindAll(movingObject =>
+                    movingObject != null &&
+                    movingObject != source &&
+                    movingObject.BoundingBox.Intersects(projectile.Ray) < projectile.RangeLength);
 
-                List<CollisionSolid> ObjectList = new List<CollisionSolid>();                
+
+                endPosition = new Vector2(sourcePosition.X + (projectile.Ray.Direction.X * Random.Next((int)(projectile.RangeLength * 0.65f), (int)projectile.RangeLength)),
+                                          sourcePosition.Y + (projectile.Ray.Direction.Y * Random.Next((int)(projectile.RangeLength * 0.65f), (int)projectile.RangeLength)));
+                
                 ObjectList.AddRange(PlayerIntersections);
                 ObjectList.AddRange(TileIntersections);
 
-                CollisionSolid colObject = ObjectList.OrderBy(Collision => Collision.BoundingBox.Intersects(projectile.Ray)).FirstOrDefault();
-
-                Vector2 rang = new Vector2(
-                                        MathHelper.ToDegrees(-(float)Math.Atan2(projectile.Ray.Direction.Y, projectile.Ray.Direction.X)) - 180 - 60,
-                                        MathHelper.ToDegrees(-(float)Math.Atan2(projectile.Ray.Direction.Y, projectile.Ray.Direction.X)) - 180 + 60);
-
+                colObject = ObjectList.OrderBy(Collision => Collision.BoundingBox.Intersects(projectile.Ray)).FirstOrDefault();
+                                
                 if (colObject != null)
                 {
                     hitDist = colObject.BoundingBox.Intersects(projectile.Ray);
@@ -375,6 +414,7 @@ namespace ArenaPlatformer1
                         #region Hit a PLAYER
                         if ((colObject as Player) != null)
                         {
+                            endPosition += new Vector2(projectile.Ray.Direction.X, projectile.Ray.Direction.Y) * (32 + Random.Next(-8, 8));
                             (colObject as Player).Health.X -= projectile.Damage;
                         }
                         #endregion
@@ -382,43 +422,86 @@ namespace ArenaPlatformer1
                         #region Hit a TILE
                         if ((colObject as Tile) != null)
                         {
-                            Tile hitTile = (colObject as Tile);
-
-                            Emitter HitEffect1 = new Emitter(HitEffectParticle,
-                                        endPosition, rang, new Vector2(5f, 8f),
+                            switch (projectile.LightProjectileType)
+                            {
+                                case LightProjectileType.MachineGun:
+                                    {
+                                        Emitter HitEffect1 = new Emitter(HitEffectParticle,
+                                        endPosition, GetAngleRange(projectile, 80), new Vector2(5f, 8f),
                                         new Vector2(250f, 500f), 1f, false, new Vector2(0f, 360f), new Vector2(-2f, 2f),
-                                        new Vector2(0.15f, 0.15f), new Color(255, 255, 191, 255),
-                                        new Color(255, 255, 255, 255), 0f, 0.05f, 50f, 7, false, new Vector2(0f, 1080), true,
+                                        new Vector2(0.15f, 0.15f), new Color(255, 255, 191, 255) * 0.5f,
+                                        new Color(255, 255, 255, 255) * 0.25f, 0f, 0.05f, 50f, 7, false, new Vector2(0f, 1080), true,
                                         (projectile.Position.Y + 8) / 1080f,
                                         false, false, null, null, 0f, true, new Vector2(0.11f, 0.11f), false, false, 0f,
                                         false, false, false, null)
-                            {
-                                Emissive = true
-                            };
-                            EmitterList.Add(HitEffect1);
+                                        {
+                                            Emissive = true
+                                        };
+                                        EmitterList.Add(HitEffect1);
 
-                            for (int i = 0; i < 3; i++)
-                            {
-                                //Emitter emitter = new Emitter(ParticleTexture, endPosition,
-                                //    rang, new Vector2(0, 3),
-                                //    new Vector2(200, 500), 1f, true, Vector2.Zero, new Vector2(-3, 3), new Vector2(0.5f, 1f),
-                                //    new Color(Color.OrangeRed.R, Color.OrangeRed.G, Color.OrangeRed.B, 20),
-                                //    new Color(Color.Gold.R, Color.Gold.G, Color.Gold.B, 50),
-                                //    0f, (float)DoubleRange(0.15d, 0.5d), 15, 3, true, new Vector2(1080 - 64, 1080 - 64),
-                                //    false, 0, true, true, new Vector2(5, 7), new Vector2(0, 360), 0.0f,
-                                //    false, new Vector2(0.05f, 0.03f), null, null, null, true, null, null, true, false);
+                                        for (int i = 0; i < 5; i++)
+                                        {
+                                            Emitter emitter = new Emitter(ParticleTexture, endPosition,
+                                               new Vector2(0, 360), new Vector2(0, 3),
+                                               new Vector2(200, 500), 1f, true, Vector2.Zero, new Vector2(-3, 3), new Vector2(0.5f, 1f),
+                                               ColorAjustAlpha(Color.OrangeRed, 20), ColorAjustAlpha(Color.Gold, 50),
+                                               0f, (float)DoubleRange(0.15d, 0.5d), 15, 3, true, new Vector2(1080 - 64, 1080 - 64),
+                                               false, 0, true, true, new Vector2(5, 7), GetAngleRange(projectile, 80), 0.0f,
+                                               false, new Vector2(0.05f, 0.03f), null, null, null, true, null, null, true, false);
 
-                                Emitter emitter = new Emitter(ParticleTexture, endPosition,
-                                   rang, new Vector2(0, 3),
-                                   new Vector2(200, 500), 1f, true, Vector2.Zero, new Vector2(-3, 3), new Vector2(0.5f, 1f),
-                                   new Color(Color.DeepSkyBlue.R, Color.DeepSkyBlue.G, Color.DeepSkyBlue.B, 20),
-                                   new Color(Color.DodgerBlue.R, Color.DodgerBlue.G, Color.DodgerBlue.B, 50),
-                                   0f, (float)DoubleRange(0.15d, 0.5d), 15, 3, true, new Vector2(1080 - 64, 1080 - 64),
-                                   false, 0, true, true, new Vector2(5, 7), new Vector2(0, 360), 0.0f,
-                                   false, new Vector2(0.05f, 0.03f), null, null, null, true, null, null, true, false);
+                                            EmitterList.Add(emitter);
+                                        }
 
-                                EmitterList.Add(emitter);
+                                        //BOOMEmitter = new Emitter(SNAPParticle, collisionEnd,
+                                        //  new Vector2(0, 0), new Vector2(0.001f, 0.001f), new Vector2(250, 250), 1f, false,
+                                        //  new Vector2(-25, 25), new Vector2(0, 0), new Vector2(0.15f, 0.15f),
+                                        //  Color.White, Color.White, 0f, 0.05f, 50, 1, false, new Vector2(0, 1080), true,
+                                        //  collisionEnd.Y + 4 / 1080f, null, null, null, null, null, false, new Vector2(0.11f, 0.11f), false, false,
+                                        //  null, false, false, true);
+
+                                        //Emitter snap = new Emitter(SNAPParticle, endPosition, 
+                                        //    new Vector2(0, 0), new Vector2(0, 0), new Vector2(200, 400), 1.0f, false, 
+                                        //    new Vector2(-25, 25), new Vector2(0, 0), new Vector2(0.3f, 0.3f), 
+                                        //    Color.White, Color.White, 0f, 0.05f, 100f, 1, false,
+                                        //    new Vector2(0, 1080), true);
+                                        EmitterList.Add(SnapPing(endPosition));
+                                        //Emitter snappy = SnapPing(new Vector2(200, 200));
+                                        //EmitterList.Add(snappy);
+                                    }
+                                    break;
+
+                                case LightProjectileType.Shotgun:
+                                    {
+                                        Emitter HitEffect1 = new Emitter(HitEffectParticle,
+                                        endPosition, GetAngleRange(projectile, 80), new Vector2(5f, 8f),
+                                        new Vector2(250f, 500f), 1f, false, new Vector2(0f, 360f), new Vector2(-2f, 2f),
+                                        new Vector2(0.15f, 0.15f), new Color(255, 255, 191, 255) * 0.5f,
+                                        new Color(255, 255, 255, 255) * 0.25f, 0f, 0.05f, 50f, 7, false, new Vector2(0f, 1080), true,
+                                        (projectile.Position.Y + 8) / 1080f,
+                                        false, false, null, null, 0f, true, new Vector2(0.11f, 0.11f), false, false, 0f,
+                                        false, false, false, null)
+                                        {
+                                            Emissive = true
+                                        };
+                                        EmitterList.Add(HitEffect1);
+
+                                        for (int i = 0; i < 3; i++)
+                                        {
+                                            Emitter emitter = new Emitter(ParticleTexture, endPosition,
+                                               new Vector2(0, 360), new Vector2(0, 3),
+                                               new Vector2(200, 500), 1f, true, Vector2.Zero, new Vector2(-3, 3), new Vector2(0.5f, 1f),
+                                               ColorAjustAlpha(Color.Lime, 20), ColorAjustAlpha(Color.ForestGreen, 50),
+                                               0f, (float)DoubleRange(0.15d, 0.5d), 15, 3, true, new Vector2(1080 - 64, 1080 - 64),
+                                               false, 0, true, true, new Vector2(5, 7), GetAngleRange(projectile, 80), 0.0f,
+                                               false, new Vector2(0.05f, 0.03f), null, null, null, true, null, null, true, false);
+
+                                            EmitterList.Add(emitter);
+                                        }
+                                    }
+                                    break;
                             }
+
+                            
 
                         }
                         #endregion
@@ -427,10 +510,13 @@ namespace ArenaPlatformer1
                 else
                 {
                     Emitter HitEffect2 = new Emitter(HitEffectParticle,
-                                            endPosition, Vector2.Zero - rang, new Vector2(5f, 8f),
+                                            endPosition - new Vector2(projectile.Ray.Direction.X, projectile.Ray.Direction.Y)*5, 
+                                            GetAngleRange(projectile, 5, true), new Vector2(2f, 6f),
                                             new Vector2(250f, 350f), 1f, false, new Vector2(0f, 360f), new Vector2(-2f, 2f),
-                                            new Vector2(0.05f, 0.05f), new Color(255, 255, 191, 255),
-                                            new Color(255, 255, 255, 255), 0f, 0.05f, 50f, 7, false, new Vector2(0f, 1080), true,
+                                            new Vector2(0.05f, 0.05f), 
+                                            ColorAjustAlpha(Color.ForestGreen, 20), ColorAjustAlpha(Color.White, 60),
+                                            //new Color(255, 255, 191, 255), new Color(255, 255, 255, 255), 
+                                            0f, 0.05f, 50f, 7, false, new Vector2(0f, 1080), true,
                                             (projectile.Position.Y + 8) / 1080f,
                                             false, false, null, null, 0f, true, new Vector2(0.11f, 0.11f), false, false, 0f,
                                             false, false, false, null)
@@ -440,8 +526,21 @@ namespace ArenaPlatformer1
                     EmitterList.Add(HitEffect2);
                 }
 
-                BulletTrailList.Add(new BulletTrail(sourcePosition, endPosition));
-            };
+                switch (projectile.LightProjectileType)
+                {
+                    case LightProjectileType.MachineGun:
+                        {
+                            BulletTrailList.Add(new BulletTrail(sourcePosition, endPosition, ColorAjustAlpha(Color.Red, 30)));
+                        }
+                        break;
+
+                    case LightProjectileType.Shotgun:
+                        {
+                            BulletTrailList.Add(new BulletTrail(sourcePosition, endPosition, ColorAjustAlpha(Color.LimeGreen, 30)));
+                        }
+                        break;
+                }
+            }
 
             CheckCollision();
         }
@@ -496,16 +595,26 @@ namespace ArenaPlatformer1
             {
                 throw new ArgumentNullException(nameof(e));
             }
-
-            for (int i = 0; i < 15; i++)
+            
+            //TODO: These gibs need to react to how the player died. e.g. an explosion should influence their velocity and direction
+            //same with rock shots.
+            for (int i = 0; i < 20; i++)
             {
-                Emitter emitter = new Emitter(SplodgeParticle, e.Player.Position - new Vector2(0, e.Player.DestinationRectangle.Height),
-                    new Vector2(0, 360), new Vector2(1, 3),
-                    new Vector2(250, 500), 1, false, new Vector2(0, 360), new Vector2(-3, 3), new Vector2(0.025f, 0.1f),
-                    Color.Maroon, Color.DarkRed, 0.01f, 1f, 15, 2, true, new Vector2(1080 - 64, 1080), true, 0, true,
-                    true, new Vector2(2, 4), new Vector2(0, 360), 0.1f, true, null, null, null, null, true);
+                float angle = MathHelper.ToRadians((float)RandomDouble(-180, 0));
+                Vector2 dir = new Vector2((float)Math.Cos(angle), (float)Math.Sin(angle));
+                dir.Normalize();
+                
+                Gib newGib = new Gib(e.Player.Position, dir, Random.Next(1, 5), Texture, Texture, Color.Red);
 
-                EmitterList.Add(emitter);
+                Emitter emitter = new Emitter(
+                SplodgeParticle, e.Player.Position, new Vector2(0, 360),
+                new Vector2(0f, 0.5f), new Vector2(500, 1500), 0.85f, false, new Vector2(0, 360), new Vector2(-0.5f, 0.5f),
+                new Vector2(1f, 1.85f), Color.DarkRed, Color.DarkRed, 0.1f, Random.Next(1000, 2000)/1000f, 1, 3, true, new Vector2(1080-58, 1080-58), true, 0,
+                true, null, null, null, null, true, null, true, true, 150f,
+                true, false, false, false, true);
+
+                newGib.EmitterList.Add(emitter);
+                GibList.Add(newGib);
             }
 
             e.Player.Respawn();
@@ -600,8 +709,8 @@ namespace ArenaPlatformer1
                 Emitter emitter = new Emitter(ParticleTexture, explosion.Position,
                     new Vector2(0, 360), new Vector2(0, 3),
                     new Vector2(500, 1500), 1f, true, Vector2.Zero, new Vector2(-3, 3), new Vector2(0.5f, 1f),
-                    new Color(Color.OrangeRed.R, Color.OrangeRed.G, Color.OrangeRed.B, 20),
-                    new Color(Color.Gold.R, Color.Gold.G, Color.Gold.B, 50),
+                    ColorAjustAlpha(Color.OrangeRed, 20),
+                    ColorAjustAlpha(Color.Gold, 50),
                     0f, (float)DoubleRange(0.15d, 0.5d), 15, 3, true, new Vector2(1080 - 64, 1080 - 64),
                     false, 0, true, true, new Vector2(5, 7), new Vector2(0, 360), 0.0f,
                     false, new Vector2(0.05f, 0.03f), null, null, null, true, null, null, true, false);
@@ -773,9 +882,15 @@ namespace ArenaPlatformer1
             ShieldPickup.Texture = GameContentManager.Load<Texture2D>("shieldcomb");
             ShotgunPickup.Texture = GameContentManager.Load<Texture2D>("Gun");
             RocketLauncherPickup.Texture = GameContentManager.Load<Texture2D>("Gun");
+            MachineGunPickup.Texture = GameContentManager.Load<Texture2D>("Gun");
+            #endregion
+
+            #region Load Icon Textures
+            GrenadeIcon = GameContentManager.Load<Texture2D>("Icons/GrenadeIcon");
             #endregion
 
             Grenade.Texture = GameContentManager.Load<Texture2D>("GrenadeTexture");
+            Gib.Texture = GameContentManager.Load<Texture2D>("Particles/Splodge");
 
             //RocketLauncher.Texture = GameContentManager.Load<Texture2D>("Gun");
 
@@ -783,13 +898,16 @@ namespace ArenaPlatformer1
             Player.GunTexture = GameContentManager.Load<Texture2D>("Gun");
             Player.BlueFlagTexture = GameContentManager.Load<Texture2D>("BlueFlag");
             Player.RedFlagTexture = GameContentManager.Load<Texture2D>("RedFlag");
+            
+
+            ShotgunShell = GameContentManager.Load<Texture2D>("ShotgunShell");
 
             //MinePickup.Texture = GameContentManager.Load<Texture2D>("Blank");
             //ShieldPickup.Texture = GameContentManager.Load<Texture2D>("Crate");
 
             //RedFlag.Texture = GameContentManager.Load<Texture2D>("RedFlag");
             //BlueFlag.Texture = GameContentManager.Load<Texture2D>("BlueFlag");
-
+            
             Emitter.Map = CurrentMap;
             Trap.Map = CurrentMap;
 
@@ -911,6 +1029,12 @@ namespace ArenaPlatformer1
                 Projection = Projection
             };
 
+            BulletTrailEffect = new BasicEffect(GraphicsDevice)
+            {
+                VertexColorEnabled = true,
+                Projection = Projection
+            };
+
             UIRenderTarget = new RenderTarget2D(GraphicsDevice, 1920, 1080);
             GameRenderTarget = new RenderTarget2D(GraphicsDevice, 1920, 1080);
             MenuRenderTarget = new RenderTarget2D(GraphicsDevice, 1920, 1080);
@@ -938,6 +1062,8 @@ namespace ArenaPlatformer1
 
             ExplosionParticle2 = Content.Load<Texture2D>("Particles/ExplosionParticle2");
             BOOMParticle = Content.Load<Texture2D>("Particles/BOOM");
+            SNAPParticle = Content.Load<Texture2D>("Particles/SNAP");
+            PINGParticle = Content.Load<Texture2D>("Particles/PING");
             SplodgeParticle = Content.Load<Texture2D>("Particles/Splodge");
             HitEffectParticle = Content.Load<Texture2D>("Particles/HitEffectParticle");
             ToonSmoke2 = Content.Load<Texture2D>("Particles/ToonSmoke/ToonSmoke2");
@@ -1074,11 +1200,19 @@ namespace ArenaPlatformer1
                             CurrentMap.LightList.Add(light);                           
                         }
 
+                        foreach (Gib gib in GibList)
+                        {
+                            gib.Update(gameTime);
+                            gib.UpdateEmitters(gameTime);                            
+                        }
+
+                        GibList.RemoveAll(Gib => Gib.Active == false);
+
                         foreach (BulletTrail trail in BulletTrailList)
                         {
                             trail.Update(gameTime);
                         }
-
+                        
                         foreach (Trap trap in TrapList)
                         {
                             trap.Update(gameTime);
@@ -1215,8 +1349,8 @@ namespace ArenaPlatformer1
                                     Emitter emitter = new Emitter(ParticleTexture, projectile.Position,
                                         new Vector2(0, 360), new Vector2(0, 2),
                                         new Vector2(280, 500), 1f, true, Vector2.Zero, new Vector2(-3, 3), new Vector2(0.5f, 1f),
-                                        new Color(Color.HotPink.R, Color.HotPink.G, Color.HotPink.B, 80),
-                                        new Color(Color.HotPink.R, Color.HotPink.G, Color.HotPink.B, 20),
+                                        ColorAjustAlpha(Color.HotPink, 80),
+                                        ColorAjustAlpha(Color.HotPink, 20),
                                         -0.01f, (float)DoubleRange(0.5d, 1.5d), 1, 3, true, new Vector2(1080, 1080),
                                         false, 0, true, true, new Vector2(3, 5), rang, 0.2f,
                                         null, null, null, null, null, true, null, null, true, false);
@@ -1291,6 +1425,12 @@ namespace ArenaPlatformer1
                                 LoadLevel(Path.GetFileName(LevelList[SelectedLevelIndex]));
                                 LoadGameContent();
                                 CurrentGameState = GameState.Playing;
+                            }
+
+                            if (CurrentGamePadStates[i].IsButtonUp(Buttons.B) &&
+                                PreviousGamePadStates[i].IsButtonDown(Buttons.B))
+                            {
+                                CurrentGameState = GameState.MainMenu;
                             }
                         }
                     }
@@ -1421,7 +1561,7 @@ namespace ArenaPlatformer1
 
                         foreach (BulletTrail trail in BulletTrailList)
                         {
-                            trail.Draw(GraphicsDevice, BasicEffect);
+                            trail.Draw(GraphicsDevice, BulletTrailEffect);
                         }
 
                         foreach (Item item in ItemList)
@@ -1463,8 +1603,13 @@ namespace ArenaPlatformer1
                             player.Draw(spriteBatch);
                         }
 
+                        foreach (Gib gib in GibList)
+                        {
+                            gib.Draw(spriteBatch);
+                        }
+
                         //spriteBatch.Draw(Texture, new Rectangle(0, 0, 1920, 1080), null, Color.White, 0, Vector2.Zero, SpriteEffects.None, 1);
-                        
+
                         foreach (Projectile projectile in ProjectileList)
                         {
                             projectile.Draw(spriteBatch);
@@ -1488,6 +1633,7 @@ namespace ArenaPlatformer1
                             {
                                 case ItemType.RocketLauncher:
                                 case ItemType.Shotgun:
+                                case ItemType.MachineGun:
                                     {
                                         item.Draw(spriteBatch);
                                     }
@@ -1505,7 +1651,7 @@ namespace ArenaPlatformer1
                         RenderManager.DrawLit(spriteBatch);
                         spriteBatch.End();
                         #endregion
-
+                        
                         #region Draw to NormalMap
                         GraphicsDevice.SetRenderTarget(NormalMap);
                         GraphicsDevice.Clear(new Color(127, 127, 255));
@@ -1683,133 +1829,137 @@ namespace ArenaPlatformer1
 
             }
 
+            #region Draw Debug Boxes
             if (DebugBoxes == true)
-            if (CurrentGameState == GameState.Playing)
-            {
-                foreach (MyRay ray in myRayList)
+                if (CurrentGameState == GameState.Playing)
                 {
-                    //Draw the debug bounding boxes here
-                    VertexPositionColor[] Vertices = new VertexPositionColor[2];
-                    int[] Indices = new int[2];
-
-                    Vertices[0] = new VertexPositionColor()
+                    foreach (MyRay ray in myRayList)
                     {
-                        Color = Color.Orange,
-                        Position = ray.position
-                    };
+                        //Draw the debug bounding boxes here
+                        VertexPositionColor[] Vertices = new VertexPositionColor[2];
+                        int[] Indices = new int[2];
 
-                    Vertices[1] = new VertexPositionColor()
-                    {
-                        Color = Color.Orange,
-                        Position = ray.position + (ray.direction * ray.length)
-                    };
-
-                    Indices[0] = 0;
-                    Indices[1] = 1;
-
-                    foreach (EffectPass pass in BasicEffect.CurrentTechnique.Passes)
-                    {
-                        pass.Apply();
-                        GraphicsDevice.DrawUserIndexedPrimitives(PrimitiveType.LineStrip, Vertices, 0, 2, Indices, 0, 1, VertexPositionColorTexture.VertexDeclaration);
-                    }
-                }
-
-                    for (int x = 0; x < 30; x++)
-                {
-                    for (int y = 0; y < 17; y++)
-                    {
-                        VertexPositionColorTexture[] Vertices = new VertexPositionColorTexture[4];
-                        int[] Indices = new int[8];
-
-                        Vertices[0] = new VertexPositionColorTexture()
+                        Vertices[0] = new VertexPositionColor()
                         {
-                            Color = Color.White,
-                            Position = new Vector3(x * 64, y * 64, 0),
-                            TextureCoordinate = new Vector2(0, 0)
+                            Color = Color.Orange,
+                            Position = ray.position
                         };
 
-                        Vertices[1] = new VertexPositionColorTexture()
+                        Vertices[1] = new VertexPositionColor()
                         {
-                            Color = Color.White,
-                            Position = new Vector3((x * 64) + 64, (y * 64), 0),
-                            TextureCoordinate = new Vector2(1, 0)
-                        };
-
-                        Vertices[2] = new VertexPositionColorTexture()
-                        {
-                            Color = Color.White,
-                            Position = new Vector3((x * 64) + 64, (y * 64) + 64, 0),
-                            TextureCoordinate = new Vector2(1, 1)
-                        };
-
-                        Vertices[3] = new VertexPositionColorTexture()
-                        {
-                            Color = Color.White,
-                            Position = new Vector3((x * 64), (y * 64) + 64, 0),
-                            TextureCoordinate = new Vector2(0, 1)
+                            Color = Color.Orange,
+                            Position = ray.position + (ray.direction * ray.length)
                         };
 
                         Indices[0] = 0;
                         Indices[1] = 1;
 
-                        Indices[2] = 2;
-                        Indices[3] = 3;
-
-                        Indices[4] = 0;
-
-                        Indices[5] = 2;
-                        Indices[6] = 0;
-
                         foreach (EffectPass pass in BasicEffect.CurrentTechnique.Passes)
                         {
                             pass.Apply();
-                            GraphicsDevice.DrawUserIndexedPrimitives(PrimitiveType.LineStrip, Vertices, 0, 4, Indices, 0, 6, VertexPositionColorTexture.VertexDeclaration);
+                            GraphicsDevice.DrawUserIndexedPrimitives(PrimitiveType.LineStrip, Vertices, 0, 2, Indices, 0, 1, VertexPositionColorTexture.VertexDeclaration);
+                        }
+                    }
+
+                    for (int x = 0; x < 30; x++)
+                    {
+                        for (int y = 0; y < 17; y++)
+                        {
+                            VertexPositionColorTexture[] Vertices = new VertexPositionColorTexture[4];
+                            int[] Indices = new int[8];
+
+                            Vertices[0] = new VertexPositionColorTexture()
+                            {
+                                Color = Color.White,
+                                Position = new Vector3(x * 64, y * 64, 0),
+                                TextureCoordinate = new Vector2(0, 0)
+                            };
+
+                            Vertices[1] = new VertexPositionColorTexture()
+                            {
+                                Color = Color.White,
+                                Position = new Vector3((x * 64) + 64, (y * 64), 0),
+                                TextureCoordinate = new Vector2(1, 0)
+                            };
+
+                            Vertices[2] = new VertexPositionColorTexture()
+                            {
+                                Color = Color.White,
+                                Position = new Vector3((x * 64) + 64, (y * 64) + 64, 0),
+                                TextureCoordinate = new Vector2(1, 1)
+                            };
+
+                            Vertices[3] = new VertexPositionColorTexture()
+                            {
+                                Color = Color.White,
+                                Position = new Vector3((x * 64), (y * 64) + 64, 0),
+                                TextureCoordinate = new Vector2(0, 1)
+                            };
+
+                            Indices[0] = 0;
+                            Indices[1] = 1;
+
+                            Indices[2] = 2;
+                            Indices[3] = 3;
+
+                            Indices[4] = 0;
+
+                            Indices[5] = 2;
+                            Indices[6] = 0;
+
+                            foreach (EffectPass pass in BasicEffect.CurrentTechnique.Passes)
+                            {
+                                pass.Apply();
+                                GraphicsDevice.DrawUserIndexedPrimitives(PrimitiveType.LineStrip, Vertices, 0, 4, Indices, 0, 6, VertexPositionColorTexture.VertexDeclaration);
+                            }
+                        }
+                    }
+
+                    foreach (Player player in Players.Where(Player => Player != null))
+                    {
+                        player.DrawInfo(spriteBatch, GraphicsDevice, BasicEffect);
+                    }
+
+                    //foreach (Item item in ItemList)
+                    //{
+                    //    item.DrawInfo(spriteBatch, GraphicsDevice, BasicEffect);
+                    //}
+
+                    foreach (Trap trap in TrapList)
+                    {
+                        trap.DrawInfo(spriteBatch, GraphicsDevice, BasicEffect);
+                    }
+
+                    foreach (Grenade grenade in GrenadeList)
+                    {
+                        grenade.DrawInfo(GraphicsDevice, BasicEffect);
+                    }
+
+                    foreach (Projectile projectile in ProjectileList)
+                    {
+                        projectile.DrawInfo(GraphicsDevice, BasicEffect);
+                    }
+                }
+            #endregion
+
+            #region Draw Tile Boxes
+            if (TileBoxes == true)
+                if (CurrentGameState == GameState.Playing)
+                {
+                    foreach (Tile tile in CurrentMap.DrawTiles)
+                    {
+                        if (tile != null)
+                        {
+                            tile.DrawInfo(GraphicsDevice, BasicEffect);
+
+                            spriteBatch.Draw(Block, new Rectangle((int)tile.Position.X, (int)tile.Position.Y, 4, 4), Color.Red);
+                            spriteBatch.DrawString(Font1, tile.Index.X.ToString(), tile.Position, Color.Yellow);
+                            spriteBatch.DrawString(Font1, tile.Index.Y.ToString(), tile.Position + new Vector2(0, 24), Color.Yellow);
+
                         }
                     }
                 }
-
-                foreach (Player player in Players.Where(Player => Player != null))
-                {
-                    player.DrawInfo(spriteBatch, GraphicsDevice, BasicEffect);
-                }
-
-                //foreach (Item item in ItemList)
-                //{
-                //    item.DrawInfo(spriteBatch, GraphicsDevice, BasicEffect);
-                //}
-
-                foreach (Trap trap in TrapList)
-                {
-                    trap.DrawInfo(spriteBatch, GraphicsDevice, BasicEffect);
-                }
-
-                foreach (Grenade grenade in GrenadeList)
-                {
-                    grenade.DrawInfo(GraphicsDevice, BasicEffect);
-                }
-
-                foreach (Projectile projectile in ProjectileList)
-                {
-                    projectile.DrawInfo(GraphicsDevice, BasicEffect);
-                }
-            }
-
-            if (TileBoxes == true)
-            if (CurrentGameState == GameState.Playing)
-            {
-                foreach (Tile tile in CurrentMap.DrawTiles)
-                {
-                    if (tile != null)
-                    {
-                        tile.DrawInfo(GraphicsDevice, BasicEffect);
-
-                        spriteBatch.Draw(Block, new Rectangle((int)tile.Position.X, (int)tile.Position.Y, 4, 4), Color.Red);
-                        spriteBatch.DrawString(Font1, tile.Index.X.ToString(), tile.Position, Color.Yellow);
-                        spriteBatch.DrawString(Font1, tile.Index.Y.ToString(), tile.Position + new Vector2(0, 24), Color.Yellow);
-
-                    }
-                }
-            }
+            #endregion
 
             #region Player 1 info
             if (CurrentGameState == GameState.Playing)
@@ -1818,7 +1968,8 @@ namespace ArenaPlatformer1
                 {
                     if (Players[i] != null)
                     {
-                        Players[i].HealthBar.Draw(spriteBatch);
+                        Players[i].DrawHUD(spriteBatch);
+                        //Players[i].HealthBar.Draw(spriteBatch);
                         //int y = 16;
                         //spriteBatch.DrawString(Font1, "Health: " + Players[i].Health.X.ToString() + "/" + Players[i].Health.Y.ToString(), new Vector2(256 + (i * 256), y), Color.Red);
                         //y += 16;
@@ -1854,8 +2005,8 @@ namespace ArenaPlatformer1
             else
             {
                 spriteBatch.Draw(FinalMap, FinalMap.Bounds, Color.White);
-                //spriteBatch.Draw(ColorMap, ColorMap.Bounds, Color.White);
                 spriteBatch.Draw(BlurMap, BlurMap.Bounds, Color.White);
+
             }
 
             spriteBatch.End();
@@ -1864,8 +2015,6 @@ namespace ArenaPlatformer1
             spriteBatch.Draw(UIRenderTarget, UIRenderTarget.Bounds, Color.White);
             spriteBatch.End();
             #endregion
-
-            didDraw = true;
 
             base.Draw(gameTime);
         }
@@ -1995,6 +2144,11 @@ namespace ArenaPlatformer1
             return new Vector4(color.R, color.G, color.B, color.A);
         }
 
+        protected Color ColorAjustAlpha(Color color, byte alpha)
+        {
+            return new Color(color.R, color.G, color.B, alpha);
+        }
+
         
         public static int Wrap(int index, int n)
         {
@@ -2064,9 +2218,11 @@ namespace ArenaPlatformer1
             string newPath = Path.GetFullPath(Path.Combine(dir, @"..\..\..\..\..\..\Levels\\"));
             newPath += levelName;
 
-            IFormatter formatter = new BinaryFormatter();
-            formatter.Binder = new SerializationHelper();
-            
+            IFormatter formatter = new BinaryFormatter
+            {
+                Binder = new SerializationHelper()
+            };
+
             Stream stream = new FileStream(newPath, FileMode.Open);
             Map loadMap = (Map)formatter.Deserialize(stream);
 
@@ -2085,6 +2241,11 @@ namespace ArenaPlatformer1
             var thing = Directory.GetFiles(newPath, "*.lvl");
 
             LevelList.AddRange(thing);
+        }
+
+        public static double RandomDouble(double a, double b)
+        {
+            return a + Random.NextDouble() * (b - a);
         }
 
 
@@ -2108,6 +2269,49 @@ namespace ArenaPlatformer1
 
                 return typetoD;
             }
+        }
+
+        public Vector2 GetAngleRange(LightProjectile projectile, float difference, bool? negative = false)
+        {
+            if (negative == true)
+            {
+                return new Vector2(
+                               MathHelper.ToDegrees(-(float)Math.Atan2(projectile.Ray.Direction.Y, projectile.Ray.Direction.X)) - difference,
+                               MathHelper.ToDegrees(-(float)Math.Atan2(projectile.Ray.Direction.Y, projectile.Ray.Direction.X)) + difference);
+            }
+
+            return new Vector2(
+                               MathHelper.ToDegrees(-(float)Math.Atan2(projectile.Ray.Direction.Y, projectile.Ray.Direction.X)) - 180 - difference,
+                               MathHelper.ToDegrees(-(float)Math.Atan2(projectile.Ray.Direction.Y, projectile.Ray.Direction.X)) - 180 + difference);
+        }
+
+        private static Texture2D RandomTexture(params Texture2D[] textures)
+        {
+            return textures[Random.Next(0, textures.Length)];
+        }
+
+        public Emitter SnapPing(Vector2 collisionEnd)
+        {
+            Emitter BOOMEmitter;
+
+            if (Random.NextDouble() >= 0.5f)
+            {
+                BOOMEmitter = new Emitter(SNAPParticle, collisionEnd,
+                                            new Vector2(0, 0), new Vector2(0, 0), new Vector2(200, 400), 1.0f, false,
+                                            new Vector2(-25, 25), new Vector2(0, 0), new Vector2(0.15f, 0.15f),
+                                            Color.White, Color.White, 0f, 0.05f, 100f, 1, false,
+                                            new Vector2(0, 1080), true) { Grow = true };
+            }
+            else
+            {
+                BOOMEmitter = new Emitter(PINGParticle, collisionEnd,
+                                            new Vector2(0, 0), new Vector2(0, 0), new Vector2(200, 400), 1.0f, false,
+                                            new Vector2(-25, 25), new Vector2(0, 0), new Vector2(0.15f, 0.15f),
+                                            Color.White, Color.White, 0f, 0.05f, 100f, 1, false,
+                                            new Vector2(0, 1080), true) { Grow = true };
+            }
+
+            return BOOMEmitter;
         }
     }
 }

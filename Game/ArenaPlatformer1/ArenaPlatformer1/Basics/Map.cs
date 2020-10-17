@@ -301,6 +301,7 @@ namespace ArenaPlatformer1
 
         public void AddObjectToArea(Vector2 areaIndex, MovingObject movingObject)
         {
+            //Catch exception here
             var area = ObjectsInArea[(int)areaIndex.X, (int)areaIndex.Y];
 
             movingObject.Areas.Add(areaIndex);

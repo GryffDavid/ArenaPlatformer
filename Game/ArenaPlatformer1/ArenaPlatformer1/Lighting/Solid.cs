@@ -15,7 +15,7 @@ namespace ArenaPlatformer1
         public Rectangle DestinationRectangle;
         BoundingBox BoundingRectangle;
         public VertexPositionColor[] vertices = new VertexPositionColor[4];
-        PolygonShadow shadow;
+        //PolygonShadow shadow;
         public float Depth;
 
         public Solid(Texture2D texture, Vector2 position, Vector2 size)
@@ -44,7 +44,7 @@ namespace ArenaPlatformer1
 
         public void Draw(SpriteBatch spriteBatch, Color color)
         {
-            spriteBatch.Draw(Texture, DestinationRectangle, color);
+            //spriteBatch.Draw(Texture, DestinationRectangle, color);
         }
     }
 }

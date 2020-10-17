@@ -464,8 +464,8 @@ namespace ArenaPlatformer1
 
                 
                 if (StopBounce == true &&
-                            BouncedOnGround == true &&
-                            Position.Y > BounceY)
+                    BouncedOnGround == true &&
+                    Position.Y > BounceY)
                 {
                     Velocity.Y = (-Velocity.Y / 2) * ((float)gameTime.ElapsedGameTime.TotalSeconds * 60.0f);
 
@@ -496,7 +496,6 @@ namespace ArenaPlatformer1
                 //#region Emitter collisions
                 if (Velocity != Vector2.Zero)
                 {
-
                     if (Velocity.X > 0)
                     {
                         if (CheckRight(out float rPos) == true)

@@ -12,7 +12,8 @@ namespace ArenaPlatformer1
     {
         public ShotgunProjectile(Vector2 position, Vector2 direction, float? damage = null) : base(position, direction, damage)
         {
-
+            LightProjectileType = LightProjectileType.Shotgun;
+            RangeLength = 250f;
         }
     }
 }

@@ -10,7 +10,8 @@ namespace ArenaPlatformer1
 {
     public enum LightProjectileType
     {
-        Shotgun
+        Shotgun,
+        MachineGun
     };
 
     public abstract class LightProjectile
@@ -20,6 +21,7 @@ namespace ArenaPlatformer1
         public Vector2 Position;
         public LightProjectileType LightProjectileType;
         public float Damage;
+        public float RangeLength;
 
         public LightProjectile(Vector2 position, Vector2 Direction, float? damage = null)
         {

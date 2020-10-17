@@ -126,6 +126,7 @@ namespace ArenaPlatformer1
         public static Texture2D RedFlagTexture, BlueFlagTexture;
         public static Texture2D ShieldTexture;
         public static Texture2D GunTexture;
+        //public static Texture2D GrenadeIcon;
         #endregion
 
         #region Controls
@@ -165,7 +166,7 @@ namespace ArenaPlatformer1
         public TrapType CurrentTrap;
 
         public Vector2 Health = new Vector2(100, 100);
-        public HealthBar HealthBar;
+        public HealthBar HealthBar, SpecialBar;
         #endregion
 
         #region Timing
@@ -209,6 +210,9 @@ namespace ArenaPlatformer1
         }
         #endregion
 
+        Vector2 ShotTiming = new Vector2(0, 200);
+        Vector2 GrenadeTiming = new Vector2(0, 1500 );
+
         public Player(PlayerIndex playerIndex)
         {
             PlayerIndex = playerIndex;
@@ -217,14 +221,21 @@ namespace ArenaPlatformer1
             Gravity = 0.6f;
             Size = new Vector2(59, 98);
             CurrentFlagState = FlagState.NoFlag;
-            CurrentGun = GunType.RocketLauncher;
+            CurrentGun = GunType.Shotgun;
             IsKinematic = true;
 
             HealthBar = new HealthBar()
             {
-                Position = new Vector2(100 + (300 * (int)PlayerIndex), 100),
-                Size = new Vector2(250, 25),
+                Position = new Vector2(40 + (480 * (int)PlayerIndex), 40),
+                Size = new Vector2(440, 25),
                 Player = this,
+            };
+
+            SpecialBar = new HealthBar(Color.DeepSkyBlue, Color.White)
+            {
+                Position = new Vector2(40 + (480 * (int)PlayerIndex), 40+25),
+                Size = new Vector2(440, 10),
+                Player = this,                
             };
         }
 
@@ -316,8 +327,9 @@ namespace ArenaPlatformer1
             PreviousKeyboardState = CurrentKeyboardState;
             PreviousMouseState = CurrentMouseState;
             WasShooting = IsShooting;
-
-            HealthBar.Update(gameTime);
+            
+            HealthBar.Update(Health);
+            SpecialBar.Update(new Vector2(87, 100));
 
             #region Control States
             CurrentGamePadState = GamePad.GetState(PlayerIndex);
@@ -345,6 +357,12 @@ namespace ArenaPlatformer1
                 }
             }
             #endregion
+
+            if (CurrentGamePadState.IsButtonDown(Buttons.LeftStick) &&
+                PreviousGamePadState.IsButtonUp(Buttons.LeftStick))
+            {
+                Health.X = 0;
+            }
 
             #region Move stick left
             if (MoveStick.X < 0f)
@@ -433,70 +451,21 @@ namespace ArenaPlatformer1
             //}
             #endregion
 
-            #region Shoot
-            switch (CurrentGun)
-            {
-                #region RocketLauncher
-                case GunType.RocketLauncher:
-                    {
-                        if (PreviousGamePadState.IsButtonUp(CurrentShootButton) &&
-                            CurrentGamePadState.IsButtonDown(CurrentShootButton))
-                        {
-                            switch (CurrentFacing)
-                            {
-                                case Facing.Left:
-                                    CreatePlayerShoot(new Vector2(-35, 0));
-                                    break;
-
-                                case Facing.Right:
-                                    CreatePlayerShoot(new Vector2(35, 0));
-                                    break;
-                            }
-                        }
-                    }
-                    break;
-                #endregion
-
-                #region Shotgun
-                case GunType.Shotgun:
-                    {
-                        if (PreviousGamePadState.IsButtonUp(CurrentShootButton) &&
-                            CurrentGamePadState.IsButtonDown(CurrentShootButton))
-                        {
-                            Vector2 direction = Vector2.Zero;
-
-                            switch (CurrentFacing)
-                            {
-                                case Facing.Left:
-                                    direction = new Vector2(-1, 0);
-                                    break;
-
-                                case Facing.Right:
-                                    direction = new Vector2(1, 0);
-                                    break;
-                            }
-
-                            for (int i = 0; i < 8; i++)
-                            {
-                                float angle = MathHelper.ToRadians((float)Math.Atan2(direction.Y, direction.X) + Random.Next(-15, 15));
-
-                                direction = new Vector2((float)Math.Cos(angle), (float)Math.Sin(angle)) * AimDirection.X;
-
-                                LightProjectile newProjectile = new ShotgunProjectile(BarrelEnd, direction, 10);
-                                CreateLightProjectile(newProjectile, this);
-                            }
-                        }
-                    }
-                    break; 
-                    #endregion
-            }      
-            #endregion
+            Shoot(gameTime);
 
             #region Grenade
-            if (CurrentGamePadState.IsButtonDown(CurrentGrenadeButton) &&
-                PreviousGamePadState.IsButtonUp(CurrentGrenadeButton))
+            if (GrenadeTiming.X >= GrenadeTiming.Y)
             {
-                CreatePlayerGrenade();
+                if (CurrentGamePadState.IsButtonDown(CurrentGrenadeButton) &&
+                    PreviousGamePadState.IsButtonUp(CurrentGrenadeButton))
+                {
+                    CreatePlayerGrenade();
+                    GrenadeTiming.X = 0;
+                }
+            }
+            else
+            {
+                GrenadeTiming.X += (float)gameTime.ElapsedGameTime.TotalMilliseconds;
             }
             #endregion
 
@@ -599,6 +568,7 @@ namespace ArenaPlatformer1
                             case ItemType.Shotgun:
                                 {
                                     CurrentGun = GunType.Shotgun;
+                                    ShotTiming = new Vector2(0, 1000);
                                     removeItem = true;
                                 }
                                 break;
@@ -606,6 +576,15 @@ namespace ArenaPlatformer1
                             case ItemType.RocketLauncher:
                                 {
                                     CurrentGun = GunType.RocketLauncher;
+                                    ShotTiming = new Vector2(0, 2000);
+                                    removeItem = true;
+                                }
+                                break;
+
+                            case ItemType.MachineGun:
+                                {
+                                    ShotTiming = new Vector2(0, 200);
+                                    CurrentGun = GunType.MachineGun;
                                     removeItem = true;
                                 }
                                 break;
@@ -906,6 +885,20 @@ namespace ArenaPlatformer1
             #endregion
         }
 
+        public void DrawHUD(SpriteBatch spriteBatch)
+        {
+            HealthBar.Draw(spriteBatch);
+            SpecialBar.Draw(spriteBatch);
+
+            float perc = ((100 / GrenadeTiming.Y) * GrenadeTiming.X) / 100;
+            int height = (int)(perc * Game1.GrenadeIcon.Height);
+            spriteBatch.Draw(Game1.GrenadeIcon, 
+                new Rectangle(40 + (480 * (int)PlayerIndex), 40 + 25 + 10 + (int)((1.0f - perc) * 24), 24, (int)(perc * 24)), 
+                new Rectangle(0, Game1.GrenadeIcon.Height - height, Game1.GrenadeIcon.Width, height), Color.White);
+
+            spriteBatch.Draw(Game1.GrenadeIcon, new Rectangle(40 + (480 * (int)PlayerIndex), 40+25+10, 24, 24), Color.White * 0.5f);
+        }
+
 
         public void ScrambleButtons()
         {
@@ -940,6 +933,103 @@ namespace ArenaPlatformer1
         {
             Vector2 index = Map.FindSpawn();
             Position = Map.GetTilePosition((int)index.X, (int)index.Y) + (Map.TileSize * new Vector2(0.5f, 1f));
+            Velocity = Vector2.Zero;
+        }
+
+        public void Shoot(GameTime gameTime)
+        {
+            switch (CurrentGun)
+            {
+                #region RocketLauncher
+                case GunType.RocketLauncher:
+                    {
+                        if (PreviousGamePadState.IsButtonUp(CurrentShootButton) &&
+                            CurrentGamePadState.IsButtonDown(CurrentShootButton))
+                        {
+                            switch (CurrentFacing)
+                            {
+                                case Facing.Left:
+                                    CreatePlayerShoot(new Vector2(-35, 0));
+                                    break;
+
+                                case Facing.Right:
+                                    CreatePlayerShoot(new Vector2(35, 0));
+                                    break;
+                            }
+                        }
+                    }
+                    break;
+                #endregion
+
+                #region Shotgun
+                case GunType.Shotgun:
+                    {
+                        if (PreviousGamePadState.IsButtonUp(CurrentShootButton) &&
+                            CurrentGamePadState.IsButtonDown(CurrentShootButton))
+                        {
+                            Vector2 direction = Vector2.Zero;
+
+                            switch (CurrentFacing)
+                            {
+                                case Facing.Left:
+                                    direction = new Vector2(-1, 0);
+                                    break;
+
+                                case Facing.Right:
+                                    direction = new Vector2(1, 0);
+                                    break;
+                            }
+
+                            for (int i = 0; i < 8; i++)
+                            {
+                                float angle = MathHelper.ToRadians((float)Math.Atan2(direction.Y, direction.X) + Random.Next(-15, 15));
+
+                                direction = new Vector2((float)Math.Cos(angle), (float)Math.Sin(angle)) * AimDirection.X;
+
+                                LightProjectile newProjectile = new ShotgunProjectile(BarrelEnd, direction, 10);
+                                CreateLightProjectile(newProjectile, this);
+                            }
+                        }
+                    }
+                    break;
+                #endregion
+
+                #region MachineGun
+                case GunType.MachineGun:
+                    {
+                        if (ShotTiming.X < ShotTiming.Y)
+                            ShotTiming.X += (float)gameTime.ElapsedGameTime.TotalMilliseconds;
+
+                        if (PreviousGamePadState.IsButtonDown(CurrentShootButton) &&
+                            CurrentGamePadState.IsButtonDown(CurrentShootButton) &&
+                            ShotTiming.X >= ShotTiming.Y)
+                        {
+                            Vector2 direction = Vector2.Zero;
+
+                            switch (CurrentFacing)
+                            {
+                                case Facing.Left:
+                                    direction = new Vector2(-1, 0);
+                                    break;
+
+                                case Facing.Right:
+                                    direction = new Vector2(1, 0);
+                                    break;
+                            }
+
+                            //float angle = MathHelper.ToRadians((float)Math.Atan2(direction.Y, direction.X) + Random.Next(-15, 15));
+                            float thing = Random.Next(-2, 2);
+                            direction = new Vector2(MathHelper.ToRadians((float)Math.Cos(thing)), MathHelper.ToRadians((float)Math.Sin(thing))) + AimDirection;
+
+                            LightProjectile newProjectile = new MachineGunProjectile(BarrelEnd, direction, 20);
+                            CreateLightProjectile(newProjectile, this);                            
+
+                            ShotTiming.X = 0;
+                        }
+                    }
+                    break;
+                    #endregion
+            }
         }
     }
 }

@@ -8,38 +8,38 @@ using Microsoft.Xna.Framework.Content;
 
 namespace ArenaPlatformer1
 {
-    public class Grenade : MovingObject
+    public class Gib : MovingObject
     {
         static Random Random = new Random();
         public new static Texture2D Texture;
-
-        /// <summary>
-        /// The time until the grenade detonates. X = CurrentTime, Y = MaxTime
-        /// </summary>
+        
         public Vector2 Time;
-
         public object Source;
         public float Rotation, RotationIncrement;
-        public bool Active = true;        
-        public int BlastRadius = 200;
+        public float Gravity = 0.3f;
+        public bool Active = true;
+        public float Speed;
 
         public Rectangle DestinationRectangle;
+        public List<Emitter> EmitterList = new List<Emitter>();
+        
 
-        //TODO: Maybe have a mechanic that allows players to either throw or drop a grenade. 
-        //Allowing them to drop it on a bounce pad OR throw it at another player
-
-        public Grenade(Vector2 position, Vector2 velocity, object source)
+        
+        public Gib(Vector2 position, Vector2 direction, float speed, Texture2D decalTexture, Texture2D emitterTexture, Color gibColor)
         {
             Position = position;
-            Velocity = velocity;
-            Source = source;
+            Position = position;
+            Speed = speed;
+            Velocity = direction * Speed;
+            //Velocity = velocity;
+            //Source = source;
 
             Rotation = MathHelper.ToRadians(Random.Next(0, 360));
             RotationIncrement = MathHelper.ToRadians(3);
 
-            Time.Y = 1000f;
+            Time.Y = 2000f;
 
-            Size = new Vector2(20, 26);
+            Size = new Vector2(5, 6);
         }
 
         public override void Update(GameTime gameTime)
@@ -49,26 +49,36 @@ namespace ArenaPlatformer1
             {
                 Active = false;
             }
-            
-            Velocity.Y += 0.6f;
+
+            Velocity.Y += Gravity;
             base.Update(gameTime);
 
             if (PushesBottomTile == true ||
                 PushesTopTile == true)
             {
-                Velocity.Y = -Velocity.Y * 0.65f;
+                Velocity.Y = -Velocity.Y * 0.45f;                
             }
 
             if (PushesBottomTile == true)
             {
-                Velocity.X *= 0.65f;
+                Velocity.X *= 0.55f;
             }
 
             if (PushesLeftTile == true ||
                 PushesRightTile == true)
             {
-                Velocity.X = -Velocity.X * 0.65f;
+                Velocity.X = -Velocity.X * 0.55f;
             }
+
+            //STICK GIBS TO WALLS
+            //if (PushesLeftTile == true ||
+            //    PushesRightTile == true ||
+            //    PushesTopTile == true ||
+            //    PushesBottomTile == true)
+            //{
+            //    Velocity = Vector2.Zero;
+            //    Gravity = 0f;
+            //}
 
             #region Rotation
             if (Math.Abs(Velocity.X) >= 1 || Math.Abs(Velocity.Y) >= 1)
@@ -86,7 +96,7 @@ namespace ArenaPlatformer1
 
         public void Draw(SpriteBatch spriteBatch)
         {
-            spriteBatch.Draw(Texture, DestinationRectangle, null, Color.White, Rotation, new Vector2(Texture.Width/2, Texture.Height/2), SpriteEffects.None, 0);
+            //spriteBatch.Draw(Texture, DestinationRectangle, null, Color.Red, Rotation, new Vector2(Texture.Width/2, Texture.Height/2), SpriteEffects.None, 0);
         }
 
         public void DrawInfo(GraphicsDevice graphics, BasicEffect basicEffect)
@@ -140,6 +150,15 @@ namespace ArenaPlatformer1
                 graphics.DrawUserIndexedPrimitives(PrimitiveType.LineStrip, Vertices, 0, 4, Indices, 0, 6, VertexPositionColorTexture.VertexDeclaration);
             }
             #endregion
+        }
+
+        public void UpdateEmitters(GameTime gameTime)
+        {
+            foreach (Emitter emitter in EmitterList)
+            {
+                emitter.Position = Position;
+                emitter.Update(gameTime);
+            }
         }
     }
 }
