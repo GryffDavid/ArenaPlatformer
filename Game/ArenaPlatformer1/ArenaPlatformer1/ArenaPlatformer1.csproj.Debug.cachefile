@@ -85,7 +85,12 @@ Content\GameOver.xnb
 Content\PaintStreak3.xnb
 Content\PaintStreak2.xnb
 Content\Particles\ToonSmoke\ToonSmoke1.xnb
+Content\UI\AButton.xnb
+Content\UI\BButton.xnb
+Content\UI\XButton.xnb
+Content\UI\YButton.xnb
 Content\Font1.xnb
+Content\SpriteFont1.xnb
 Content\Shaders\Blur.xnb
 Content\Shaders\Crepuscular.xnb
 Content\Shaders\Depth.xnb

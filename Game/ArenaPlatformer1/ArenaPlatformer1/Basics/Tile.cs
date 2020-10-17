@@ -13,7 +13,7 @@ namespace ArenaPlatformer1
     public class Tile : CollisionSolid
     {
         public TileType TileType;
-        Texture2D Texture;
+        public Texture2D Texture;
         public Vector2 Position, Size, Index;
         public Rectangle DestinationRectangle, CollisionRectangle;
         public Color Color = new Color(1, 0, 0, 255);

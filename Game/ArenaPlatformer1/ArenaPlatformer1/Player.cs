@@ -17,13 +17,25 @@ namespace ArenaPlatformer1
     {
         public PlayerIndex PlayerIndex;
         public bool Active = true;
-        
+
+        #region Gameplay Variables
+        public int Score = 0;
+        public int Deaths = 0;
+        public int GunAmmo = 0;
+        public int TrapAmmo = 5;
+        public int GrenadeAmmo = 5;
+
+        public GunType CurrentGun;
+        public GrenadeType CurrentGrenade;
+        public TrapType CurrentTrap;
+
+        public Vector2 Health = new Vector2(100, 100);
+        public HealthBar HealthBar, SpecialBar;
+        #endregion
+
         #region Events
         public event PlayerShootHappenedEventHandler PlayerShootHappened;
-        public void CreatePlayerShoot(Vector2 velocity)
-        {
-            OnPlayerShootHappened(velocity);
-        }
+
         protected virtual void OnPlayerShootHappened(Vector2 velocity)
         {
             PlayerShootHappened?.Invoke(this,
@@ -46,24 +58,10 @@ namespace ArenaPlatformer1
                 {
                     Player = this
                 });
-        }
 
-        public event PlaceTrapHappenedEventHandler PlaceTrapHappened;
-        public void CreatePlaceTrap(Vector2 position, TrapType trapType)
-        {
-            OnPlaceTrapHappened(position, trapType);
+            NumGrenades++;
         }
-        protected virtual void OnPlaceTrapHappened(Vector2 position, TrapType trapType)
-        {
-            PlaceTrapHappened?.Invoke(this,
-                new PlaceTrapEventArgs()
-                {
-                    Player = this,
-                    Position = position,
-                    TrapType = trapType
-                });
-        }
-
+        
         public event PlayerDiedHappenedEventHandler PlayerDiedHappened;
         public void CreatePlayerDied()
         {
@@ -93,14 +91,66 @@ namespace ArenaPlatformer1
                 });
         }
 
+        public event PlaceTrapHappenedEventHandler PlaceTrapHappened;
+        public void CreatePlaceTrap()
+        {
+            OnPlaceTrapHappened();
+        }
+        protected virtual void OnPlaceTrapHappened()
+        {
+            float rot = 0;
+            Vector2 pos = Position;
+
+            switch (CurrentTrap)
+            {
+                case TrapType.TripMine:
+                    {
+                        if (PushesLeft == true)
+                        {
+                            rot = MathHelper.ToRadians(90);
+                            pos.X -= (DestinationRectangle.Width / 2) - 8;
+                        }
+                        else if (PushesRight == true)
+                        {
+                            rot = MathHelper.ToRadians(-90);
+                            pos.X += (DestinationRectangle.Width / 2) - 8;
+                        }
+                        else if (PushesBottom == true)
+                        {
+                            rot = 0;
+                            pos.Y += (DestinationRectangle.Height / 2) - 8;
+                        }
+                        else if (PushesTop == true)
+                        {
+
+                        }
+                        else
+                        {
+                            return;
+                        }
+
+                        PlaceTrapHappened?.Invoke(this,
+                            new PlaceTrapEventArgs()
+                            {
+                                Player = this,
+                                TrapType = TrapType.TripMine,
+                                Position = pos,
+                                Rotation = rot
+                            });
+                    }
+                break;                
+            }
+
+            TrapAmmo--;
+        }
         #endregion
 
         #region Shared Static
         public static Random Random = new Random();
         public static Player[] Players = new Player[4];
         public static List<Item> ItemList;
-        public static List<Trap> TrapList;
         public static List<Projectile> ProjectileList;
+        public static List<Trap> TrapList;
         #endregion
 
         #region Animations
@@ -159,22 +209,7 @@ namespace ArenaPlatformer1
 
         public Rectangle DestinationRectangle;
         #endregion
-
-        #region Gameplay Variables
-        public int Score = 0;
-        public int Deaths = 0;
-        public int GunAmmo = 0;
-        public int TrapAmmo = 5;
-        public int GrenadeAmmo = 5;
-
-        public GunType CurrentGun;
-        public TrapType CurrentTrap;
-        public GrenadeType CurrentGrenade;
-
-        public Vector2 Health = new Vector2(100, 100);
-        public HealthBar HealthBar, SpecialBar;
-        #endregion
-
+        
         #region Timing
         public Vector2 RespawnTime;
         #endregion
@@ -213,12 +248,16 @@ namespace ArenaPlatformer1
         }
         #endregion
 
+        #region Statistics
+        public int NumKills, NumDeaths, NumShots, NumHits, NumGrenades, NumJumps;
+        #endregion
+
         Vector2 ShotTiming = new Vector2(0, 200);
         Vector2 GrenadeTiming = new Vector2(0, 1500);
 
         public List<Emitter> FlashEmitterList = new List<Emitter>(); //For the muzzle flash
         public List<Emitter> EmitterList = new List<Emitter>(); //For fire, healing etc.
-
+        
         //Index of the player that last did damage to this player
         public int LastDamageSource;
 
@@ -385,6 +424,8 @@ namespace ArenaPlatformer1
                     PreviousGamePadState.IsButtonUp(CurrentJumpButton) &&
                     DoubleJumped == false)
                 {
+                    NumJumps++;
+
                     if (InAir == true)
                     {
                         DoubleJumped = true;
@@ -559,8 +600,8 @@ namespace ArenaPlatformer1
                 {
                     if (TrapAmmo > 0)
                     {
-                        CreatePlaceTrap(Position, TrapType.Mine);
-                        TrapAmmo--;
+                        //CreatePlaceTrap(Position, TrapType.Mine);
+                        CreatePlaceTrap();
                     }
                 }
                 #endregion
@@ -694,22 +735,37 @@ namespace ArenaPlatformer1
                 if (TrapList != null)
                     TrapList.ForEach(Trap =>
                     {
-                        if (Trap.Active == true && Trap.CollisionRectangle.Intersects(CollisionRectangle))
+                        if (Trap.Active == true)
+                        switch (Trap.TrapType)
                         {
-                            switch (Trap.TrapType)
-                            {
-                            #region Fire
-                            case TrapType.Fire:
+                            case TrapType.TripMine:
+                                {
+                                    if ((Trap as TripMine).SourcePlayer != this && (Trap as TripMine).Laser.Ray.Intersects(BoundingBox) != null)
                                     {
-
+                                        //Mine was triggered. Time to explode
+                                        Health.X -= 50;
+                                        Trap.Active = false;
                                     }
-                                    break;
-                                #endregion
+                                }
+                                break;
                         }
 
-                            Health.X -= 20;
-                            Trap.Reset();
-                        }
+                        //if (Trap.Active == true && Trap.CollisionRectangle.Intersects(CollisionRectangle))
+                        //{
+                        //    //switch (Trap.TrapType)
+                        //    //{
+                        //    //#region Fire
+                        //    //case TrapType.Fire:
+                        //    //        {
+
+                        //    //        }
+                        //    //        break;
+                        //    //    #endregion
+                        //    //}
+
+                        //    Health.X -= 20;
+                        //    Trap.Reset();
+                        //}
                     });
                 #endregion
 
@@ -944,13 +1000,17 @@ namespace ArenaPlatformer1
                             switch (CurrentFacing)
                             {
                                 case Facing.Left:
-                                    CreatePlayerShoot(new Vector2(-35, 0));
+                                    OnPlayerShootHappened(new Vector2(-35, 0));
+                                    //CreatePlayerShoot(new Vector2(-35, 0));
                                     break;
 
                                 case Facing.Right:
-                                    CreatePlayerShoot(new Vector2(35, 0));
+                                    //CreatePlayerShoot(new Vector2(35, 0));
+                                    OnPlayerShootHappened(new Vector2(35, 0));
                                     break;
                             }
+
+                            NumShots++;
                         }
                     }
                     break;
@@ -984,6 +1044,8 @@ namespace ArenaPlatformer1
                                 LightProjectile newProjectile = new ShotgunProjectile(BarrelEnd, direction, 1);
                                 CreateLightProjectile(newProjectile, this);
                             }
+
+                            NumShots++;
                         }
                     }
                     break;
@@ -1020,6 +1082,7 @@ namespace ArenaPlatformer1
                             CreateLightProjectile(newProjectile, this);                            
 
                             ShotTiming.X = 0;
+                            NumShots++;
                         }
                     }
                     break;

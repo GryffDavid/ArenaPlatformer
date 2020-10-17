@@ -170,14 +170,23 @@ namespace ArenaPlatformer1
                 if (drawTile != null)
                     drawTile.Draw(spriteBatch);
             }
-        }
 
-        public TileType GetTile(int x, int y)
-        {
-            if (x < 0 || x >= MapSize.X || y < 0 || y >= MapSize.Y)
-                return TileType.Solid;
+            for (int x = 0; x < ObjectsInArea.GetLength(0); x++)
+            {
+                for (int y = 0; y < ObjectsInArea.GetLength(1); y++)
+                {
+                    int c = ObjectsInArea[x, y].Count;
+                    if (c == 1)
+                    {
+                        spriteBatch.Draw(DrawTiles[0,0].Texture, new Rectangle(x * 64, y * 64, 64, 64), Color.Red);
+                    }
 
-            return Tiles[x, y];
+                    if (c == 2)
+                    {
+                        spriteBatch.Draw(DrawTiles[0,0].Texture, new Rectangle(x * 64, y * 64, 64, 64), Color.Green);
+                    }
+                }
+            }
         }
 
         public bool IsObstacle(int x, int y)
@@ -357,7 +366,7 @@ namespace ArenaPlatformer1
 
         public void RemoveObjectFromArea(Vector2 areaIndex, int objectIndex, MovingObject movingObject)
         {
-            var area = ObjectsInArea[(int)areaIndex.X, (int)areaIndex.Y];
+            var area = ObjectsInArea[(int)areaIndex.X, (int)areaIndex.Y]; 
 
             //Swap the last item with the one we are removing
             var temp = area[area.Count - 1];

@@ -10,24 +10,16 @@ namespace ArenaPlatformer1
 {
     class TripMine : Trap
     {
-        public TripMine()
-        {
-
-        }
-
-        public void LoadContent(ContentManager content)
-        {
-
-        }
-
-        public override void Update(GameTime gameTime)
-        {
-
-        }
+        //public BulletTrail Laser;
+        public LaserBeam Laser;
 
         public override void Draw(SpriteBatch spriteBatch)
         {
-
+            if (Active == true)
+            {
+                spriteBatch.Draw(Texture, DestinationRectangle, null, Color.White, Rotation,
+                    new Vector2(DestinationRectangle.Width / 2, DestinationRectangle.Height), SpriteEffects.None, 0);
+            }
         }
     }
 }

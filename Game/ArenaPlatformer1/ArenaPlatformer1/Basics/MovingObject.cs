@@ -46,6 +46,7 @@ namespace ArenaPlatformer1
                            PreviousPosition1, PreviousPosition2;
         }
         #endregion
+
         public static Map Map;
         public List<CollisionData> CollisionDataList = new List<CollisionData>();
 

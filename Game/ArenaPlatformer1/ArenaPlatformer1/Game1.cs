@@ -34,15 +34,6 @@ namespace ArenaPlatformer1
         DeleteRenderData,
     };
 
-    public enum TrapType
-    {
-        Mine,
-        Glue,
-        Spikes,
-        Fire,
-        Gas
-    };
-
     public enum GrenadeType
     {
         Regular, //Just explodes
@@ -69,7 +60,7 @@ namespace ArenaPlatformer1
     {
         Shield
     };
-           
+
     public enum GameType
     {
         DeathMatch, //Play continuosly until a score limit or time limit is reached. The player with most kills wins
@@ -77,7 +68,11 @@ namespace ArenaPlatformer1
         CTF //Play rounds of Capture the flag. Best of 5 wins the whole game
     };
 
-   
+    public enum TrapType
+    {
+        TripMine
+    };
+
     #endregion
 
     #region Events
@@ -102,20 +97,19 @@ namespace ArenaPlatformer1
         public Player Player { get; set; }
     }
 
-    //A player wants to place a trap
-    public delegate void PlaceTrapHappenedEventHandler(object source, PlaceTrapEventArgs e);
+    public delegate void PlayerDiedHappenedEventHandler(object source, PlayerDiedEventArgs e);
+    public class PlayerDiedEventArgs : EventArgs
+    {
+        public Player Player { get; set; }
+    }
+
+    public delegate void PlaceTrapHappenedEventHandler(object souce, PlaceTrapEventArgs e);
     public class PlaceTrapEventArgs : EventArgs
     {
         public Player Player { get; set; }
         public Vector2 Position;
         public TrapType TrapType;
-    }
-    
-    //A player wants to place a trap
-    public delegate void PlayerDiedHappenedEventHandler(object source, PlayerDiedEventArgs e);
-    public class PlayerDiedEventArgs : EventArgs
-    {
-        public Player Player { get; set; }
+        public float Rotation;
     }
     #endregion
     
@@ -165,7 +159,7 @@ namespace ArenaPlatformer1
         ContentManager GameContentManager;
         GraphicsDeviceManager graphics;
         SpriteBatch spriteBatch; 
-
+ 
         GameState CurrentGameState;
         GameState PreviousGameState;
 
@@ -240,7 +234,7 @@ namespace ArenaPlatformer1
         List<Solid> SolidList = new List<Solid>();
 
         //Color AmbientLight = new Color(0.1f, 0.1f, 0.1f, 1f);
-        Color AmbientLight = new Color(0.8f, 0.8f, 0.8f, 1f);
+        Color AmbientLight = new Color(0.3f, 0.3f, 0.3f, 1f);
         //Color AmbientLight = new Color(0.25f, 0.25f, 0.25f, 1f);
 
         #endregion
@@ -298,11 +292,17 @@ namespace ArenaPlatformer1
         float MatchEndFade = 0;
         float PaintSplatterOpacity = 0;
 
+        Player WinningPlayer;
+
         Texture2D PaintStreak1, PaintStreak2, PaintStreak3, Splatter1, GameOverTexture;
         List<float> PaintStreakIncrements = new List<float>();
         List<float> PaintStreakValues = new List<float>();
         List<Vector2> PaintDelayValues = new List<Vector2>();
         List<int> PaintAngleOffsets = new List<int>();
+
+        #region UI Graphics
+        public static Texture2D AButtonTexture, BButtonTexture, XButtonTexture, YButtonTexture;
+        #endregion
 
         #region Events
         public void OnPlayerShoot(object source, PlayerShootEventArgs e)
@@ -600,51 +600,7 @@ namespace ArenaPlatformer1
 
             CheckCollision();
         }
-
-        public void OnPlaceTrap(object source, PlaceTrapEventArgs e)
-        {
-            if (e == null)
-            {
-                throw new ArgumentNullException(nameof(e));
-            }
-
-            Trap trap;
-            switch (e.TrapType)
-            {
-                #region Mine
-                case TrapType.Mine:
-                    {
-                        trap = new Mine()
-                        {
-                            Texture = Block,
-                            Position = e.Position
-                        };
-
-                        Emitter Emitter2 = new Emitter(ToonSmoke2,
-                                new Vector2(trap.Position.X, trap.Position.Y), new Vector2(60, 120), new Vector2(1, 1),
-                                new Vector2(500, 1000), 1f, false, new Vector2(-10, 10), new Vector2(-1, 1), new Vector2(0.05f, 0.06f), new Color(255, 128, 0, 6), Color.Black,
-                                -0.005f, -0.4f, 50, 10, false, new Vector2(0, 720), true, 0.1f,
-                                null, null, null, null, null, false, null, null, null,
-                                null, null, null, true, null);
-
-                        Emitter Emitter = new Emitter(ToonSmoke3,
-                                new Vector2(trap.Position.X, trap.Position.Y), new Vector2(60, 120), new Vector2(1, 1),
-                                new Vector2(500, 1000), 1f, false, new Vector2(-10, 10), new Vector2(-1, 1), new Vector2(0.05f, 0.06f),
-                                new Color(255, 128, 0, 6), Color.Black,
-                                -0.005f, -0.4f, 50, 10, false, new Vector2(0, 720), true, 0.1f,
-                                null, null, null, null, null, false, null, null, null,
-                                null, null, null, true, null);
-
-                        trap.EmitterList.Add(Emitter);
-                        trap.EmitterList.Add(Emitter2);
-
-                        TrapList.Add(trap);
-                    }
-                    break;
-                    #endregion
-            }
-        }
-
+        
         public void OnPlayerDied(object source, PlayerDiedEventArgs e)
         {
             if (e == null)
@@ -859,7 +815,46 @@ namespace ArenaPlatformer1
 
             Grenade grenade = new Grenade(e.Player.Position, new Vector2(16, 0) * e.Player.AimDirection, e.Player, e.Player.CurrentGrenade);
             GrenadeList.Add(grenade);
-        } 
+        }
+
+        public void OnPlaceTrap(object source, PlaceTrapEventArgs e)
+        {
+            if (e == null)
+            {
+                throw new ArgumentNullException(nameof(e));
+            }
+
+            Trap trap;
+
+            switch (e.TrapType)
+            {
+                case TrapType.TripMine:
+                    {
+                        trap = new TripMine()
+                        {
+                            Texture = Block,
+                            Position = e.Position,
+                            Rotation = e.Rotation,
+                            SourcePlayer = e.Player
+                        };
+
+                        //Get rotation of beam
+
+                        //float myRot = e.Rotation - (float)Math.PI / 2;
+
+                        //Vector2 vec = new Vector2(
+                        //    (float)Math.Cos(myRot), 
+                        //    (float)Math.Sin(myRot)) * 256;
+
+
+                        (trap as TripMine).Laser = new LaserBeam(e.Position, trap.Rotation, e.Player.PlayerColor);
+                        (trap as TripMine).Laser.SetVerts();
+
+                        TrapList.Add(trap);
+                    }
+                    break;
+            }
+        }
         #endregion
 
         public Game1()
@@ -919,6 +914,7 @@ namespace ArenaPlatformer1
             #endregion
 
             MovingObject.Map = CurrentMap;
+            LaserBeam.Map = CurrentMap;
 
             GrenadeList = new List<Grenade>();
             SubGrenadeList = new List<SubGrenade>();
@@ -930,17 +926,17 @@ namespace ArenaPlatformer1
 
             TrapList = new List<Trap>();
             Player.TrapList = TrapList;
-
+            
             MovingPlatformList = new List<MovingPlatform>();
 
-            //MovingPlatform platform1 = new MovingPlatform()
-            //{
-            //    Texture = Block,
-            //    Position = new Vector2(400, 250),
-            //    Velocity = new Vector2(2, 0)
-            //};
+            MovingPlatform platform1 = new MovingPlatform()
+            {
+                Texture = Block,
+                Position = new Vector2(400, 250),
+                Velocity = new Vector2(2, 0)
+            };
 
-            //MovingPlatformList.Add(platform1);
+            MovingPlatformList.Add(platform1);
 
             //MovingPlatform platform2 = new MovingPlatform()
             //{
@@ -1018,7 +1014,6 @@ namespace ArenaPlatformer1
             //BlueFlag.Texture = GameContentManager.Load<Texture2D>("BlueFlag");
             
             Emitter.Map = CurrentMap;
-            Trap.Map = CurrentMap;
             VerletObject.Node.Map = CurrentMap;
 
             //#region Guns
@@ -1189,6 +1184,13 @@ namespace ArenaPlatformer1
             ToonSmoke1 = Content.Load<Texture2D>("Particles/ToonSmoke/ToonSmoke1");
             ToonSmoke2 = Content.Load<Texture2D>("Particles/ToonSmoke/ToonSmoke2");
             ToonSmoke3 = Content.Load<Texture2D>("Particles/ToonSmoke/ToonSmoke3");
+            
+            #region UI Textures
+            AButtonTexture = Content.Load<Texture2D>("UI/AButton");
+            BButtonTexture = Content.Load<Texture2D>("UI/BButton");
+            XButtonTexture = Content.Load<Texture2D>("UI/XButton");
+            YButtonTexture = Content.Load<Texture2D>("UI/YButton"); 
+            #endregion
 
             RedFlagTexture = Content.Load<Texture2D>("RedFlag");
             BlueFlagTexture = Content.Load<Texture2D>("BlueFlag");
@@ -1252,9 +1254,9 @@ namespace ArenaPlatformer1
 
                                 Players[i].PlayerShootHappened += OnPlayerShoot;
                                 Players[i].LightProjectileHappened += OnLightProjectileFired;
-                                Players[i].PlaceTrapHappened += OnPlaceTrap;
                                 Players[i].PlayerDiedHappened += OnPlayerDied;
                                 Players[i].PlayerGrenadeHappened += OnPlayerGrenade;
+                                Players[i].PlaceTrapHappened += OnPlaceTrap;
                             }
                             #endregion
 
@@ -1374,12 +1376,6 @@ namespace ArenaPlatformer1
                             trail.Update(gameTime);
                         }
                         
-                        foreach (Trap trap in TrapList)
-                        {
-                            trap.Update(gameTime);
-                        }
-                        TrapList.RemoveAll(Trap => Trap.Exists == false);
-
 
                         CurrentMap.CheckCollisions();
                         CurrentMap.Update(gameTime);
@@ -1466,6 +1462,11 @@ namespace ArenaPlatformer1
                             }
                         }
 
+                        foreach (Trap trap in TrapList.Where(Trap => Trap.Active == true))
+                        {
+                            trap.Update(gameTime);
+                        }
+
                         Camera.Update(gameTime);
 
                         GrenadeList.RemoveAll(Grenade => Grenade.Active == false);
@@ -1545,12 +1546,11 @@ namespace ArenaPlatformer1
 
                         if (Players.Any(Player => Player != null && Player.Score > MaxScore))
                         {
+                            WinningPlayer = Players.First(player => player.Score > MaxScore);
                             MatchEndTimer.X += (float)gameTime.ElapsedGameTime.TotalMilliseconds;
 
                             if (MatchEndTimer.X >= MatchEndTimer.Y)
                             {
-                                IsFixedTimeStep = false;
-                                MatchEndTimer.X = 0;
                                 CurrentGameState = GameState.EndMatch;
                             }
                         }
@@ -1699,6 +1699,25 @@ namespace ArenaPlatformer1
 
                             if (PaintSplatterOpacity < 100)
                                 PaintSplatterOpacity += 17;
+
+                            if (MatchEndFade / 100f >= 1.0f)
+                            {
+                                for (int i = 0; i < 4; i++)
+                                {
+                                    if (CurrentGamePadStates[i].IsButtonUp(Buttons.A) &&
+                                        PreviousGamePadStates[i].IsButtonDown(Buttons.A))
+                                    {
+                                        CurrentGameState = GameState.LevelSelect;
+                                    }
+
+                                    if (CurrentGamePadStates[i].IsButtonUp(Buttons.B) &&
+                                        PreviousGamePadStates[i].IsButtonDown(Buttons.B))
+                                    {
+                                        CurrentGameState = GameState.MainMenu;
+                                    }
+                                }
+                            }
+
                         }
                     }
                     break;
@@ -1802,6 +1821,11 @@ namespace ArenaPlatformer1
                             trail.Draw(GraphicsDevice, BulletTrailEffect);
                         }
 
+                        //foreach (Trap trap in TrapList.Where(Trap => Trap.TrapType == TrapType.TripMine && Trap.Active == true))
+                        //{                            
+                        //    (trap as TripMine).Laser.Draw(GraphicsDevice, BulletTrailEffect);
+                        //}
+
                         foreach (Item item in ItemList)
                         {
                             switch (item.ItemType)
@@ -1841,6 +1865,11 @@ namespace ArenaPlatformer1
                             player.Draw(spriteBatch);
                         }
 
+                        foreach (Trap trap in TrapList.Where(Trap => Trap.Active == true))
+                        {
+                            trap.Draw(spriteBatch);
+                        }
+
                         foreach (Gib gib in GibList)
                         {
                             gib.Draw(spriteBatch);
@@ -1860,12 +1889,7 @@ namespace ArenaPlatformer1
 
                         spriteBatch.Draw(ParticleRenderTarget, ParticleRenderTarget.Bounds, Color.White);
                         CurrentMap.Draw(spriteBatch);
-
-                        foreach (Trap trap in TrapList)
-                        {
-                            trap.Draw(spriteBatch);
-                        }
-
+                        
                         foreach (Item item in ItemList)
                         {
                             switch (item.ItemType)
@@ -1971,6 +1995,10 @@ namespace ArenaPlatformer1
                         //may need to be removed
                         spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.Additive);
                         spriteBatch.Draw(BlurMap, BlurMap.Bounds, Color.White);
+                        foreach (Trap trap in TrapList.Where(Trap => Trap.TrapType == TrapType.TripMine && Trap.Active == true))
+                        {
+                            (trap as TripMine).Laser.Draw(GraphicsDevice, BulletTrailEffect);
+                        }
                         spriteBatch.End();
                         #endregion
 
@@ -1981,7 +2009,7 @@ namespace ArenaPlatformer1
                         spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, null, null, null, LightCombined);
                         #region Draw the lightmap and color map combined
                         LightCombined.CurrentTechnique = LightCombined.Techniques["DeferredCombined2"];
-                        LightCombined.Parameters["ambient"].SetValue(1f);
+                        LightCombined.Parameters["ambient"].SetValue(1.0f);
                         LightCombined.Parameters["lightAmbient"].SetValue(4f);
                         LightCombined.Parameters["ambientColor"].SetValue(AmbientLight.ToVector4());
 
@@ -2101,7 +2129,7 @@ namespace ArenaPlatformer1
                     }
                 }
 
-                Color PaintColor = Color.LimeGreen;
+                Color PaintColor = WinningPlayer.PlayerColor;
 
                 spriteBatch.Draw(Splatter1, new Rectangle(0, 0, 1920, 1080), PaintColor * (PaintSplatterOpacity / 100));
                                 
@@ -2146,6 +2174,48 @@ namespace ArenaPlatformer1
                 //MAYBE DON'T COMPLETELY FILL THE SCREEN. 
                 //IT LOOKS PRETTY COOL WHEN NOT FILLED ALTHOUGH IT MAY MAKE FOR AN AWKWARD TRANSITION TO THE NEXT SCREEN
                 spriteBatch.Draw(Block, new Rectangle(0, 0, 1920, 1080), PaintColor * (MatchEndFade / 100));
+
+                if ((MatchEndFade / 100) >= 1.0f)
+                {
+                    int numplayers = Players.Count(Player => Player != null);
+                    float boxAndGapTotal = (numplayers * 356) + ((numplayers - 1) * 95);
+                    float startpoint = 960 - (boxAndGapTotal / 2);
+
+                    int pIndex = 0;
+
+                    foreach (Player player in Players.Where(Player => Player != null))
+                    {
+                        Color myCol = player.PlayerColor;
+
+                        if (player == WinningPlayer)
+                        {
+                            myCol = Color.Red;
+                        }
+
+                        //PLAYER RESULTS BOXES
+                        spriteBatch.Draw(Block, new Rectangle((int)startpoint + (451 * (int)pIndex), 278, 356, 524), myCol);
+
+
+                        //Button Divider
+                        spriteBatch.Draw(Block, new Rectangle(960, 1080 - 100, 3, 48), null, Color.White, 0, new Vector2(16, 16), SpriteEffects.None, 0);
+
+                        //NEW MATCH
+                        Vector2 textSize = Font1.MeasureString("NEW MATCH");
+                        spriteBatch.Draw(AButtonTexture, new Rectangle(960 + 16, 1080 - 100, AButtonTexture.Width, AButtonTexture.Height), 
+                                         null, Color.White, 0, new Vector2(0, AButtonTexture.Height/2), SpriteEffects.None, 0);
+                        spriteBatch.DrawString(Font1, "NEW MATCH", new Vector2(960 + AButtonTexture.Width + 32, 1080 - 99), 
+                                               Color.White, 0, new Vector2(0, textSize.Y/2), 1f, SpriteEffects.None, 0);
+
+                        //MAIN MENU
+                        textSize = Font1.MeasureString("MAIN MENU");
+                        spriteBatch.Draw(BButtonTexture, new Rectangle(960 - (int)textSize.X - 32, 1080 - 100, AButtonTexture.Width, AButtonTexture.Height), 
+                                                                       null, Color.White, 0, new Vector2(AButtonTexture.Width, AButtonTexture.Height / 2), SpriteEffects.None, 0);
+                        spriteBatch.DrawString(Font1, "MAIN MENU", new Vector2(960 - 16, 1080 - 99), 
+                                               Color.White, 0, new Vector2(textSize.X, textSize.Y/2), 1f, SpriteEffects.None, 0);
+
+                        pIndex++;
+                    }
+                }
 
 
                 #region MyRegion
@@ -2220,14 +2290,7 @@ namespace ArenaPlatformer1
                 //y += 16;
                 spriteBatch.DrawString(Font1, "Projectiles: " + ProjectileList.Count, new Vector2(32, y), Color.White);
                 y += 16;
-                spriteBatch.DrawString(Font1, "Traps: " + TrapList.Count, new Vector2(32, y), Color.White);
-                y += 16;
                 spriteBatch.DrawString(Font1, "Grenades: " + GrenadeList.Count, new Vector2(32, y), Color.White);
-
-                foreach (Trap trap in TrapList)
-                {
-                    spriteBatch.DrawString(Font1, "ResetTime: " + trap.ResetTime.ToString(), new Vector2(trap.DestinationRectangle.Right, trap.DestinationRectangle.Top), Color.White);
-                }
             }
 
             if (CurrentGameState == GameState.Paused)
@@ -2338,12 +2401,7 @@ namespace ArenaPlatformer1
                     //{
                     //    item.DrawInfo(spriteBatch, GraphicsDevice, BasicEffect);
                     //}
-
-                    foreach (Trap trap in TrapList)
-                    {
-                        trap.DrawInfo(spriteBatch, GraphicsDevice, BasicEffect);
-                    }
-
+                                    
                     foreach (Grenade grenade in GrenadeList)
                     {
                         grenade.DrawInfo(GraphicsDevice, BasicEffect);
@@ -2382,10 +2440,21 @@ namespace ArenaPlatformer1
                 {
                     if (Players[i] != null)
                     {
+                        int yO = 0;
                         Players[i].DrawHUD(spriteBatch);
 
                         spriteBatch.DrawString(Font1, Players[i].Score.ToString(), Players[i].Position, Color.Red);
-                        
+                        yO += 16;
+                        spriteBatch.DrawString(Font1, "Shots:" + Players[i].NumShots.ToString(), Players[i].Position + new Vector2(0, yO), Color.Red);
+                        yO += 16;
+                        spriteBatch.DrawString(Font1, "Grenades:" + Players[i].NumGrenades.ToString(), Players[i].Position + new Vector2(0, yO), Color.Red);
+                        yO += 16;
+                        spriteBatch.DrawString(Font1, "Deaths:" + Players[i].NumDeaths.ToString(), Players[i].Position + new Vector2(0, yO), Color.Red);
+                        yO += 16;
+                        spriteBatch.DrawString(Font1, "Jumps:" + Players[i].NumJumps.ToString(), Players[i].Position + new Vector2(0, yO), Color.Red);
+
+
+
                         //Players[i].HealthBar.Draw(spriteBatch);
                         //int y = 16;
                         //spriteBatch.DrawString(Font1, "Health: " + Players[i].Health.X.ToString() + "/" + Players[i].Health.Y.ToString(), new Vector2(256 + (i * 256), y), Color.Red);
@@ -2454,7 +2523,12 @@ namespace ArenaPlatformer1
             if (DoubleBuffer != null)
                 DoubleBuffer.CleanUp();
         }
-        
+
+        public void EndMatch(Player winner)
+        {
+
+        }
+
 
         public void DrawShadows(Light light)
         {
@@ -2596,7 +2670,6 @@ namespace ArenaPlatformer1
             MovingPlatformList.Clear();
             ItemList.Clear();
             ProjectileList.Clear();
-            TrapList.Clear();
             BulletTrailList.Clear();
             EmitterList.Clear();
             GibList.Clear();

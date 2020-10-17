@@ -76,6 +76,8 @@
     <Compile Include="Basics\Crate.cs" />
     <Compile Include="Basics\Explosion.cs" />
     <Compile Include="Basics\SubGrenade.cs" />
+    <Compile Include="LaserBeam.cs" />
+    <Compile Include="Traps\Trap.cs" />
     <Compile Include="Liquid.cs" />
     <Compile Include="Metaball.cs" />
     <Compile Include="ParticleSystem\Gib.cs" />
@@ -114,13 +116,8 @@
     <Compile Include="aOtherStuff\Program.cs" />
     <Compile Include="Game1.cs" />
     <Compile Include="Basics\Tile.cs" />
-    <Compile Include="Basics\Trap.cs" />
     <Compile Include="ShockWave.cs" />
     <Compile Include="ToonLightning.cs" />
-    <Compile Include="Traps\BeamTrap.cs" />
-    <Compile Include="Traps\BouncePadTrap.cs" />
-    <Compile Include="Traps\Mine.cs" />
-    <Compile Include="Traps\SpikesTrap.cs" />
     <Compile Include="Traps\TripMine.cs" />
     <Compile Include="UI\PlayerJoin.cs" />
     <Compile Include="Basics\Camera.cs" />
