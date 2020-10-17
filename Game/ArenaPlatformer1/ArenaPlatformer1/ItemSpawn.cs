@@ -9,7 +9,7 @@ using Microsoft.Xna.Framework.Content;
 namespace ArenaPlatformer1
 {
     [Serializable]
-    public enum ItemType { Shield, Shotgun, RocketLauncher, MachineGun };
+    public enum ItemType { Shield, Shotgun, RocketLauncher, MachineGun, RedFlag, BlueFlag };
 
     [Serializable]
     public class ItemSpawn

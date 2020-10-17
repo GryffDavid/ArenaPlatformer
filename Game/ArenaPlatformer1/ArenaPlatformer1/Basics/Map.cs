@@ -13,6 +13,9 @@ namespace ArenaPlatformer1
     [Serializable]
     public class Map
     {
+        [NonSerialized]
+        public static List<Item> ItemList;
+
         public static Random Random = new Random();
 
         //Collision tiles
@@ -29,6 +32,8 @@ namespace ArenaPlatformer1
         public Vector2 MapSize = new Vector2(30, 17);
 
         public List<Vector2> SpawnTiles;
+        public Vector2 RedFlagSpawn;
+        public Vector2 BlueFlagSpawn;
         
         public int TreeGridWidth = 64;        
         public int TreeGridHeight = 64;
@@ -38,8 +43,7 @@ namespace ArenaPlatformer1
         public List<Light> LightList;
         
         int HorizontalAreasCount;
-        int VerticalAreasCount;
-        
+        int VerticalAreasCount;        
         public Map()
         {
             Tiles = new TileType[(int)MapSize.X, (int)MapSize.Y];
@@ -68,6 +72,7 @@ namespace ArenaPlatformer1
         {
             DrawTiles = new Tile[(int)MapSize.X, (int)MapSize.Y];
             SpawnTiles = new List<Vector2>();
+            
             LightList = new List<Light>();
 
             for (int x = 0; x < (int)MapSize.X; x++)
@@ -79,6 +84,20 @@ namespace ArenaPlatformer1
                         case TileType.Spawn:
                             {
                                 SpawnTiles.Add(new Vector2(x, y));
+                            }
+                            break;
+
+                        case TileType.RedFlag:
+                            {
+                                RedFlagSpawn = new Vector2(x, y);
+                                ItemList.Add(new RedFlagPickup(RedFlagSpawn * 64));
+                            }
+                            break;
+
+                        case TileType.BlueFlag:
+                            {
+                                BlueFlagSpawn = new Vector2(x, y);
+                                ItemList.Add(new BlueFlagPickup(BlueFlagSpawn * 64));
                             }
                             break;
 

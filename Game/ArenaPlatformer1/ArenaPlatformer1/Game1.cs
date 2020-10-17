@@ -217,6 +217,7 @@ namespace ArenaPlatformer1
         #endregion
 
         Texture2D Block, Texture, NormalTexture;
+        Texture2D RedFlagTexture, BlueFlagTexture;
 
         #region Icon Textures
         public static Texture2D GrenadeIcon;
@@ -641,6 +642,23 @@ namespace ArenaPlatformer1
             e.Player.Velocity = new Vector2(0, 0);
             e.Player.Active = false;
 
+            switch (e.Player.CurrentFlagState)
+            {
+                case FlagState.HasBlue:
+                    {
+                        e.Player.CurrentFlagState = FlagState.NoFlag;
+                        ItemList.Add(new BlueFlagPickup(e.Player.Position));
+                    }
+                    break;
+
+                case FlagState.HasRed:
+                    {
+                        e.Player.CurrentFlagState = FlagState.NoFlag;
+                        ItemList.Add(new RedFlagPickup(e.Player.Position));
+                    }
+                    break;
+            }
+
             if (CurrentGameType == GameType.DeathMatch)
             {
                 e.Player.Respawn();                
@@ -853,7 +871,7 @@ namespace ArenaPlatformer1
         
         protected override void Initialize()
         {
-            CurrentGameState = GameState.MainMenu;
+            CurrentGameState = GameState.ModeSelect;
 
             ExplosionHappenedEvent += OnExplosionHappened;
 
@@ -875,9 +893,7 @@ namespace ArenaPlatformer1
             TrapList = new List<Trap>();
             Player.TrapList = TrapList;
 
-            ItemList = new List<Item>();
-            Player.ItemList = ItemList;
-            ItemSpawn.ItemList = ItemList;
+            
             
             MovingPlatformList = new List<MovingPlatform>();
 
@@ -937,6 +953,7 @@ namespace ArenaPlatformer1
             ShotgunPickup.Texture = GameContentManager.Load<Texture2D>("Gun");
             RocketLauncherPickup.Texture = GameContentManager.Load<Texture2D>("Gun");
             MachineGunPickup.Texture = GameContentManager.Load<Texture2D>("Gun");
+            RedFlagPickup.Texture = GameContentManager.Load<Texture2D>("RedFlag");
             #endregion
 
             #region Load Icon Textures
@@ -947,13 +964,11 @@ namespace ArenaPlatformer1
             Gib.Texture = GameContentManager.Load<Texture2D>("Particles/Splodge");
 
             //RocketLauncher.Texture = GameContentManager.Load<Texture2D>("Gun");
+            
 
             Player.ShieldTexture = GameContentManager.Load<Texture2D>("PlayerShield");
             Player.GunTexture = GameContentManager.Load<Texture2D>("Gun");
-            Player.BlueFlagTexture = GameContentManager.Load<Texture2D>("BlueFlag");
-            Player.RedFlagTexture = GameContentManager.Load<Texture2D>("RedFlag");
             
-
             ShotgunShell = GameContentManager.Load<Texture2D>("ShotgunShell");
 
             //MinePickup.Texture = GameContentManager.Load<Texture2D>("Blank");
@@ -1126,6 +1141,19 @@ namespace ArenaPlatformer1
             HitEffectParticle = Content.Load<Texture2D>("Particles/HitEffectParticle");
             ToonSmoke2 = Content.Load<Texture2D>("Particles/ToonSmoke/ToonSmoke2");
             ToonSmoke3 = Content.Load<Texture2D>("Particles/ToonSmoke/ToonSmoke3");
+
+            RedFlagTexture = GameContentManager.Load<Texture2D>("RedFlag");
+            BlueFlagTexture = GameContentManager.Load<Texture2D>("BlueFlag");
+            Player.BlueFlagTexture = BlueFlagTexture;
+            Player.RedFlagTexture = RedFlagTexture;
+            BlueFlagPickup.Texture = BlueFlagTexture;
+            RedFlagPickup.Texture = RedFlagTexture;
+            
+
+            ItemList = new List<Item>();
+            Player.ItemList = ItemList;
+            ItemSpawn.ItemList = ItemList;
+            Map.ItemList = ItemList;
             //ProjectileList.Add(new Rocket() { Position = new Vector2(80, 80), Velocity = new Vector2(1, 0) });
 
         }
@@ -1160,25 +1188,61 @@ namespace ArenaPlatformer1
                         {
                             PlayerJoinButtons[i].Update(gameTime);
 
+                            #region Change team colour
+                            if (PlayerJoinButtons[i].Occupied == true)
+                            {
+                                #region D-Pad Down
+                                if (CurrentGamePadStates[i].IsButtonUp(Buttons.DPadDown) &&
+                                                        PreviousGamePadStates[i].IsButtonDown(Buttons.DPadDown))
+                                {
+                                    if (Players[i].TeamColor != TeamColor.BlueTeam)
+                                    {
+                                        Players[i].TeamColor = TeamColor.BlueTeam;
+                                        break;
+                                    }
+
+                                    if (Players[i].TeamColor != TeamColor.RedTeam)
+                                    {
+                                        Players[i].TeamColor = TeamColor.RedTeam;
+                                        break;
+                                    }
+                                }
+                                #endregion
+
+                                #region D-Pad Up
+                                if (CurrentGamePadStates[i].IsButtonUp(Buttons.DPadUp) &&
+                                    PreviousGamePadStates[i].IsButtonDown(Buttons.DPadUp))
+                                {
+                                    if (Players[i].TeamColor != TeamColor.BlueTeam)
+                                    {
+                                        Players[i].TeamColor = TeamColor.BlueTeam;
+                                        break;
+                                    }
+
+                                    if (Players[i].TeamColor != TeamColor.RedTeam)
+                                    {
+                                        Players[i].TeamColor = TeamColor.RedTeam;
+                                        break;
+                                    }
+                                }
+                                #endregion 
+                            } 
+                            #endregion
+
                             #region Player joined
                             if (CurrentGamePadStates[i].IsButtonUp(Buttons.A) &&
                                 PreviousGamePadStates[i].IsButtonDown(Buttons.A))
                             {
-                                //if (PlayerJoinButtons[i].Occupied == true &&
-                                //    PlayerJoinButtons.Count(Button => Button.Occupied) > 1)
-                                //{
-                                //    GameState = GameState.ModeSelect;
-                                //}
-
                                 if (PlayerJoinButtons[i].Occupied == true)
                                 {
                                     ListLevels();                                    
-                                    CurrentGameState = GameState.ModeSelect;
+                                    CurrentGameState = GameState.LevelSelect;
                                 }
 
                                 PlayerJoinButtons[i].Occupied = true;
 
                                 Players[i] = new Player((PlayerIndex)i);
+                                PlayerJoinButtons[i].Player = Players[i];
                                 Players[i].LoadContent(Content);
 
                                 Players[i].PlayerShootHappened += OnPlayerShoot;
@@ -1214,8 +1278,6 @@ namespace ArenaPlatformer1
                     {
                         for (int i = 0; i < 4; i++)
                         {
-                            //PlayerJoinButtons[i].Update(gameTime);
-
                             if (CurrentGamePadStates[i].IsButtonUp(Buttons.DPadDown) &&
                                 PreviousGamePadStates[i].IsButtonDown(Buttons.DPadDown))
                             {
@@ -1230,16 +1292,6 @@ namespace ArenaPlatformer1
 
                             if (CurrentGamePadStates[i].IsButtonUp(Buttons.A) &&
                                 PreviousGamePadStates[i].IsButtonDown(Buttons.A))
-                            {
-                                //LoadLevel(Path.GetFileName(LevelList[SelectedLevelIndex]));
-                                //LoadGameContent();
-                                //CurrentGameState = GameState.Playing;
-                                CurrentGameType = (GameType)SelectedModeMenu;
-                                CurrentGameState = GameState.LevelSelect;
-                            }
-
-                            if (CurrentGamePadStates[i].IsButtonUp(Buttons.B) &&
-                                PreviousGamePadStates[i].IsButtonDown(Buttons.B))
                             {
                                 CurrentGameState = GameState.MainMenu;
                             }
@@ -1767,6 +1819,8 @@ namespace ArenaPlatformer1
                                 case ItemType.RocketLauncher:
                                 case ItemType.Shotgun:
                                 case ItemType.MachineGun:
+                                case ItemType.RedFlag:
+                                case ItemType.BlueFlag:
                                     {
                                         item.Draw(spriteBatch);
                                     }

@@ -100,6 +100,8 @@
     <Compile Include="ParticleSystem\Managers\RenderManager.cs" />
     <Compile Include="ParticleSystem\Managers\UpdateManager.cs" />
     <Compile Include="Pickups\MachineGunPickup.cs" />
+    <Compile Include="Pickups\BlueFlagPickup.cs" />
+    <Compile Include="Pickups\RedFlagPickup.cs" />
     <Compile Include="Pickups\ShieldPickup.cs" />
     <Compile Include="Pickups\RocketLauncherPickup.cs" />
     <Compile Include="Pickups\ShotgunPickup.cs" />

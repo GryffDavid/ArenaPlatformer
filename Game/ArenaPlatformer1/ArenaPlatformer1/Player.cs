@@ -374,9 +374,7 @@ namespace ArenaPlatformer1
                     CurrentFacing = Facing.Left;
                 }
                 #endregion
-                #region  
 
-                #endregion
                 #region Move stick right
                 if (MoveStick.X > 0f)
                 {
@@ -591,6 +589,44 @@ namespace ArenaPlatformer1
                                         ShotTiming = new Vector2(0, 200);
                                         CurrentGun = GunType.MachineGun;
                                         removeItem = true;
+                                    }
+                                    break;
+
+                                case ItemType.RedFlag:
+                                    {
+                                        switch (TeamColor)
+                                        {
+                                            case TeamColor.BlueTeam:
+                                                {
+                                                    CurrentFlagState = FlagState.HasRed;
+                                                }
+                                                break;
+
+                                            case TeamColor.RedTeam:
+                                                {
+                                                    ItemList.Add(new RedFlagPickup(Map.RedFlagSpawn * 64));
+                                                }
+                                                break;
+                                        }
+                                    }
+                                    break;
+
+                                case ItemType.BlueFlag:
+                                    {
+                                        switch (TeamColor)
+                                        {
+                                            case TeamColor.BlueTeam:
+                                                {
+                                                    ItemList.Add(new BlueFlagPickup(Map.BlueFlagSpawn * 64));
+                                                }
+                                                break;
+
+                                            case TeamColor.RedTeam:
+                                                {
+                                                    CurrentFlagState = FlagState.HasBlue;
+                                                }
+                                                break;
+                                        }
                                     }
                                     break;
                             }

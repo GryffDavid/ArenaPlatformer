@@ -14,6 +14,7 @@ namespace ArenaPlatformer1
         Vector2 Position, Size;
         Color CurrentColor;
         public bool Occupied = false;
+        public Player Player;
 
         public PlayerJoin(Texture2D texture, Vector2 position, Vector2 size)
         {
@@ -32,7 +33,10 @@ namespace ArenaPlatformer1
         {
             if (Occupied == true)
             {
-                CurrentColor = Color.Red;
+                if (Player.TeamColor == TeamColor.RedTeam)
+                    CurrentColor = Color.Red;
+                else
+                    CurrentColor = Color.Blue;
             }
             else
             {
