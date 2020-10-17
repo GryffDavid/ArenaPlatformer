@@ -43,7 +43,7 @@ namespace ArenaPlatformer1
             Velocity.Y += Gravity;
 
             base.Update(gameTime);
-            
+
             if (PushesBottomTile == true ||
                 PushesTopTile == true)
             {
@@ -51,12 +51,34 @@ namespace ArenaPlatformer1
                 {
                     if (Scale >= 1.25f)
                     {
-                        Source.AddMetaballs(Position, 5, new Vector2(Scale * 0.5f), new Vector2(-5, 5), new Vector2(-5, -1));
+                        if (PushesBottomTile == true)
+                        {
+                            Source.AddMetaballs(Position, 5, new Vector2(Scale * 0.5f), new Vector2(-5, 5), new Vector2(-5, -1));
+                        }
+                        else
+                        {
+                            Source.AddMetaballs(Position, 5, new Vector2(Scale * 0.5f), new Vector2(-5, 5), new Vector2(1, 5));
+                        }
+
                         Active = false;
                     }
                 }
 
-                Velocity.Y = -Velocity.Y * (0.15f + (float)DoubleRange(0, 0.1));
+                if (PushesBottomTile == true)
+                {
+                    Velocity.Y = -Velocity.Y * (0.15f + (float)DoubleRange(0, 0.1));
+                    Gravity = 0.45f;
+                }
+                else
+                {
+                    Velocity.Y = 0;
+                    Gravity = 0.02f;
+                }
+            }
+            else
+            {
+                if (Velocity.Y > 0.35f)
+                    Gravity = 0.45f;
             }
 
             if (PushesBottomTile == true)

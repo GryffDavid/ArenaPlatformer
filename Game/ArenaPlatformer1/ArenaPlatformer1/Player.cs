@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Diagnostics;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Content;
@@ -162,12 +163,13 @@ namespace ArenaPlatformer1
         #region Gameplay Variables
         public int Score = 0;
         public int Deaths = 0;
-        public int GunAmmo = 15;
-        public int TrapAmmo = 0;
-        public int GrenadeAmmo = 0;
+        public int GunAmmo = 0;
+        public int TrapAmmo = 5;
+        public int GrenadeAmmo = 5;
 
         public GunType CurrentGun;
         public TrapType CurrentTrap;
+        public GrenadeType CurrentGrenade;
 
         public Vector2 Health = new Vector2(100, 100);
         public HealthBar HealthBar, SpecialBar;
@@ -189,10 +191,7 @@ namespace ArenaPlatformer1
         /// Used to purchase upgrades and items between levels
         /// </summary>
         public int Credits;
-
-        public FlagState CurrentFlagState;
-        public TeamColor TeamColor;
-
+        
         #region Debuff
         private DebuffData _CurrentDebuff;
         public DebuffData CurrentDebuff
@@ -215,10 +214,15 @@ namespace ArenaPlatformer1
         #endregion
 
         Vector2 ShotTiming = new Vector2(0, 200);
-        Vector2 GrenadeTiming = new Vector2(0, 1500 );
+        Vector2 GrenadeTiming = new Vector2(0, 1500);
+
+        public List<Emitter> FlashEmitterList = new List<Emitter>(); //For the muzzle flash
+        public List<Emitter> EmitterList = new List<Emitter>(); //For fire, healing etc.
 
         //Index of the player that last did damage to this player
         public int LastDamageSource;
+
+        public Color PlayerColor = Color.White;
 
         public Player(PlayerIndex playerIndex)
         {
@@ -227,15 +231,46 @@ namespace ArenaPlatformer1
             MaxSpeed = new Vector2(3.5f, 6);
             Gravity = 0.6f;
             Size = new Vector2(59, 98);
-            CurrentFlagState = FlagState.NoFlag;
             CurrentGun = GunType.Shotgun;
+            CurrentGrenade = GrenadeType.Cluster;
             IsKinematic = true;
+
+            PlayerColor = Color.White;
+
+            switch (PlayerIndex)
+            {
+                case PlayerIndex.One:
+                    {
+                        PlayerColor = Color.LimeGreen;
+                    }
+                    break;
+
+                case PlayerIndex.Two:
+                    {
+                        PlayerColor = Color.RoyalBlue;
+                    }
+                    break;
+
+                case PlayerIndex.Three:
+                    {
+                        PlayerColor = Color.Gold;
+                    }
+                    break;
+
+                case PlayerIndex.Four:
+                    {
+                        PlayerColor = Color.Red;
+                    }
+                    break;
+            }
 
             HealthBar = new HealthBar()
             {
                 Position = new Vector2(40 + (480 * (int)PlayerIndex), 40),
                 Size = new Vector2(440, 25),
                 Player = this,
+                BackColor = Color.Gray,
+                FrontColor = PlayerColor
             };
 
             SpecialBar = new HealthBar(Color.DeepSkyBlue, Color.White)
@@ -270,8 +305,12 @@ namespace ArenaPlatformer1
             RunLeftTexture = content.Load<Texture2D>("Player" + ((int)PlayerIndex + 1) + "/Running/RunLeft");
             StandRightTexture = content.Load<Texture2D>("Player" + ((int)PlayerIndex + 1) + "/Standing/StandRight");
             StandLeftTexture = content.Load<Texture2D>("Player" + ((int)PlayerIndex + 1) + "/Standing/StandLeft");
+
             JumpRightTexture = content.Load<Texture2D>("Player" + ((int)PlayerIndex + 1) + "/Jumping/JumpRight");
             JumpLeftTexture = content.Load<Texture2D>("Player" + ((int)PlayerIndex + 1) + "/Jumping/JumpLeft");
+
+            JumpRightDownTexture = content.Load<Texture2D>("Player" + ((int)PlayerIndex + 1) + "/Jumping/JumpRightDown");
+            JumpLeftDownTexture = content.Load<Texture2D>("Player" + ((int)PlayerIndex + 1) + "/Jumping/JumpLeftDown");
 
             CrouchRightTexture = content.Load<Texture2D>("Player" + ((int)PlayerIndex + 1) + "/CrouchRight");
             CrouchLeftTexture = content.Load<Texture2D>("Player" + ((int)PlayerIndex + 1) + "/CrouchLeft");
@@ -287,8 +326,12 @@ namespace ArenaPlatformer1
             StandRightAnimation = new Animation(StandRightTexture, 1, 50);
 
             JumpLeftAnimation = new Animation(JumpLeftTexture, 1, 50);
+            JumpLeftDownAnimation = new Animation(JumpLeftDownTexture, 1, 50);
+
 
             JumpRightAnimation = new Animation(JumpRightTexture, 1, 50);
+            JumpRightDownAnimation = new Animation(JumpRightDownTexture, 1, 50);
+
 
             CrouchRightAnimation = new Animation(CrouchRightTexture, 1, 50);
             CrouchLeftAnimation = new Animation(CrouchLeftTexture, 1, 50);
@@ -313,6 +356,20 @@ namespace ArenaPlatformer1
                 HealthBar.Update(Health);
                 SpecialBar.Update(new Vector2(87, 100));
 
+                foreach (Emitter emitter in FlashEmitterList)
+                {
+                    emitter.Position.X = BarrelEnd.X;
+                    emitter.Update(gameTime);
+                }
+                FlashEmitterList.RemoveAll(Emitter => Emitter.Active == false);
+
+                foreach (Emitter emitter in EmitterList)
+                {
+                    //emitter.Position = Position;
+                    emitter.Update(gameTime);
+                }
+                EmitterList.RemoveAll(Emitter => Emitter.Active == false);
+
                 #region Control States
                 CurrentGamePadState = GamePad.GetState(PlayerIndex);
                 CurrentKeyboardState = Keyboard.GetState();
@@ -335,6 +392,23 @@ namespace ArenaPlatformer1
                     }
                     else
                     {
+                        //NOT SURE ABOUT HAVING BOTH THIS AND THE SMOKE PUFF WHEN LANDING. 
+                        //I LIKE THE SMOKE MORE SO I'M LEAVING THIS OUT FOR NOW
+
+                        //Emitter jumpEmitter1 = new Emitter(Game1.HitEffectParticle, new Vector2(Position.X + 5, Position.Y + DestinationRectangle.Height / 2),
+                        //     new Vector2(90, 180), new Vector2(5, 8), new Vector2(500, 500), 1f, false, new Vector2(0, 0),
+                        //     new Vector2(0, 0), new Vector2(0.1f, 0.1f), Color.White, Color.White, 0f, 0.1f, 100, 5, false,
+                        //     Vector2.Zero, true, null, null, null, null, null, null, true, new Vector2(0.15f, 0.15f), null, null, null, null, null, true);
+
+
+                        //Emitter jumpEmitter2 = new Emitter(Game1.HitEffectParticle, new Vector2(Position.X + 5, Position.Y + DestinationRectangle.Height / 2),
+                        //    new Vector2(0, 90), new Vector2(5, 8), new Vector2(500, 500), 1f, false, new Vector2(0, 0),
+                        //    new Vector2(0, 0), new Vector2(0.1f, 0.1f), Color.White, Color.White, 0f, 0.1f, 100, 5, false,
+                        //    Vector2.Zero, true, null, null, null, null, null, null, true, new Vector2(0.15f, 0.15f), null, null, null, null, null, true);
+
+                        //EmitterList.Add(jumpEmitter1);
+                        //EmitterList.Add(jumpEmitter2);
+
                         Velocity.Y = -15f;
                     }
                 }
@@ -381,6 +455,23 @@ namespace ArenaPlatformer1
                 #region Collision Reactions
                 if (PushesBottomTile == true)
                 {
+                    if (InAir == true)
+                    {
+                        Emitter jumpEmitter1 = new Emitter(Game1.ToonSmoke1, new Vector2(Position.X - 2, Position.Y + DestinationRectangle.Height / 2),
+                            new Vector2(110, 180), new Vector2(2, 5), new Vector2(300, 500), 1f, false, new Vector2(-7, 7),
+                            new Vector2(0, 0), new Vector2(0.03f, 0.05f), Color.White, Color.White, 0f, 0.1f, 100, 9, false,
+                            Vector2.Zero, true, null, null, null, null, null, null, false, new Vector2(0.08f, 0.08f), null, null, null, false, false, true);
+
+                        Emitter jumpEmitter2 = new Emitter(Game1.ToonSmoke1, new Vector2(Position.X + 2, Position.Y + DestinationRectangle.Height / 2),
+                            new Vector2(20, 90), new Vector2(2, 5), new Vector2(300, 500), 1f, false, new Vector2(-7, 7),
+                            new Vector2(0, 0), new Vector2(0.03f, 0.05f), Color.White, Color.White, 0f, 0.1f, 100, 9, false,
+                            Vector2.Zero, true, null, null, null, null, null, null, false, new Vector2(0.08f, 0.08f), null, null, null, false, false, true);
+
+
+                        EmitterList.Add(jumpEmitter1);
+                        EmitterList.Add(jumpEmitter2);
+                    }
+
                     Velocity.Y = 0;
                     InAir = false;
                     DoubleJumped = false;
@@ -444,6 +535,16 @@ namespace ArenaPlatformer1
                     {
                         CreatePlayerGrenade();
                         GrenadeTiming.X = 0;
+
+                        if (CurrentGrenade != GrenadeType.Regular)
+                        {
+                            GrenadeAmmo--;
+
+                            if (GrenadeAmmo == 0)
+                            {
+                                CurrentGrenade = GrenadeType.Regular;
+                            }
+                        }
                     }
                 }
                 else
@@ -485,7 +586,12 @@ namespace ArenaPlatformer1
                                 }
                             }
                             else
-                                CurrentAnimation = JumpLeftAnimation;
+                            {
+                                if (Velocity.Y > 2)
+                                    CurrentAnimation = JumpLeftDownAnimation;
+                                else
+                                    CurrentAnimation = JumpLeftAnimation;
+                            }
                         }
                         break;
                     #endregion
@@ -508,7 +614,12 @@ namespace ArenaPlatformer1
                                 }
                             }
                             else
-                                CurrentAnimation = JumpRightAnimation;
+                            {
+                                if (Velocity.Y > 2)
+                                    CurrentAnimation = JumpRightDownAnimation;
+                                else
+                                    CurrentAnimation = JumpRightAnimation;
+                            }
                         }
                         break;
                         #endregion
@@ -570,143 +681,8 @@ namespace ArenaPlatformer1
                                         CurrentGun = GunType.MachineGun;
                                         removeItem = true;
                                     }
-                                    break;
-
-                                case ItemType.RedFlag:
-                                    {
-                                        switch (TeamColor)
-                                        {
-                                            case TeamColor.BlueTeam:
-                                                {
-                                                    CurrentFlagState = FlagState.HasRed;
-                                                }
-                                                break;
-
-                                            case TeamColor.RedTeam:
-                                                {
-                                                    if (Item.Position != (Map.RedFlagSpawn * 64))
-                                                    {
-                                                        ItemList.Add(new RedFlagPickup(Map.RedFlagSpawn * 64));
-                                                    }
-                                                    else
-                                                    {
-                                                        removeItem = false;
-                                                    }
-                                                }
-                                                break;
-                                        }
-                                    }
-                                    break;
-
-                                case ItemType.BlueFlag:
-                                    {
-                                        switch (TeamColor)
-                                        {
-                                            case TeamColor.BlueTeam:
-                                                {
-                                                    if (Item.Position != (Map.BlueFlagSpawn * 64))
-                                                    {
-                                                        ItemList.Add(new BlueFlagPickup(Map.BlueFlagSpawn * 64));
-                                                    }
-                                                    else
-                                                    {
-                                                        removeItem = false;
-                                                    }
-                                                }
-                                                break;
-
-                                            case TeamColor.RedTeam:
-                                                {
-                                                    CurrentFlagState = FlagState.HasBlue;
-                                                }
-                                                break;
-                                        }
-                                    }
-                                    break;
-                            }
-
-                        #region Old
-                        //#region Item is a TrapPickup
-                        //if (Item as TrapPickup != null)
-                        //{
-                        //    if (TrapAmmo <= 0)
-                        //    {
-                        //        CurrentTrap = (Item as TrapPickup).TrapType;
-                        //    }
-
-                        //    if (Item as MinePickup != null)
-                        //    {
-                        //        TrapAmmo++;
-                        //    }
-                        //}
-                        //#endregion
-
-                        //#region Item is a Gun
-                        //if (Item as Gun != null)
-                        //{
-                        //    if (GunAmmo <= 0)
-                        //    {
-                        //        GunAmmo += 15;
-                        //    }
-
-                        //    if ((Item as Gun).GunType == CurrentGun)
-                        //    {
-                        //        removeItem = false;
-                        //    }
-                        //    else
-                        //    {
-                        //        switch ((Item as Gun).GunType)
-                        //        {
-                        //            #region Rocket Launcher
-                        //            case GunType.RocketLauncher:
-                        //                {
-                        //                    CurrentGun = GunType.RocketLauncher;
-                        //                }
-                        //                break;
-                        //                #endregion
-                        //        }
-                        //    }
-                        //}
-                        //#endregion
-
-                        //#region Item is a Flag
-                        //if (Item as RedFlag != null)
-                        //{
-                        //    if (CurrentFlagState == FlagState.NoFlag)
-                        //        CurrentFlagState = FlagState.HasRed;
-                        //    else
-                        //    {
-                        //        removeItem = false;
-                        //    }
-                        //}
-
-                        //if (Item as BlueFlag != null)
-                        //{
-                        //    if (CurrentFlagState == FlagState.NoFlag)
-                        //        CurrentFlagState = FlagState.HasBlue;
-                        //    else
-                        //    {
-                        //        removeItem = false;
-                        //    }
-                        //}
-                        //#endregion
-
-                        //#region Item is a Crate
-                        //if (Item as CratePickup != null)
-                        //{
-                        //    switch ((Item as CratePickup).CrateType)
-                        //    {
-                        //        #region Shield Pickup
-                        //        case CrateType.ShieldPickup:
-                        //            {
-                        //                ShieldActive = true;
-                        //            }
-                        //            break;
-                        //            #endregion
-                        //    }
-                        //}
-                        //#endregion 
-                        #endregion
+                                    break;                                    
+                            }                                                   
 
                         if (removeItem == true)
                             ItemList.Remove(Item);
@@ -827,33 +803,6 @@ namespace ArenaPlatformer1
         {
             if (CurrentAnimation != null && Active == true)
                 CurrentAnimation.Draw(spriteBatch, Position);
-
-            //if (CurrentGamePadState.IsButtonDown(ShootButton))
-            //{
-            //    spriteBatch.Draw(GunTexture, new Rectangle((int)Position.X, (int)Position.Y, GunTexture.Width, GunTexture.Height), null, Color.White,
-            //        MathHelper.ToRadians(num * 45),
-            //        new Vector2(0, GunTexture.Height / 2), SpriteEffects.None, 0);
-            //}
-
-            #region Draw the flag
-            switch (CurrentFlagState)
-            {
-                case FlagState.NoFlag:
-                    break;
-
-                case FlagState.HasRed:
-                    {
-                        spriteBatch.Draw(RedFlagTexture, Position + new Vector2(0, -45), Color.White);
-                    }
-                    break;
-
-                case FlagState.HasBlue:
-                    {
-                        spriteBatch.Draw(BlueFlagTexture, Position + new Vector2(0, -45), Color.White);
-                    }
-                    break;
-            }
-            #endregion
         }
 
         public void DrawEmissive(SpriteBatch spriteBatch)
@@ -874,11 +823,6 @@ namespace ArenaPlatformer1
         {
             #region Draw the collision box for debugging
             Color Color = Color.Red;
-
-            if (TeamColor == TeamColor.BlueTeam)
-            {
-                Color = Color.Blue;
-            }
 
             VertexPositionColorTexture[] Vertices = new VertexPositionColorTexture[4];
             int[] Indices = new int[8];
@@ -935,18 +879,18 @@ namespace ArenaPlatformer1
             HealthBar.Draw(spriteBatch);
             SpecialBar.Draw(spriteBatch);
 
-            float perc = ((100 / GrenadeTiming.Y) * GrenadeTiming.X) / 100;
-            int height = (int)(perc * Game1.GrenadeIcon.Height);
-            spriteBatch.Draw(Game1.GrenadeIcon, 
-                new Rectangle(40 + (480 * (int)PlayerIndex), 40 + 25 + 10 + (int)((1.0f - perc) * 24), 24, (int)(perc * 24)), 
-                new Rectangle(0, Game1.GrenadeIcon.Height - height, Game1.GrenadeIcon.Width, height), Color.White);
+            //float perc = ((100 / GrenadeTiming.Y) * GrenadeTiming.X) / 100;
+            //int height = (int)(perc * Game1.GrenadeIcon.Height);
+            //spriteBatch.Draw(Game1.GrenadeIcon, 
+            //    new Rectangle(40 + (480 * (int)PlayerIndex), 40 + 25 + 10 + (int)((1.0f - perc) * 24), 24, (int)(perc * 24)), 
+            //    new Rectangle(0, Game1.GrenadeIcon.Height - height, Game1.GrenadeIcon.Width, height), Color.White);
 
-            spriteBatch.Draw(Game1.GrenadeIcon, new Rectangle(40 + (480 * (int)PlayerIndex), 40+25+10, 24, 24), Color.White * 0.5f);
+            //spriteBatch.Draw(Game1.GrenadeIcon, new Rectangle(40 + (480 * (int)PlayerIndex), 40+25+10, 24, 24), Color.White * 0.5f);
 
-            for (int i = 0; i < Deaths; i++)
-            {
-                spriteBatch.Draw(SkullIcon, new Vector2(40 + (480 * (int)PlayerIndex) + (32*i), 40 + 25 + 10 + 24), Color.White);
-            }
+            //for (int i = 0; i < Deaths; i++)
+            //{
+            //    spriteBatch.Draw(SkullIcon, new Vector2(40 + (480 * (int)PlayerIndex) + (32*i), 40 + 25 + 10 + 24), Color.White);
+            //}
         }
 
 
@@ -1031,13 +975,13 @@ namespace ArenaPlatformer1
                                     break;
                             }
 
-                            for (int i = 0; i < 8; i++)
+                            for (int i = 0; i < 4; i++)
                             {
                                 float angle = MathHelper.ToRadians((float)Math.Atan2(direction.Y, direction.X) + Random.Next(-15, 15));
 
                                 direction = new Vector2((float)Math.Cos(angle), (float)Math.Sin(angle)) * AimDirection.X;
 
-                                LightProjectile newProjectile = new ShotgunProjectile(BarrelEnd, direction, 10);
+                                LightProjectile newProjectile = new ShotgunProjectile(BarrelEnd, direction, 1);
                                 CreateLightProjectile(newProjectile, this);
                             }
                         }
@@ -1072,7 +1016,7 @@ namespace ArenaPlatformer1
                             float thing = Random.Next(-2, 2);
                             direction = new Vector2(MathHelper.ToRadians((float)Math.Cos(thing)), MathHelper.ToRadians((float)Math.Sin(thing))) + AimDirection;
 
-                            LightProjectile newProjectile = new MachineGunProjectile(BarrelEnd, direction, 20);
+                            LightProjectile newProjectile = new MachineGunProjectile(BarrelEnd, direction, 1);
                             CreateLightProjectile(newProjectile, this);                            
 
                             ShotTiming.X = 0;

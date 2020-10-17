@@ -8,7 +8,7 @@ using Microsoft.Xna.Framework.Content;
 
 namespace ArenaPlatformer1
 {
-    public class Grenade : MovingObject
+    public class SubGrenade : MovingObject
     {
         static Random Random = new Random();
         public new static Texture2D Texture;
@@ -18,23 +18,19 @@ namespace ArenaPlatformer1
         /// </summary>
         public Vector2 Time;
 
-        public GrenadeType GrenadeType = GrenadeType.Regular;
-
         public object Source;
         public float Rotation, RotationIncrement;
         public bool Active = true;        
-        public int BlastRadius = 200;
+        public int BlastRadius = 80;
         public float Gravity = 0.6f;
-        public int Damage = 50;
 
         public Rectangle DestinationRectangle;
 
         //TODO: Maybe have a mechanic that allows players to either throw or drop a grenade. 
         //Allowing them to drop it on a bounce pad OR throw it at another player
 
-        public Grenade(Vector2 position, Vector2 velocity, object source, GrenadeType? grenadeType = GrenadeType.Regular)
+        public SubGrenade(Vector2 position, Vector2 velocity, object source, int fuse)
         {
-            GrenadeType = grenadeType.Value;
             Position = position;
             Velocity = velocity;
             Source = source;
@@ -42,7 +38,7 @@ namespace ArenaPlatformer1
             Rotation = MathHelper.ToRadians(Random.Next(0, 360));
             RotationIncrement = MathHelper.ToRadians(3);
 
-            Time.Y = 1000f;
+            Time.Y = fuse;
 
             Size = new Vector2(20, 26);
         }
@@ -59,37 +55,22 @@ namespace ArenaPlatformer1
 
             base.Update(gameTime);
 
-            if (GrenadeType == GrenadeType.Sticky)
+            if (PushesBottomTile == true ||
+                PushesTopTile == true)
             {
-                if (PushesBottomTile == true ||
-                    PushesTopTile == true ||
-                    PushesLeftTile == true ||
-                    PushesRightTile == true)
-                {
-                    Velocity = Vector2.Zero;
-                    Gravity = 0;
-                }
-            }
-            else
-            {
-                if (PushesBottomTile == true ||
-                    PushesTopTile == true)
-                {
-                    Velocity.Y = -Velocity.Y * 0.65f;
-                }
-
-                if (PushesBottomTile == true)
-                {
-                    Velocity.X *= 0.65f;
-                }
-
-                if (PushesLeftTile == true ||
-                    PushesRightTile == true)
-                {
-                    Velocity.X = -Velocity.X * 0.65f;
-                }
+                Velocity.Y = -Velocity.Y * 0.65f;
             }
 
+            if (PushesBottomTile == true)
+            {
+                Velocity.X *= 0.65f;
+            }
+
+            if (PushesLeftTile == true ||
+                PushesRightTile == true)
+            {
+                Velocity.X = -Velocity.X * 0.65f;
+            }
 
             #region Rotation
             if (Math.Abs(Velocity.X) >= 1 || Math.Abs(Velocity.Y) >= 1)

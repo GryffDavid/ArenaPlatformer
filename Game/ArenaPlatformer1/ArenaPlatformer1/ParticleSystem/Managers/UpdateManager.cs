@@ -116,7 +116,7 @@ namespace ArenaPlatformer1
             Color startColor, Color endColor, float gravity, bool shrink, bool fade, Vector2 startingRotation,
             Vector2 rotationIncrement, float startingTransparency, Vector2 timeRange, bool grow, bool rotateVelocity,
             Vector2 friction, int orientation, float fadeDelay, Vector2 yRange, bool canBounce, bool stopBounce, bool hardBounce,
-            float drawDepth, bool emissive, bool lit,
+            float drawDepth, bool emissive, bool lit, int sourceID,
             out ParticleData gameData, out RenderData renderData)
         {
             float myAngle, mySpeed, myScale, myRotation, myIncrement, myTime, myBounceY;
@@ -158,12 +158,12 @@ namespace ArenaPlatformer1
                 RotateVelocity = rotateVelocity,
                 FadeDelay = fadeDelay,
                 CurrentFadeDelay = 0,
-
                 BounceY = myBounceY,
                 CanBounce = canBounce,
                 HardBounce = hardBounce,
                 StopBounce = stopBounce,
                 HasBounced = false,
+                SourceID = sourceID
             };
 
             if (grow == true)
@@ -185,14 +185,13 @@ namespace ArenaPlatformer1
             };
         }
 
-
         public void StartOnNewThread()
         {
             ThreadStart threadStart = new ThreadStart(Run);
             RunningThread = new Thread(threadStart);
             RunningThread.Start();
         }
-
+        
         private void Run()
         {
             while (true)

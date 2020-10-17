@@ -17,7 +17,7 @@ namespace ArenaPlatformer1
         public Vector2 Position, Size, Index;
         public Rectangle DestinationRectangle, CollisionRectangle;
         public Color Color = new Color(1, 0, 0, 255);
-
+        
         public Tile()
         {
 

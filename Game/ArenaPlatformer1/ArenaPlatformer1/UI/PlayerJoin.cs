@@ -33,11 +33,33 @@ namespace ArenaPlatformer1
         {
             if (Occupied == true)
             {
-                if (Player.TeamColor == TeamColor.RedTeam)
-                    CurrentColor = Color.Red;
+                switch (Player.PlayerIndex)
+                {
+                    case PlayerIndex.One:
+                        {
+                            CurrentColor = Color.LimeGreen;
+                        }
+                        break;
 
-                if (Player.TeamColor == TeamColor.BlueTeam)
-                    CurrentColor = Color.Blue;
+                    case PlayerIndex.Two:
+                        {
+                            CurrentColor = Color.RoyalBlue;
+                        }
+                        break;
+
+                    case PlayerIndex.Three:
+                        {
+                            CurrentColor = Color.Gold;
+                        }
+                        break;
+
+                    case PlayerIndex.Four:
+                        {
+                            CurrentColor = Color.Red;
+                        }
+                        break;
+                }
+                //CurrentColor = Color.Green;
             }
             else
             {

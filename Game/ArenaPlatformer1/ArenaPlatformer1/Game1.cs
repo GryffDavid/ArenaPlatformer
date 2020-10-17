@@ -20,13 +20,14 @@ namespace ArenaPlatformer1
     enum GameState
     {
         MainMenu,
+        ModeSelect,
         Playing,
         LevelSelect,
         Paused,
         EndMatch,
         EndRound
     };
-    
+
     public enum ChangeMessageType
     {
         UpdateParticle,
@@ -44,8 +45,10 @@ namespace ArenaPlatformer1
 
     public enum GrenadeType
     {
-        Explosive,
-        Fire
+        Regular, //Just explodes
+        Sticky, //Sticks to surfaces (Exept bounce pads)
+        Flechette, //Shoots out projectiles in a 360 degree arc when detonated
+        Cluster //Drops a bunch of smaller bombs on detonation
     };
 
     public enum GunType
@@ -66,23 +69,12 @@ namespace ArenaPlatformer1
     {
         Shield
     };
-
-    public enum CrateType
+           
+    public enum GameType
     {
-        ShieldPickup
-    };
-
-    public enum FlagState
-    {
-        HasRed,
-        HasBlue,
-        NoFlag
-    };
-
-    public enum TeamColor
-    {
-        BlueTeam,
-        RedTeam
+        DeathMatch, //Play continuosly until a score limit or time limit is reached. The player with most kills wins
+        LastMan, //Play a series of matches that are won by the last person left alive
+        CTF //Play rounds of Capture the flag. Best of 5 wins the whole game
     };
 
    
@@ -175,10 +167,10 @@ namespace ArenaPlatformer1
         SpriteBatch spriteBatch; 
 
         GameState CurrentGameState;
+        GameState PreviousGameState;
 
         Player[] Players = new Player[4];
         PlayerJoin[] PlayerJoinButtons = new PlayerJoin[4];
-
         Map CurrentMap;
         Camera Camera = new Camera();
         Rectangle ScreenRectangle = new Rectangle(0, 0, 1920, 1080);
@@ -205,8 +197,8 @@ namespace ArenaPlatformer1
 
         #region Textures
         #region Particle Textures
-        Texture2D ExplosionParticle2, BOOMParticle, SNAPParticle, PINGParticle, SplodgeParticle,
-                  HitEffectParticle, ToonSmoke2, ToonSmoke3, ParticleTexture;
+        public static Texture2D ExplosionParticle2, BOOMParticle, SNAPParticle, PINGParticle, SplodgeParticle,
+                                HitEffectParticle, ToonSmoke2, ToonSmoke3, ParticleTexture, ToonSmoke1;
         #endregion
 
         Texture2D Block, Texture, NormalTexture;
@@ -262,6 +254,7 @@ namespace ArenaPlatformer1
         List<Trap> TrapList;
         List<Item> ItemList;
         List<Grenade> GrenadeList;
+        List<SubGrenade> SubGrenadeList;
         List<Projectile> ProjectileList;
         List<MovingPlatform> MovingPlatformList;
         #endregion
@@ -288,21 +281,30 @@ namespace ArenaPlatformer1
         List<string> ModeSelectOptions = new List<string>() { "Death Match", "Last Man Standing", "Capture the Flag" };
         int SelectedModeMenu = 0;
         #endregion
-
-        //float LightZ = 0;
-
+        
         Texture2D ShotgunShell;
 
         List<BulletTrail> BulletTrailList = new List<BulletTrail>();
         List<Gib> GibList = new List<Gib>();
-        List<VerletObject> VerletList = new List<VerletObject>();
         List<ShockWave> ShockWaveList = new List<ShockWave>();
 
-        Liquid TestLiquid;
+        Liquid BloodLiquid;
+
+        int MaxScore = 2;
         
-        public int CurrentMatchNumber, MaxMatchNumber;
-        public int ScoreLimit;
-        
+        //Time between the final death and actually moving to the EndMatch state
+        Vector2 MatchEndTimer = new Vector2(0, 1000);
+        Vector2 EndMatchTime = new Vector2(0, 1000);
+        float MatchEndFade = 0;
+        float PaintSplatterOpacity = 0;
+
+        Texture2D PaintStreak1, PaintStreak2, PaintStreak3, Splatter1, GameOverTexture;
+        List<float> PaintStreakIncrements = new List<float>();
+        List<float> PaintStreakValues = new List<float>();
+        List<Vector2> PaintDelayValues = new List<Vector2>();
+        List<int> PaintAngleOffsets = new List<int>();
+
+        #region Events
         public void OnPlayerShoot(object source, PlayerShootEventArgs e)
         {
             if (e == null)
@@ -322,10 +324,10 @@ namespace ArenaPlatformer1
                                        MathHelper.ToDegrees(-(float)Math.Atan2(rocket.Velocity.Y, rocket.Velocity.X)) - 180 + 60);
 
             Emitter emitter = new Emitter(
-                ToonSmoke3, new Vector2(rocket.Position.X, rocket.Position.Y), rang,
-                new Vector2(0.5f, 1f), new Vector2(640, 960), 1f, false, new Vector2(-35, 35), new Vector2(-0.5f, 0.5f),
-                new Vector2(0.025f, 0.05f), Color.DarkGray, Color.Gray, -0.00f, -1, 1, 3, false, new Vector2(0, 720), true, 0,
-                null, null, null, null, null, true, new Vector2(0.00f, 0.05f), false, false, 150f,
+                ToonSmoke1, new Vector2(rocket.Position.X, rocket.Position.Y), rang,
+                new Vector2(1f, 2f), new Vector2(640, 960), 1f, false, new Vector2(-20, 20), new Vector2(-0.5f, 0.5f),
+                new Vector2(0.03f, 0.05f), Color.DarkGray, Color.Gray, -0.00f, -1, 1, 5, false, new Vector2(0, 720), true, 0,
+                null, null, null, null, null, false, new Vector2(0.08f, 0.13f), false, false, 150f,
                 false, false, false, false, true);
 
             ProjectileList.Add(rocket);
@@ -349,6 +351,41 @@ namespace ArenaPlatformer1
                 #region Shotgun
                 case LightProjectileType.Shotgun:
                     {
+                        if (source as Player != null)
+                        {
+                            Emitter HitEffect1 = new Emitter(HitEffectParticle, (source as Player).BarrelEnd, new Vector2(
+                                                            MathHelper.ToDegrees(-(float)Math.Atan2(e.Projectile.Ray.Direction.Y, e.Projectile.Ray.Direction.X)) - 50,
+                                                            MathHelper.ToDegrees(-(float)Math.Atan2(e.Projectile.Ray.Direction.Y, e.Projectile.Ray.Direction.X)) + 50),
+                                                            new Vector2(9f, 14f),
+                                                            new Vector2(150f, 250f), 1f, false, new Vector2(0f, 360f), new Vector2(-2f, 2f),
+                                                            new Vector2(0.15f, 0.15f),
+                                                            new Color(255, 255, 0, 255) * 0.5f,
+                                                            new Color(255, 255, 255, 255) * 0.25f, 0f, 0.025f, 50f, 2, false, new Vector2(0f, 1080), true,
+                                                            (projectile.Position.Y + 8) / 1080f,
+                                                            false, false, null, null, 0f, true, new Vector2(0.21f, 0.21f), false, false, 0f,
+                                                            false, false, true, null, true, true)
+                            {
+                                Emissive = true
+                            };
+
+                            (source as Player).FlashEmitterList.Add(HitEffect1);
+                            //EmitterList.Add(HitEffect1);
+
+                            //Emitter FlashEmitter = new Emitter(HitEffectParticle, new Vector2((source as Player).BarrelEnd.X, (source as Player).BarrelEnd.Y),
+                            //                                new Vector2(
+                            //                                MathHelper.ToDegrees(-(float)Math.Atan2(e.Projectile.Ray.Direction.Y, e.Projectile.Ray.Direction.X)) - 50,
+                            //                                MathHelper.ToDegrees(-(float)Math.Atan2(e.Projectile.Ray.Direction.Y, e.Projectile.Ray.Direction.X)) + 50),
+                            //                                new Vector2(8, 12), new Vector2(100, 200), 1f, false,
+                            //                                new Vector2(0, 0), new Vector2(0, 0), new Vector2(0.25f, 0.25f),
+                            //                                new Color(Color.Yellow.R, Color.Yellow.G, Color.Yellow.B, 25) * 0.5f,
+                            //                                new Color(Color.Orange.R, Color.Orange.G, Color.Orange.B, 25) * 0.5f, 0f, 0.05f, 100, 2, false, new Vector2(0, 1080), true,
+                            //                                1.0f, null, null, null, null, null, true, new Vector2(0.25f, 0.25f), false, false,
+                            //                                null, false, false, false)
+                            //{
+                            //    Emissive = false
+                            //};
+                            //EmitterList.Add(FlashEmitter);
+                        }
                         //ShellCasing shell = new ShellCasing(projectile.Position, new Vector2(12, -5), ShotgunShell);
                         //ShellCasingList.Add(shell);
                         //myRayList.Add(new MyRay()
@@ -358,7 +395,7 @@ namespace ArenaPlatformer1
                         //    length = 250
                         //});
                     }
-                    break; 
+                    break;
                 #endregion
 
                 #region MachineGun
@@ -369,12 +406,12 @@ namespace ArenaPlatformer1
                             position = new Vector3(projectile.Position, 0),
                             direction = projectile.Ray.Direction,
                             length = 800
-                        });                        
+                        });
                     }
-                    break; 
-                #endregion
+                    break;
+                    #endregion
             }
-            
+
             void CheckCollision()
             {
                 float? hitDist;
@@ -395,7 +432,7 @@ namespace ArenaPlatformer1
                 {
                     for (int y = 0; y < CurrentMap.DrawTiles.GetLength(1); y++)
                     {
-                        if (CurrentMap.DrawTiles[x, y] != null && 
+                        if (CurrentMap.DrawTiles[x, y] != null &&
                             CurrentMap.DrawTiles[x, y].BoundingBox.Intersects(projectile.Ray) < projectile.RangeLength)
                         {
                             TileIntersections.Add(CurrentMap.DrawTiles[x, y]);
@@ -411,12 +448,12 @@ namespace ArenaPlatformer1
 
                 endPosition = new Vector2(sourcePosition.X + (projectile.Ray.Direction.X * Random.Next((int)(projectile.RangeLength * 0.65f), (int)projectile.RangeLength)),
                                           sourcePosition.Y + (projectile.Ray.Direction.Y * Random.Next((int)(projectile.RangeLength * 0.65f), (int)projectile.RangeLength)));
-                
+
                 ObjectList.AddRange(PlayerIntersections);
                 ObjectList.AddRange(TileIntersections);
 
                 colObject = ObjectList.OrderBy(Collision => Collision.BoundingBox.Intersects(projectile.Ray)).FirstOrDefault();
-                                
+
                 if (colObject != null)
                 {
                     hitDist = colObject.BoundingBox.Intersects(projectile.Ray);
@@ -431,9 +468,9 @@ namespace ArenaPlatformer1
                         {
                             (colObject as Player).LastDamageSource = (int)(source as Player).PlayerIndex;
                             endPosition += new Vector2(projectile.Ray.Direction.X, projectile.Ray.Direction.Y) * (32 + Random.Next(-8, 8));
-                            (colObject as Player).Health.X -= projectile.Damage;                            
-                            
-                            TestLiquid.AddMetaballs((colObject as Player).Position, 15, new Vector2(0.8f, 1.2f), 
+                            (colObject as Player).Health.X -= projectile.Damage;
+
+                            BloodLiquid.AddMetaballs((colObject as Player).Position, 15, new Vector2(0.8f, 1.2f),
                                 new Vector2(-5, 5), new Vector2(-1, -5));
                         }
                         #endregion
@@ -520,7 +557,7 @@ namespace ArenaPlatformer1
                                     break;
                             }
 
-                            
+
 
                         }
                         #endregion
@@ -529,10 +566,10 @@ namespace ArenaPlatformer1
                 else
                 {
                     Emitter HitEffect2 = new Emitter(HitEffectParticle,
-                                            endPosition - new Vector2(projectile.Ray.Direction.X, projectile.Ray.Direction.Y)*5, 
+                                            endPosition - new Vector2(projectile.Ray.Direction.X, projectile.Ray.Direction.Y) * 5,
                                             GetAngleRange(projectile, 5, true), new Vector2(2f, 6f),
                                             new Vector2(250f, 350f), 1f, false, new Vector2(0f, 360f), new Vector2(-2f, 2f),
-                                            new Vector2(0.05f, 0.05f), 
+                                            new Vector2(0.05f, 0.05f),
                                             ColorAjustAlpha(Color.ForestGreen, 20), ColorAjustAlpha(Color.White, 60),
                                             //new Color(255, 255, 191, 255), new Color(255, 255, 255, 255), 
                                             0f, 0.05f, 50f, 7, false, new Vector2(0f, 1080), true,
@@ -580,7 +617,7 @@ namespace ArenaPlatformer1
                         trap = new Mine()
                         {
                             Texture = Block,
-                            Position = e.Position                            
+                            Position = e.Position
                         };
 
                         Emitter Emitter2 = new Emitter(ToonSmoke2,
@@ -603,9 +640,9 @@ namespace ArenaPlatformer1
 
                         TrapList.Add(trap);
                     }
-                    break; 
-                #endregion
-            }            
+                    break;
+                    #endregion
+            }
         }
 
         public void OnPlayerDied(object source, PlayerDiedEventArgs e)
@@ -636,41 +673,21 @@ namespace ArenaPlatformer1
             //    GibList.Add(newGib);
             //}
 
-            Players[e.Player.LastDamageSource].Score++;
+            if (Players[e.Player.LastDamageSource] != null)
+                Players[e.Player.LastDamageSource].Score++;
 
-            TestLiquid.AddMetaballs(e.Player.Position, 40, Vector2.Zero, new Vector2(-5, 5), new Vector2(-5, -1));
+            //Velocity adjusted blood globs
+            //BloodLiquid.AddMetaballs(e.Player.Position, 40, Vector2.Zero, new Vector2(-5 + e.Player.Velocity.X, 5 + e.Player.Velocity.X), new Vector2(-5, -1));
 
-            e.Player.Health.X = 100;
-            e.Player.GunAmmo = 50;
+            BloodLiquid.AddMetaballs(e.Player.Position, 40, Vector2.Zero, new Vector2(-5, 5), new Vector2(-5, -1));
+
+            e.Player.Health.X = e.Player.Health.Y;
+            e.Player.GunAmmo = 15;
             e.Player.Velocity = new Vector2(0, 0);
-            e.Player.Active = false;            
+            e.Player.Active = false;
 
-            switch (e.Player.CurrentFlagState)
-            {
-                case FlagState.HasBlue:
-                    {
-                        e.Player.CurrentFlagState = FlagState.NoFlag;
-                        ItemList.Add(new BlueFlagPickup(e.Player.Position));
-                    }
-                    break;
-
-                case FlagState.HasRed:
-                    {
-                        e.Player.CurrentFlagState = FlagState.NoFlag;
-                        ItemList.Add(new RedFlagPickup(e.Player.Position));
-                    }
-                    break;
-            }
-
-            //if (CurrentGameType == GameType.LastMan)
-            //{
-            //Only one player left. That player is the winner of this match
-            if (Players.Count(player => player != null && player.Active == true) == 1)
-            {
-                CurrentMatchNumber++;
-                CurrentGameState = GameState.EndRound;
-            }
-            //}
+            e.Player.Respawn();
+            
         }
 
         public void OnExplosionHappened(object source, ExplosionEventArgs e)
@@ -781,21 +798,13 @@ namespace ArenaPlatformer1
 
             //    EmitterList.Add(emitter);
             //}
-            #endregion
-
-            //ExplosionEffect explosionEffect = new ExplosionEffect(new Vector2(heavyProjectile.Position.X, heavyProjectile.BoundingBox.Max.Y))
-            //{
-            //    Texture = ExplosionRingSprite
-            //};
-            //ExplosionEffectList.Add(explosionEffect);
-
-            //Camera.Shake(15, 1.5f);
+            #endregion            
             #endregion
 
             //ShockWaveEffect.Parameters["CenterCoords"].SetValue(new Vector2(1 / (1920 / explosion.Position.X), 1 / (1080 / explosion.Position.Y)));
             //ShockWaveEffect.Parameters["WaveParams"].SetValue(new Vector4(10, 0.5f, 0.1f, 60));
             //ShockWaveEffect.Parameters["CurrentTime"].SetValue(0);
-            
+
             ShockWaveList.Add(new ShockWave(new Vector2(1 / (1920 / explosion.Position.X), 1 / (1080 / explosion.Position.Y)), new Vector3(10.0f, 2.5f, 0.1f), 400));
 
 
@@ -822,7 +831,7 @@ namespace ArenaPlatformer1
                 if (dist < explosion.BlastRadius)
                 {
                     player.LastDamageSource = (int)(explosion.Source as Player).PlayerIndex;
-                    player.Health.X -= 50;
+                    player.Health.X -= explosion.Damage;
 
 
 
@@ -848,10 +857,10 @@ namespace ArenaPlatformer1
                 throw new ArgumentNullException(nameof(e));
             }
 
-            Grenade grenade = new Grenade(e.Player.Position, new Vector2(16, 0) * e.Player.AimDirection, e.Player);
+            Grenade grenade = new Grenade(e.Player.Position, new Vector2(16, 0) * e.Player.AimDirection, e.Player, e.Player.CurrentGrenade);
             GrenadeList.Add(grenade);
-        }
-
+        } 
+        #endregion
 
         public Game1()
         {
@@ -872,7 +881,6 @@ namespace ArenaPlatformer1
         protected override void Initialize()
         {
             CurrentGameState = GameState.MainMenu;
-            //CurrentGameType = GameType.LastMan;
 
             ExplosionHappenedEvent += OnExplosionHappened;
 
@@ -882,9 +890,38 @@ namespace ArenaPlatformer1
 
         protected void LoadGameContent()
         {
+
+            #region End Match Paint
+            PaintStreak1 = Content.Load<Texture2D>("PaintStreak1");
+            PaintStreak2 = Content.Load<Texture2D>("PaintStreak2");
+            PaintStreak3 = Content.Load<Texture2D>("PaintStreak3");
+
+            Splatter1 = Content.Load<Texture2D>("Splatter1");
+            GameOverTexture = Content.Load<Texture2D>("GameOver");
+
+            PaintStreakIncrements.Clear();
+            PaintStreakValues.Clear();
+            PaintDelayValues.Clear();
+
+            MatchEndFade = 0;
+            PaintSplatterOpacity = 0;
+            EndMatchTime.X = 0;
+            MatchEndTimer.X = 0;
+
+            for (int i = 0; i < 6; i++)
+            {
+                PaintStreakIncrements.Add(Random.Next(110, 160));
+                PaintStreakValues.Add(0);
+
+                //PaintDelayValues.Add(new Vector2(0, 100 * i + (Random.Next(-60, 60))));
+                PaintDelayValues.Add(new Vector2(0, Random.Next(0 + (20 * i), 400 + (100 * i))));
+            }
+            #endregion
+
             MovingObject.Map = CurrentMap;
 
             GrenadeList = new List<Grenade>();
+            SubGrenadeList = new List<SubGrenade>();
 
             Player.Players = Players;
             
@@ -952,7 +989,6 @@ namespace ArenaPlatformer1
             ShotgunPickup.Texture = GameContentManager.Load<Texture2D>("Gun");
             RocketLauncherPickup.Texture = GameContentManager.Load<Texture2D>("Gun");
             MachineGunPickup.Texture = GameContentManager.Load<Texture2D>("Gun");
-            RedFlagPickup.Texture = GameContentManager.Load<Texture2D>("RedFlag");
             #endregion
 
             #region Load Icon Textures
@@ -961,9 +997,10 @@ namespace ArenaPlatformer1
 
 
 
-            TestLiquid = new Liquid(GraphicsDevice, Color.DarkRed);
+            BloodLiquid = new Liquid(GraphicsDevice, Color.DarkRed);
 
             Grenade.Texture = GameContentManager.Load<Texture2D>("GrenadeTexture");
+            SubGrenade.Texture = GameContentManager.Load<Texture2D>("GrenadeTexture");
             Gib.Texture = GameContentManager.Load<Texture2D>("Particles/Splodge");
 
             //RocketLauncher.Texture = GameContentManager.Load<Texture2D>("Gun");
@@ -1037,7 +1074,7 @@ namespace ArenaPlatformer1
             //blueFlag.Initialize();
             //ItemList.Add(blueFlag); 
             //#endregion
-
+                        
             Texture = GameContentManager.Load<Texture2D>("Backgrounds/Texture");
             NormalTexture = GameContentManager.Load<Texture2D>("Backgrounds/NormalTexture");
 
@@ -1135,7 +1172,6 @@ namespace ArenaPlatformer1
             }
 
             Rocket.Texture = Content.Load<Texture2D>("Projectiles/RocketTexture");
-            Bullet.Texture = Content.Load<Texture2D>("Projectiles/BulletTexture");
             BulletTrail.Texture = Content.Load<Texture2D>("Segment");
             Metaball.MetaballTexture = Content.Load<Texture2D>("Metaball");
             Metaball.MetaballSquashed = Content.Load<Texture2D>("MetaballSquashed");
@@ -1150,16 +1186,14 @@ namespace ArenaPlatformer1
             PINGParticle = Content.Load<Texture2D>("Particles/PING");
             SplodgeParticle = Content.Load<Texture2D>("Particles/Splodge");
             HitEffectParticle = Content.Load<Texture2D>("Particles/HitEffectParticle");
+            ToonSmoke1 = Content.Load<Texture2D>("Particles/ToonSmoke/ToonSmoke1");
             ToonSmoke2 = Content.Load<Texture2D>("Particles/ToonSmoke/ToonSmoke2");
             ToonSmoke3 = Content.Load<Texture2D>("Particles/ToonSmoke/ToonSmoke3");
 
             RedFlagTexture = Content.Load<Texture2D>("RedFlag");
             BlueFlagTexture = Content.Load<Texture2D>("BlueFlag");
             Player.BlueFlagTexture = BlueFlagTexture;
-            Player.RedFlagTexture = RedFlagTexture;
-            BlueFlagPickup.Texture = BlueFlagTexture;
-            RedFlagPickup.Texture = RedFlagTexture;
-            
+            Player.RedFlagTexture = RedFlagTexture;            
 
             ItemList = new List<Item>();
             Player.ItemList = ItemList;
@@ -1184,62 +1218,22 @@ namespace ArenaPlatformer1
         {
             CurrentKeyboardState = Keyboard.GetState();
             CurrentMouseState = Mouse.GetState();
+            PreviousGameState = CurrentGameState;
 
             for (int i = 0; i < 4; i++)
             {
                  CurrentGamePadStates[i] = GamePad.GetState((PlayerIndex)i);
             }
-
+            
             switch (CurrentGameState)
-            {                
+            {
                 #region MainMenu
                 case GameState.MainMenu:
                     {
                         for (int i = 0; i < 4; i++)
                         {
                             PlayerJoinButtons[i].Update(gameTime);
-
-                            #region Change team colour
-                            if (PlayerJoinButtons[i].Occupied == true)
-                            {
-                                #region D-Pad Down
-                                if (CurrentGamePadStates[i].IsButtonUp(Buttons.DPadDown) &&
-                                    PreviousGamePadStates[i].IsButtonDown(Buttons.DPadDown))
-                                {
-                                    if (Players[i].TeamColor != TeamColor.BlueTeam)
-                                    {
-                                        Players[i].TeamColor = TeamColor.BlueTeam;
-                                        break;
-                                    }
-
-                                    if (Players[i].TeamColor != TeamColor.RedTeam)
-                                    {
-                                        Players[i].TeamColor = TeamColor.RedTeam;
-                                        break;
-                                    }
-                                }
-                                #endregion
-
-                                #region D-Pad Up
-                                if (CurrentGamePadStates[i].IsButtonUp(Buttons.DPadUp) &&
-                                    PreviousGamePadStates[i].IsButtonDown(Buttons.DPadUp))
-                                {
-                                    if (Players[i].TeamColor != TeamColor.BlueTeam)
-                                    {
-                                        Players[i].TeamColor = TeamColor.BlueTeam;
-                                        break;
-                                    }
-
-                                    if (Players[i].TeamColor != TeamColor.RedTeam)
-                                    {
-                                        Players[i].TeamColor = TeamColor.RedTeam;
-                                        break;
-                                    }
-                                }
-                                #endregion 
-                            } 
-                            #endregion
-
+                            
                             #region Player joined
                             if (CurrentGamePadStates[i].IsButtonUp(Buttons.A) &&
                                 PreviousGamePadStates[i].IsButtonDown(Buttons.A))
@@ -1268,20 +1262,19 @@ namespace ArenaPlatformer1
                             if (CurrentGamePadStates[i].IsButtonUp(Buttons.B) &&
                                 PreviousGamePadStates[i].IsButtonDown(Buttons.B))
                             {
-                                //if (PlayerJoinButtons[i].Occupied == false)
-                                //{
-                                //    CurrentGameState = GameState.ModeSelect;
-                                //    for (int p = 0; p < 4; p++)
-                                //    {
-                                //        PlayerJoinButtons[p].Occupied = false;
-                                //        Players[p] = null;
-                                //    }
-                                //}
-                                //else
-                                //{
+                                if (PlayerJoinButtons[i].Occupied == false)
+                                {
+                                    for (int p = 0; p < 4; p++)
+                                    {
+                                        PlayerJoinButtons[p].Occupied = false;
+                                        Players[p] = null;
+                                    }
+                                }
+                                else
+                                {
                                     PlayerJoinButtons[i].Occupied = false;
                                     Players[i] = null;
-                                //}                                
+                                }                                
                             }
                             #endregion
                         }
@@ -1327,7 +1320,6 @@ namespace ArenaPlatformer1
                 #region Playing
                 case GameState.Playing:
                     {
-                        #region Let players pause game
                         for (int i = 0; i < 4; i++)
                         {
                             if (CurrentGamePadStates[i].IsButtonUp(Buttons.Start) &&
@@ -1335,8 +1327,7 @@ namespace ArenaPlatformer1
                             {
                                 CurrentGameState = GameState.Paused;
                             }
-                        } 
-                        #endregion
+                        }
 
                         foreach (Light light in CurrentMap.LightList)
                         {
@@ -1348,14 +1339,13 @@ namespace ArenaPlatformer1
                             shockWave.Update(gameTime);
                         }
 
-                        TestLiquid.Update(gameTime);
+                        BloodLiquid.Update(gameTime);
 
                         ShockWaveList.RemoveAll(Shock => Shock.Active == false);
 
-                        #region Place Light with mouse
                         if (CurrentMouseState.LeftButton == ButtonState.Released &&
-                                            PreviousMouseState.LeftButton == ButtonState.Pressed &&
-                                            this.IsActive == true)
+                            PreviousMouseState.LeftButton == ButtonState.Pressed &&
+                            this.IsActive == true)
                         {
                             Light light = new Light()
                             {
@@ -1366,9 +1356,8 @@ namespace ArenaPlatformer1
                                 Size = 800
                             };
 
-                            CurrentMap.LightList.Add(light);
-                        } 
-                        #endregion
+                            CurrentMap.LightList.Add(light);                           
+                        }
 
                         //ShockWaveEffect.Parameters["CurrentTime"].SetValue(ShockWaveEffect.Parameters["CurrentTime"].GetValueSingle() + (float)(gameTime.ElapsedGameTime.TotalSeconds));
 
@@ -1377,12 +1366,7 @@ namespace ArenaPlatformer1
                             gib.Update(gameTime);
                             gib.UpdateEmitters(gameTime);                            
                         }
-
-                        foreach (VerletObject verlet in VerletList)
-                        {
-                            verlet.Update(gameTime);
-                        }
-
+                        
                         GibList.RemoveAll(Gib => Gib.Active == false);
 
                         foreach (BulletTrail trail in BulletTrailList)
@@ -1418,27 +1402,75 @@ namespace ArenaPlatformer1
                             item.Update(gameTime);
                         }
 
+                        foreach (SubGrenade subGrenade in SubGrenadeList)
+                        {
+                            subGrenade.Update(gameTime);
+
+                            if (subGrenade.Active == false)
+                            {
+                                Explosion explosion = new Explosion()
+                                {
+                                    BlastRadius = 50,
+                                    Damage = 40,
+                                    Position = subGrenade.Position,
+                                    Source = subGrenade.Source
+                                };
+
+                                CreateExplosion(explosion, subGrenade);
+                            }
+                        }
+
                         foreach (Grenade grenade in GrenadeList)
                         {
                             grenade.Update(gameTime);
 
                             if (grenade.Active == false)
                             {
-                                Explosion explosion = new Explosion()
+                                switch (grenade.GrenadeType)
                                 {
-                                    BlastRadius = 200,
-                                    Damage = 20,
-                                    Position = grenade.Position,
-                                    Source = grenade.Source
-                                };
+                                    case GrenadeType.Regular:
+                                        {
+                                            Explosion explosion = new Explosion()
+                                            {
+                                                BlastRadius = grenade.BlastRadius,
+                                                Damage = grenade.Damage,
+                                                Position = grenade.Position,
+                                                Source = grenade.Source
+                                            };
 
-                                CreateExplosion(explosion, grenade);
+                                            CreateExplosion(explosion, grenade);
+                                        }
+                                        break;
+
+                                    case GrenadeType.Cluster:
+                                        {
+                                            Explosion explosion = new Explosion()
+                                            {
+                                                BlastRadius = 50,
+                                                Damage = 20,
+                                                Position = grenade.Position,
+                                                Source = grenade.Source
+                                            };
+
+                                            CreateExplosion(explosion, grenade);
+
+                                            for (int i = 0; i < 5; i++)
+                                            {
+                                                SubGrenade subGrenade = new SubGrenade(grenade.Position, new Vector2((int)Random.Next(-5, 5), (int)Random.Next(-10, 0)), grenade.Source, Random.Next(800, 1300));
+                                                SubGrenadeList.Add(subGrenade);
+                                            }
+                                        }
+                                        break;
+                                }                            
+                                
                             }
                         }
 
                         Camera.Update(gameTime);
 
                         GrenadeList.RemoveAll(Grenade => Grenade.Active == false);
+                        SubGrenadeList.RemoveAll(SubGrenade => SubGrenade.Active == false);
+
 
                         ProjectileList.RemoveAll(Projectile => !ScreenRectangle.Contains(new Point((int)Projectile.Position.X, (int)Projectile.Position.Y)));
 
@@ -1483,6 +1515,44 @@ namespace ArenaPlatformer1
                             player.Update(gameTime);
                             CurrentMap.UpdateAreas(player);
                             player.CollisionDataList.Clear();
+
+                            //if (player.IsShooting == true && 
+                            //    player.WasShooting == false)
+                            //{
+                            //    switch (player.CurrentGun)
+                            //    {
+                            //        case GunType.Flamethrower:
+                            //            {
+                            //                if (player.flameEmitter == null)
+                            //                {
+                            //                    player.flameEmitter = new Emitter(ToonSmoke3,
+                            //                    new Vector2(player.Position.X, player.Position.Y), new Vector2(60, 120), new Vector2(6, 8),
+                            //                    new Vector2(650, 800), 1f, false, new Vector2(-10, 10), new Vector2(-1, 1), new Vector2(0.05f, 0.06f),
+                            //                    new Color(255, 128, 0, 6), Color.Black,
+                            //                    -0.005f, -0.4f, 16, 6, false, new Vector2(0, 720), true, 0.1f,
+                            //                    null, null, null, null, null, false, new Vector2(0.02f, 0.01f), null, null,
+                            //                    null, null, null, true, null);
+                            //                }
+                            //                else
+                            //                {
+                            //                    player.flameEmitter.AddMore = true;
+                            //                }
+                            //            }
+                            //            break;
+                            //    }
+                            //}
+                        }
+
+                        if (Players.Any(Player => Player != null && Player.Score > MaxScore))
+                        {
+                            MatchEndTimer.X += (float)gameTime.ElapsedGameTime.TotalMilliseconds;
+
+                            if (MatchEndTimer.X >= MatchEndTimer.Y)
+                            {
+                                IsFixedTimeStep = false;
+                                MatchEndTimer.X = 0;
+                                CurrentGameState = GameState.EndMatch;
+                            }
                         }
 
                         foreach (Projectile projectile in ProjectileList)
@@ -1527,6 +1597,9 @@ namespace ArenaPlatformer1
 
                         ProjectileList.RemoveAll(Projectile => Projectile.Active == false);
 
+                        //EmitterList[0].Position = new Vector2(EmitterList[0].Position.X + 3, 1080 / 2) + new Vector2(0, 7 * (float)Math.Sin((float)gameTime.TotalGameTime.TotalSeconds * 7));
+                        //EmitterList[1].Position = new Vector2(EmitterList[1].Position.X + 3, 1080 / 2) + new Vector2(0, -7 * (float)Math.Sin((float)gameTime.TotalGameTime.TotalSeconds * 7));
+
                         foreach (Emitter emitter in EmitterList)
                         {
                             emitter.Update(gameTime);
@@ -1542,15 +1615,12 @@ namespace ArenaPlatformer1
                     {
                         for (int i = 0; i < 4; i++)
                         {
-                            #region Start
                             if (CurrentGamePadStates[i].IsButtonUp(Buttons.Start) &&
-                                                    PreviousGamePadStates[i].IsButtonDown(Buttons.Start))
+                                PreviousGamePadStates[i].IsButtonDown(Buttons.Start))
                             {
                                 CurrentGameState = GameState.Playing;
-                            } 
-                            #endregion
+                            }
 
-                            #region A
                             if (CurrentGamePadStates[i].IsButtonUp(Buttons.A) &&
                                 PreviousGamePadStates[i].IsButtonDown(Buttons.A))
                             {
@@ -1570,7 +1640,7 @@ namespace ArenaPlatformer1
 
                                             //if (ProjectileList != null)
                                             //    ProjectileList.Clear();
-
+                                            
                                             //if (TrapList != null)
                                             //    TrapList.Clear();
 
@@ -1584,37 +1654,71 @@ namespace ArenaPlatformer1
                                         break;
                                 }
                             }
-                            #endregion
 
-                            #region D-Pad Down
                             if (CurrentGamePadStates[i].IsButtonUp(Buttons.DPadDown) &&
-                                                    PreviousGamePadStates[i].IsButtonDown(Buttons.DPadDown))
+                                PreviousGamePadStates[i].IsButtonDown(Buttons.DPadDown))
                             {
                                 SelectedPauseMenu++;
                             }
-                            #endregion
 
-                            #region D-Pad Up
                             if (CurrentGamePadStates[i].IsButtonUp(Buttons.DPadUp) &&
-                                                    PreviousGamePadStates[i].IsButtonDown(Buttons.DPadUp))
+                                PreviousGamePadStates[i].IsButtonDown(Buttons.DPadUp))
                             {
                                 SelectedPauseMenu--;
-                            } 
-                            #endregion
+                            }
                         }
                     }
                     break;
                 #endregion
+
+                case GameState.EndMatch:
+                    {
+                        if (EndMatchTime.X < EndMatchTime.Y)
+                        {
+                            EndMatchTime.X += (float)gameTime.ElapsedGameTime.TotalMilliseconds;
+                        }
+
+                        if (EndMatchTime.X >= EndMatchTime.Y)
+                        {
+                            for (int i = 0; i < 6; i++)
+                            {
+                                PaintDelayValues[i] = new Vector2(PaintDelayValues[i].X + (float)gameTime.ElapsedGameTime.TotalMilliseconds, PaintDelayValues[i].Y);
+                            }
+
+                            for (int i = 0; i < 6; i++)
+                            {
+                                if (PaintDelayValues[i].X >= PaintDelayValues[i].Y)
+                                {
+                                    if (PaintStreakValues[i] < 2500)
+                                        PaintStreakValues[i] += PaintStreakIncrements[i];
+                                }
+                            }
+
+                            if (MatchEndFade < 100)
+                                MatchEndFade += 0.45f;
+
+                            if (PaintSplatterOpacity < 100)
+                                PaintSplatterOpacity += 17;
+                        }
+                    }
+                    break;
             }
 
+            //if (PreviousGameState == GameState.Playing &&
+            //    CurrentGameState == GameState.EndMatch)
+            //{
+
+            //}
+            
             for (int i = 0; i < 4; i++)
             {
                 PreviousGamePadStates[i] = CurrentGamePadStates[i];
             }
-
+            
+            
             PreviousMouseState = CurrentMouseState;
             PreviousKeyboardState = CurrentKeyboardState;
-
+            
 
             base.Update(gameTime);
         }
@@ -1627,7 +1731,7 @@ namespace ArenaPlatformer1
                 case GameState.MainMenu:
                     {
                         GraphicsDevice.SetRenderTarget(MenuRenderTarget);
-                        GraphicsDevice.Clear(Color.CornflowerBlue);
+                        GraphicsDevice.Clear(Color.Black);
                         spriteBatch.Begin();
                         spriteBatch.DrawString(Font1, "Main Menu", new Vector2(32, 32), Color.White);
 
@@ -1639,17 +1743,40 @@ namespace ArenaPlatformer1
                     }
                     break;
                 #endregion
-                    
+
+                //#region Mode Select
+                //case GameState.ModeSelect:
+                //    {
+                //        GraphicsDevice.SetRenderTarget(MenuRenderTarget);
+                //        GraphicsDevice.Clear(Color.Black);
+                //        spriteBatch.Begin();
+                //        spriteBatch.DrawString(Font1, "Mode Select", new Vector2(32, 32), Color.White);
+
+                //        for (int i = 0; i < ModeSelectOptions.Count; i++)
+                //        {
+                //            Color col = Color.Gray;
+
+                //            if (SelectedModeMenu == i)
+                //                col = Color.White;
+
+                //            spriteBatch.DrawString(Font1, ModeSelectOptions[i], new Vector2(32, 64 + (25 * i)), col);
+                //        }
+
+                //        spriteBatch.End();
+                //    }
+                //    break;
+                //#endregion
+
                 #region Playing
                 case GameState.Playing:
                 case GameState.Paused:
-                case GameState.EndRound:
+                case GameState.EndMatch:
                     {
                         if (CurrentGameState == GameState.Playing)
                         {
                             DoubleBuffer.GlobalStartFrame(gameTime);
                             RenderManager.DoFrame();
-                        }
+                        }                        
 
                         #region Emissive
                         #region Draw to EmissiveMap
@@ -1718,12 +1845,7 @@ namespace ArenaPlatformer1
                         {
                             gib.Draw(spriteBatch);
                         }
-
-                        foreach (VerletObject verlet in VerletList)
-                        {
-                            verlet.Draw(ShotgunShell, spriteBatch);
-                        }
-
+                        
                         spriteBatch.Draw(Texture, new Rectangle(0, 0, 1920, 1080), null, Color.White, 0, Vector2.Zero, SpriteEffects.None, 1);
 
                         foreach (Projectile projectile in ProjectileList)
@@ -1746,7 +1868,18 @@ namespace ArenaPlatformer1
 
                         foreach (Item item in ItemList)
                         {
-                            item.Draw(spriteBatch);                       
+                            switch (item.ItemType)
+                            {
+                                case ItemType.RocketLauncher:
+                                case ItemType.Shotgun:
+                                case ItemType.MachineGun:
+                                case ItemType.RedFlag:
+                                case ItemType.BlueFlag:
+                                    {
+                                        item.Draw(spriteBatch);
+                                    }
+                                break;
+                            }                            
                         }
 
                         foreach (Grenade grenade in GrenadeList)
@@ -1754,28 +1887,27 @@ namespace ArenaPlatformer1
                             grenade.Draw(spriteBatch);
                         }
 
+                        foreach (SubGrenade subGrenade in SubGrenadeList)
+                        {
+                            subGrenade.Draw(spriteBatch);
+                        }
+
                         spriteBatch.Draw(EmissiveMap, EmissiveMap.Bounds, Color.White);
 
                         RenderManager.DrawLit(spriteBatch);
-
-
-                        if (CurrentGameState == GameState.EndRound)
-                        {
-                            spriteBatch.Draw(Block, GameRenderTarget.Bounds, Color.Black * 0.5f);
-                        }
-
+                        
                         spriteBatch.End();
 
 
                         #endregion
 
-                        TestLiquid.Draw(spriteBatch);
+                        BloodLiquid.Draw(spriteBatch);
 
                         GraphicsDevice.SetRenderTarget(ParticleRenderTarget);
                         GraphicsDevice.Clear(Color.Transparent);
-                        spriteBatch.Begin(0, null, null, null, null, TestLiquid.AlphaTest);
+                        spriteBatch.Begin(0, null, null, null, null, BloodLiquid.AlphaTest);
 
-                        spriteBatch.Draw(TestLiquid.MetaballTarget, TestLiquid.MetaballTarget.Bounds, Color.White);
+                        spriteBatch.Draw(BloodLiquid.MetaballTarget, BloodLiquid.MetaballTarget.Bounds, Color.White);
 
                         //RenderManager.DrawLit(spriteBatch);
                         ////foreach (Player player in Players.Where(Player => Player != null))
@@ -1925,7 +2057,7 @@ namespace ArenaPlatformer1
                     }
                     break;
                 #endregion
-                    
+
                 #region Level Select
                 case GameState.LevelSelect:
                     {
@@ -1957,6 +2089,125 @@ namespace ArenaPlatformer1
 
             //spriteBatch.DrawString(Font1, CurrentMap.GetTile((int)Mouse.GetState().X/64, (int)Mouse.GetState().Y/64).ToString(), Vector2.Zero, Color.Yellow);
             //spriteBatch.DrawString(Font1, CurrentMap.GetTilePosition((int)Mouse.GetState().X / 64, (int)Mouse.GetState().Y / 64).ToString(), new Vector2(0, 32), Color.Yellow);
+
+            if (CurrentGameState == GameState.EndMatch)
+            {
+                
+                if (PreviousGameState == GameState.Playing)
+                {
+                    for (int i = 0; i < 6; i++)
+                    {
+                        PaintAngleOffsets.Add(Random.Next(-3, 3));
+                    }
+                }
+
+                Color PaintColor = Color.LimeGreen;
+
+                spriteBatch.Draw(Splatter1, new Rectangle(0, 0, 1920, 1080), PaintColor * (PaintSplatterOpacity / 100));
+                                
+                //Could adjust each brush stroke color with this:   ColorAdjust(PaintColor, PaintAngleOffsets[0] * 5)
+
+                if (PaintDelayValues[0].X >= PaintDelayValues[0].Y)
+                    spriteBatch.Draw(PaintStreak1, new Rectangle(2400, 500, 2500, PaintStreak1.Height), 
+                                     new Rectangle(0, 0, (int)PaintStreakValues[0], PaintStreak1.Height),
+                                     PaintColor * 0.95f, MathHelper.ToRadians(180 + 8), 
+                                     new Vector2(0, PaintStreak1.Height / 2), SpriteEffects.FlipHorizontally, 0);
+
+                if (PaintDelayValues[1].X >= PaintDelayValues[1].Y)
+                    spriteBatch.Draw(PaintStreak2, new Rectangle(-400, 200, 2500, PaintStreak2.Height), 
+                                     new Rectangle(0, 0, (int)PaintStreakValues[1], PaintStreak2.Height),
+                                     PaintColor * 0.85f, MathHelper.ToRadians(17), 
+                                     new Vector2(0, PaintStreak2.Height / 2), SpriteEffects.FlipHorizontally, 0);
+
+                if (PaintDelayValues[2].X >= PaintDelayValues[2].Y)
+                    spriteBatch.Draw(PaintStreak3, new Rectangle(2100, 0, 2500, PaintStreak3.Height), 
+                                     new Rectangle(0, 0, (int)PaintStreakValues[2], PaintStreak3.Height),
+                                     PaintColor * 0.85f, MathHelper.ToRadians(180 - 13), 
+                                     new Vector2(0, PaintStreak3.Height / 2), SpriteEffects.FlipHorizontally, 0);
+
+                if (PaintDelayValues[3].X >= PaintDelayValues[3].Y)
+                    spriteBatch.Draw(PaintStreak1, new Rectangle(-600, 800, 2500, PaintStreak1.Height), 
+                                     new Rectangle(0, 0, (int)PaintStreakValues[3], PaintStreak1.Height),
+                                     PaintColor * 0.85f, MathHelper.ToRadians(-6), 
+                                     new Vector2(0, PaintStreak1.Height / 2), SpriteEffects.FlipHorizontally, 0);
+
+                if (PaintDelayValues[4].X >= PaintDelayValues[4].Y)
+                    spriteBatch.Draw(PaintStreak2, new Rectangle(2100, 600, 2500, PaintStreak2.Height), 
+                                     new Rectangle(0, 0, (int)PaintStreakValues[4], PaintStreak2.Height),
+                                     PaintColor * 0.85f, MathHelper.ToRadians(180 + 4), 
+                                     new Vector2(0, PaintStreak2.Height / 2), SpriteEffects.FlipHorizontally, 0);
+
+                if (PaintDelayValues[5].X >= PaintDelayValues[5].Y)
+                    spriteBatch.Draw(PaintStreak3, new Rectangle(-600, 1100, 2500, PaintStreak3.Height), 
+                                     new Rectangle(0, 0, (int)PaintStreakValues[5], PaintStreak3.Height),
+                                     PaintColor * 0.95f, MathHelper.ToRadians(-3), 
+                                     new Vector2(0, PaintStreak3.Height / 2), SpriteEffects.FlipHorizontally, 0);
+
+                //MAYBE DON'T COMPLETELY FILL THE SCREEN. 
+                //IT LOOKS PRETTY COOL WHEN NOT FILLED ALTHOUGH IT MAY MAKE FOR AN AWKWARD TRANSITION TO THE NEXT SCREEN
+                spriteBatch.Draw(Block, new Rectangle(0, 0, 1920, 1080), PaintColor * (MatchEndFade / 100));
+
+
+                #region MyRegion
+                //if (PaintDelayValues[0].X >= PaintDelayValues[0].Y)
+                //    spriteBatch.Draw(PaintStreak1, new Rectangle(1990, 500, (int)PaintStreakValues[0], PaintStreak1.Height), null, 
+                //                     PaintColor * 0.85f, MathHelper.ToRadians(15 + PaintAngleOffsets[0]), new Vector2(PaintStreak1.Width, PaintStreak1.Height / 2), PaintOrientations[0], 0);
+
+                //if (PaintDelayValues[1].X >= PaintDelayValues[1].Y)
+                //    spriteBatch.Draw(PaintStreak2, new Rectangle(-150, 0, (int)PaintStreakValues[2], PaintStreak2.Height), null, 
+                //                     PaintColor * 0.85f, MathHelper.ToRadians(20 + PaintAngleOffsets[1]), new Vector2(0, PaintStreak2.Height / 2), PaintOrientations[1], 0);
+
+                //if (PaintDelayValues[2].X >= PaintDelayValues[2].Y)
+                //    spriteBatch.Draw(PaintStreak3, new Rectangle(2080, 1200, (int)PaintStreakValues[2], PaintStreak3.Height), null, 
+                //                     PaintColor * 0.85f, MathHelper.ToRadians(24 + PaintAngleOffsets[2]), new Vector2(PaintStreak3.Width, PaintStreak3.Height / 2), PaintOrientations[2], 0);
+
+                //if (PaintDelayValues[3].X >= PaintDelayValues[3].Y)
+                //    spriteBatch.Draw(PaintStreak1, new Rectangle(-230, 800, (int)PaintStreakValues[3], PaintStreak1.Height), null, 
+                //                     PaintColor * 0.85f, MathHelper.ToRadians(6 + PaintAngleOffsets[3]), new Vector2(0, PaintStreak1.Height / 2), PaintOrientations[3], 0);
+
+                //if (PaintDelayValues[4].X >= PaintDelayValues[4].Y)
+                //    spriteBatch.Draw(PaintStreak2, new Rectangle(2020, 400, (int)PaintStreakValues[4], PaintStreak2.Height), null, 
+                //                     PaintColor * 0.85f, MathHelper.ToRadians(-10 + PaintAngleOffsets[4]), new Vector2(PaintStreak2.Width, PaintStreak2.Height / 2), PaintOrientations[4], 0);
+
+                //if (PaintDelayValues[5].X >= PaintDelayValues[5].Y)
+                //    spriteBatch.Draw(PaintStreak3, new Rectangle(-200, 950, (int)PaintStreakValues[5], PaintStreak3.Height), null, 
+                //                     PaintColor * 0.85f, MathHelper.ToRadians(-24 + PaintAngleOffsets[5]), new Vector2(0, PaintStreak3.Height / 2), PaintOrientations[5], 0);
+
+
+                //spriteBatch.Draw(GameOverTexture, new Rectangle(0, 0, 1920, 1080), Color.White * (MatchEndDoorPos / 250));  
+                #endregion
+
+                #region This Works
+                //Color PaintColor = Color.DodgerBlue;
+
+                //spriteBatch.Draw(Splatter1, new Rectangle(0, 0, 1920, 1080), PaintColor * (PaintSplatterOpacity / 100));
+
+                ////MAYBE DON'T COMPLETELY FILL THE SCREEN. 
+                ////IT LOOKS PRETTY COOL WHEN NOT FILLED ALTHOUGH IT MAY MAKE FOR AN AWKWARD TRANSITION TO THE NEXT SCREEN
+                ////spriteBatch.Draw(Block, new Rectangle(0, 0, 1920, 1080), PaintColor * (MatchEndDoorPos / 100));
+
+                //if (PaintDelayValues[0].X >= PaintDelayValues[0].Y)
+                //    spriteBatch.Draw(PaintStreak, new Rectangle(-200, 500, (int)PaintStreakValues[0], PaintStreak.Height), null, PaintColor * 0.85f, MathHelper.ToRadians(-12), Vector2.Zero, SpriteEffects.None, 0);
+
+                //if (PaintDelayValues[1].X >= PaintDelayValues[1].Y)
+                //    spriteBatch.Draw(PaintStreak, new Rectangle(-200, 0, (int)PaintStreakValues[1], PaintStreak.Height), null, PaintColor * 0.85f, MathHelper.ToRadians(24), Vector2.Zero, SpriteEffects.None, 0);
+
+                //if (PaintDelayValues[2].X >= PaintDelayValues[2].Y)
+                //    spriteBatch.Draw(PaintStreak, new Rectangle(-200, 1200, (int)PaintStreakValues[2], PaintStreak.Height), null, PaintColor * 0.85f, MathHelper.ToRadians(-45), Vector2.Zero, SpriteEffects.None, 0);
+
+                //if (PaintDelayValues[3].X >= PaintDelayValues[3].Y)
+                //    spriteBatch.Draw(PaintStreak, new Rectangle(-200, 800, (int)PaintStreakValues[3], PaintStreak.Height), null, PaintColor * 0.85f, MathHelper.ToRadians(-30), Vector2.Zero, SpriteEffects.None, 0);
+
+                //if (PaintDelayValues[4].X >= PaintDelayValues[4].Y)
+                //    spriteBatch.Draw(PaintStreak, new Rectangle(2040, 800, (int)PaintStreakValues[4], PaintStreak.Height), null, PaintColor * 0.85f, MathHelper.ToRadians(-160), Vector2.Zero, SpriteEffects.None, 0);
+
+                //if (PaintDelayValues[5].X >= PaintDelayValues[5].Y)
+                //    spriteBatch.Draw(PaintStreak, new Rectangle(2040, 950, (int)PaintStreakValues[5], PaintStreak.Height), null, PaintColor * 0.85f, MathHelper.ToRadians(-170), Vector2.Zero, SpriteEffects.None, 0);
+
+
+                ////spriteBatch.Draw(GameOverTexture, new Rectangle(0, 0, 1920, 1080), Color.White * (MatchEndDoorPos / 250)); 
+                #endregion
+            }
 
             if (DrawDiagnostics == true)
             {
@@ -2315,6 +2566,11 @@ namespace ArenaPlatformer1
             return new Color(color.R, color.G, color.B, alpha);
         }
 
+        protected Color ColorAdjust(Color color, int adjust)
+        {
+            return new Color(color.R + adjust, color.G + adjust, color.B + adjust);
+        }
+
         
         public static int Wrap(int index, int n)
         {
@@ -2415,6 +2671,7 @@ namespace ArenaPlatformer1
 
         public void ListLevels()
         {
+            LevelList.Clear();
             string dir = Environment.CurrentDirectory;
             string newPath = Path.GetFullPath(Path.Combine(dir, @"..\..\..\..\..\..\Levels"));
 
@@ -2492,6 +2749,17 @@ namespace ArenaPlatformer1
             }
 
             return BOOMEmitter;
+        }
+
+
+        public static SpriteEffects RandomOrientation()
+        {
+            //List<SpriteEffects> Orientations= new List<SpriteEffects>();
+            //Orientations =
+
+            var Orientations = Enum.GetValues(typeof(SpriteEffects));
+
+            return (SpriteEffects)Orientations.GetValue(Random.Next(Orientations.Length));
         }
     }
 }

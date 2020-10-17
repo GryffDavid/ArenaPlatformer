@@ -114,7 +114,7 @@ namespace ArenaPlatformer1
                 spriteBatch.Draw(ball.Texture, 
                     new Rectangle((int)ball.Position.X, 
                                   (int)ball.Position.Y, 
-                                  (int)(ball.Texture.Width * Math.Max(ball.Scale, ball.Velocity.Y * 0.3)), 
+                                  (int)(ball.Texture.Width * Math.Max(ball.Scale, Math.Abs(ball.Velocity.Y) * 0.3)), 
                                   (int)(ball.Texture.Height * ball.Scale)), 
                     null, Color, ball.Orientation, origin, SpriteEffects.None, 0f);
             }

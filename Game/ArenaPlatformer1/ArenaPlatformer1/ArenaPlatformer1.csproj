@@ -73,11 +73,14 @@
   <ItemGroup>
     <Compile Include="Basics\Animation.cs" />
     <Compile Include="Basics\CollisionSolid.cs" />
+    <Compile Include="Basics\Crate.cs" />
     <Compile Include="Basics\Explosion.cs" />
+    <Compile Include="Basics\SubGrenade.cs" />
     <Compile Include="Liquid.cs" />
     <Compile Include="Metaball.cs" />
     <Compile Include="ParticleSystem\Gib.cs" />
     <Compile Include="Basics\Grenade.cs" />
+    <Compile Include="Basics\HealthBar.cs" />
     <Compile Include="BulletTrail.cs" />
     <Compile Include="Item.cs" />
     <Compile Include="ItemSpawn.cs" />
@@ -90,8 +93,8 @@
     <Compile Include="Basics\Map.cs" />
     <Compile Include="Basics\MovingObject.cs" />
     <Compile Include="Basics\MovingPlatform.cs" />
-    <Compile Include="LightProjectiles\MachineGunProjectile.cs" />
-    <Compile Include="LightProjectiles\ShotgunProjectile.cs" />
+    <Compile Include="Projectiles\MachineGunProjectile.cs" />
+    <Compile Include="Projectiles\ShotgunProjectile.cs" />
     <Compile Include="ParticleSystem\Buffers\ChangeBuffer.cs" />
     <Compile Include="ParticleSystem\Buffers\ChangeMessage.cs" />
     <Compile Include="ParticleSystem\Buffers\DoubleBuffer.cs" />
@@ -101,14 +104,11 @@
     <Compile Include="ParticleSystem\Managers\RenderManager.cs" />
     <Compile Include="ParticleSystem\Managers\UpdateManager.cs" />
     <Compile Include="Pickups\MachineGunPickup.cs" />
-    <Compile Include="Pickups\BlueFlagPickup.cs" />
-    <Compile Include="Pickups\RedFlagPickup.cs" />
     <Compile Include="Pickups\ShieldPickup.cs" />
     <Compile Include="Pickups\RocketLauncherPickup.cs" />
     <Compile Include="Pickups\ShotgunPickup.cs" />
     <Compile Include="Player.cs" />
     <Compile Include="Basics\Projectile.cs" />
-    <Compile Include="Projectiles\Bullet.cs" />
     <Compile Include="Projectiles\Rocket.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="aOtherStuff\Program.cs" />
@@ -116,10 +116,12 @@
     <Compile Include="Basics\Tile.cs" />
     <Compile Include="Basics\Trap.cs" />
     <Compile Include="ShockWave.cs" />
+    <Compile Include="ToonLightning.cs" />
     <Compile Include="Traps\BeamTrap.cs" />
     <Compile Include="Traps\BouncePadTrap.cs" />
     <Compile Include="Traps\Mine.cs" />
     <Compile Include="Traps\SpikesTrap.cs" />
+    <Compile Include="Traps\TripMine.cs" />
     <Compile Include="UI\PlayerJoin.cs" />
     <Compile Include="Basics\Camera.cs" />
     <Compile Include="VerletObject.cs" />

@@ -22,6 +22,8 @@ namespace ArenaPlatformer1
 
         public bool Active, Shrink, Grow, Fade, RotateVelocity, CanBounce, StopBounce, HardBounce, HasBounced;
 
+        public int SourceID;
+
         public void Update(GameTime gameTime)
         {
             if (FadeDelay > 0)

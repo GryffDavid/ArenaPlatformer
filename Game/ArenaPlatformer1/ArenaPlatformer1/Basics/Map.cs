@@ -20,6 +20,8 @@ namespace ArenaPlatformer1
 
         //Collision tiles
         private TileType[,] Tiles;
+        public int[,] ProbabilityMap;
+        public int[,] SpawnGroup;
         public ItemSpawn[] ItemSpawnArray;
 
         //Draw data
@@ -43,10 +45,15 @@ namespace ArenaPlatformer1
         public List<Light> LightList;
         
         int HorizontalAreasCount;
-        int VerticalAreasCount;        
+        int VerticalAreasCount;
+
+        double[] SpawnGroupValues;
+
+
         public Map()
         {
             Tiles = new TileType[(int)MapSize.X, (int)MapSize.Y];
+            ProbabilityMap = new int[(int)MapSize.X, (int)MapSize.Y];            
             DrawTiles = new Tile[(int)MapSize.X, (int)MapSize.Y];            
         }
 
@@ -65,15 +72,20 @@ namespace ArenaPlatformer1
                 {
                     ObjectsInArea[x, y] = new List<MovingObject>();
                 }
-            }            
+            }
         }
 
         public void LoadContent(ContentManager content)
         {
+            SpawnGroupValues = new double[10];
             DrawTiles = new Tile[(int)MapSize.X, (int)MapSize.Y];
             SpawnTiles = new List<Vector2>();
-            
             LightList = new List<Light>();
+
+            for (int i = 0; i < 10; i++)
+            {
+                SpawnGroupValues[i] = Random.NextDouble();
+            }
 
             for (int x = 0; x < (int)MapSize.X; x++)
             {
@@ -87,31 +99,39 @@ namespace ArenaPlatformer1
                             }
                             break;
 
-                        case TileType.RedFlag:
-                            {
-                                RedFlagSpawn = new Vector2(x, y);
-                                ItemList.Add(new RedFlagPickup(RedFlagSpawn * 64));
-                            }
-                            break;
-
-                        case TileType.BlueFlag:
-                            {
-                                BlueFlagSpawn = new Vector2(x, y);
-                                ItemList.Add(new BlueFlagPickup(BlueFlagSpawn * 64));
-                            }
-                            break;
-
                         case TileType.Solid:
                             {
-                                Tile drawTile = new Tile()
-                                {
-                                    Size = TileSize,
-                                    Position = new Vector2(x * TileSize.X, y * TileSize.Y)
-                                };
-                                drawTile.Index = new Vector2(x, y);
-                                drawTile.LoadContent(content);
+                                float against, valu;
+                                against = 0;
+                                valu = 100;
 
-                                DrawTiles[x, y] = drawTile;
+                                if (ProbabilityMap != null)
+                                {
+                                    against = (float)Random.NextDouble();
+                                    valu = ProbabilityMap[x, y] / 100f;
+
+                                    if (SpawnGroup[x,y] != 0)
+                                    {
+                                        against = (float)SpawnGroupValues[SpawnGroup[x, y]];
+                                    }
+                                }
+
+                                if (valu >= against)
+                                {
+                                    Tile drawTile = new Tile()
+                                    {
+                                        Size = TileSize,
+                                        Position = new Vector2(x * TileSize.X, y * TileSize.Y)
+                                    };
+                                    drawTile.Index = new Vector2(x, y);
+                                    drawTile.LoadContent(content);
+
+                                    DrawTiles[x, y] = drawTile;
+                                }
+                                else
+                                {
+                                    Tiles[x, y] = TileType.Empty;
+                                }
                             }
                             break;
 
@@ -212,6 +232,10 @@ namespace ArenaPlatformer1
         /// <returns></returns>
         public int GetMapTileXAtPoint(int xPos)
         {
+            //THIS SEEMED TO MAKE THINGS RUN REALLY SLOWLY AND CAUSED FALLING THROUGH FLOORS ONCE
+            //int xlim = Tiles.GetLength(0)-1;
+            //return (int)MathHelper.Clamp((xPos / TileSize.X), 0, xlim);
+
             return (int)(xPos / TileSize.X);
         }
         
@@ -222,6 +246,8 @@ namespace ArenaPlatformer1
         /// <returns></returns>
         public int GetMapTileYAtPoint(int yPos)
         {
+            //int ylim = Tiles.GetLength(1)-1;
+            //return (int)MathHelper.Clamp((yPos / TileSize.Y), 0, ylim);
             return (int)(yPos / TileSize.Y);
         }
 

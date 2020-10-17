@@ -81,6 +81,6 @@ namespace ArenaPlatformer1
                 emitter.Position = Position;
                 emitter.Update(gameTime);
             }
-        }        
+        }
     }
 }

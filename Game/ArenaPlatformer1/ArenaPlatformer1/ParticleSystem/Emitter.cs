@@ -21,15 +21,15 @@ namespace ArenaPlatformer1
         Texture2D Texture;
         Rectangle CollisionRectangle;
         public Color StartColor, EndColor;
-        public Vector2 PreviousPosition, AngleRange, Position, ScaleRange, TimeRange, 
-                       RotationIncrementRange, SpeedRange, StartingRotationRange, EmitterDirection, 
+        public Vector2 PreviousPosition, AngleRange, Position, ScaleRange, TimeRange,
+                       RotationIncrementRange, SpeedRange, StartingRotationRange, EmitterDirection,
                        Velocity, YRange, Friction;
         public float Transparency, Gravity, ActiveSeconds, Interval, EmitterSpeed,
-                     EmitterAngle, EmitterGravity, FadeDelay, StartingInterval, BounceY, DrawDepth;        
+                     EmitterAngle, EmitterGravity, FadeDelay, StartingInterval, BounceY, DrawDepth;
         public bool Fade, CanBounce, AddMore, Shrink, StopBounce, HardBounce, BouncedOnGround,
-                    RotateVelocity, FlipHor, FlipVer, ReduceDensity, SortParticles, Grow, Active, Emissive, Lit;
+                    RotateVelocity, FlipHor, FlipVer, ReduceDensity, SortParticles, Grow, Active, Emissive, Lit,
+                    ParticlesTethered; //Whether the particles that already exist should move with the emitter
         public double IntervalTime, CurrentTime, MaxTime;
-        public object Tether;
         public int Burst;
         public int Orientation = 0;
         
@@ -239,12 +239,12 @@ namespace ArenaPlatformer1
             public Vector2 ChangeTime;
             public bool Active;
             public bool? shrink, grow, fade, reduceDensity,
-                        rotateVelocity, canBounce, stopBounce,
-                        hardBounce, flipVer, flipHor, emissive, lit;
+                         rotateVelocity, canBounce, stopBounce,
+                         hardBounce, flipVer, flipHor, emissive, lit;
             public Vector2? angleRange, timeRange, speedRange, friction,
-                           scaleRange, rotationIncrement, startingRotation, yRange;
+                            scaleRange, rotationIncrement, startingRotation, yRange;
             public float? gravity, startingTransparency,
-                         fadeDelay, activeSeconds, interval, drawDepth;
+                          fadeDelay, activeSeconds, interval, drawDepth;
             public Color? startColor, endColor;
             public int? burst;
 
@@ -277,7 +277,7 @@ namespace ArenaPlatformer1
                        Vector2 yrange, bool? shrink = null, float? drawDepth = null, bool? stopBounce = null, bool? hardBounce = null,
                        Vector2? emitterSpeed = null, Vector2? emitterAngle = null, float? emitterGravity = null, bool? rotateVelocity = null,
                        Vector2? friction = null, bool? flipHor = null, bool? flipVer = null, float? fadeDelay = null, bool? reduceDensity = null,
-                       bool? sortParticles = null, bool? grow = false, bool? emissive = false, bool? lit = false)
+                       bool? sortParticles = null, bool? grow = false, bool? emissive = false, bool? lit = false, bool? particlesTethered = false)
         {
             Active = true;
             Texture = texture;
@@ -301,20 +301,17 @@ namespace ArenaPlatformer1
             Burst = burst;
             CanBounce = canBounce;
             
+            ParticlesTethered = particlesTethered.Value;
 
             if (lit != null)
                 Lit = lit.Value;
             else
                 Lit = false;
 
-
             if (emissive != null)
                 Emissive = emissive.Value;
             else
                 Emissive = false;
-
-
-
 
             if (grow != null)
                 Grow = grow.Value;
@@ -582,7 +579,7 @@ namespace ArenaPlatformer1
                                 Texture, Position + offset * i, AngleRange, SpeedRange, ScaleRange, StartColor, EndColor,
                                 Gravity, Shrink, Fade, StartingRotationRange, RotationIncrementRange,
                                 Transparency, TimeRange, Grow, RotateVelocity, Friction, Orientation, FadeDelay,
-                                YRange, CanBounce, StopBounce, HardBounce, DrawDepth, Emissive, Lit,
+                                YRange, CanBounce, StopBounce, HardBounce, DrawDepth, Emissive, Lit, GetHashCode(),
                                 out gameData, out renderData);
 
                         RenderManager.RenderDataObjects.Add(renderData);
@@ -644,7 +641,7 @@ namespace ArenaPlatformer1
                                 CurrentChange.hardBounce.Value, 
                                 CurrentChange.drawDepth.Value,
                                 CurrentChange.emissive.Value, 
-                                CurrentChange.lit.Value,
+                                CurrentChange.lit.Value, GetHashCode(),
                                 out gameData, out renderData);
 
                         RenderManager.RenderDataObjects.Add(renderData);
@@ -654,7 +651,18 @@ namespace ArenaPlatformer1
                     IntervalTime = 0;
                 }
             }
-            #endregion
+            #endregion       
+
+            if (ParticlesTethered == true)
+            {
+                foreach (ParticleData data in UpdateManager.ParticleDataObjects)
+                {
+                    if (data.SourceID == GetHashCode())
+                    {
+                        data.Position += Position - PreviousPosition;
+                    }
+                }
+            }
 
             PreviousPosition = Position;
             CollisionRectangle = new Rectangle((int)Position.X - 1, (int)Position.Y - 1, 2, 2);
@@ -678,6 +686,14 @@ namespace ArenaPlatformer1
         public void DeactivateChanges()
         {
             _changeEmitter.Deactivate();
+        }
+
+        public void ChangeParticleVelocity()
+        {
+            foreach (ParticleData data in UpdateManager.ParticleDataObjects)
+            {
+                data.Velocity.X = 15;
+            }
         }
 
 

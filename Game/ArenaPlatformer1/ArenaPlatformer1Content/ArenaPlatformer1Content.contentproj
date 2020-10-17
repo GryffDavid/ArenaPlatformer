@@ -303,22 +303,44 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Player2\CrouchLeft.png">
-      <Name>CrouchLeft</Name>
+    <Compile Include="Metaball.png">
+      <Name>Metaball</Name>
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Player2\CrouchRight.png">
-      <Name>CrouchRight</Name>
+    <Compile Include="MetaballSquashed.png">
+      <Name>MetaballSquashed</Name>
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Player2\Head.png">
-      <Name>Head</Name>
+    <Compile Include="Icons\SkullIcon.png">
+      <Name>SkullIcon</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+      <ProcessorParameters_GenerateMipmaps>True</ProcessorParameters_GenerateMipmaps>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="SmallRoundedRect.png">
+      <Name>SmallRoundedRect</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Player1\Jumping\JumpLeftDown.png">
+      <Name>JumpLeftDown</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Player1\Jumping\JumpRightDown.png">
+      <Name>JumpRightDown</Name>
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
     </Compile>
@@ -331,8 +353,22 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Player2\Jumping\JumpLeftDown.png">
+      <Name>JumpLeftDown</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
     <Compile Include="Player2\Jumping\JumpRight.png">
       <Name>JumpRight</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Player2\Jumping\JumpRightDown.png">
+      <Name>JumpRightDown</Name>
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
     </Compile>
@@ -366,6 +402,27 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Player2\CrouchLeft.png">
+      <Name>CrouchLeft</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Player2\CrouchRight.png">
+      <Name>CrouchRight</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Player2\Head.png">
+      <Name>Head</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
     <Compile Include="Player2\WallSlideLeft.png">
       <Name>WallSlideLeft</Name>
       <Importer>TextureImporter</Importer>
@@ -380,27 +437,6 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Player3\CrouchLeft.png">
-      <Name>CrouchLeft</Name>
-      <Importer>TextureImporter</Importer>
-      <Processor>TextureProcessor</Processor>
-    </Compile>
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="Player3\CrouchRight.png">
-      <Name>CrouchRight</Name>
-      <Importer>TextureImporter</Importer>
-      <Processor>TextureProcessor</Processor>
-    </Compile>
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="Player3\Head.png">
-      <Name>Head</Name>
-      <Importer>TextureImporter</Importer>
-      <Processor>TextureProcessor</Processor>
-    </Compile>
-  </ItemGroup>
-  <ItemGroup>
     <Compile Include="Player3\Jumping\JumpLeft.png">
       <Name>JumpLeft</Name>
       <Importer>TextureImporter</Importer>
@@ -408,8 +444,22 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Player3\Jumping\JumpLeftDown.png">
+      <Name>JumpLeftDown</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
     <Compile Include="Player3\Jumping\JumpRight.png">
       <Name>JumpRight</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Player3\Jumping\JumpRightDown.png">
+      <Name>JumpRightDown</Name>
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
     </Compile>
@@ -443,6 +493,27 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Player3\CrouchLeft.png">
+      <Name>CrouchLeft</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Player3\CrouchRight.png">
+      <Name>CrouchRight</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Player3\Head.png">
+      <Name>Head</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
     <Compile Include="Player3\WallSlideLeft.png">
       <Name>WallSlideLeft</Name>
       <Importer>TextureImporter</Importer>
@@ -457,27 +528,6 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Player4\CrouchLeft.png">
-      <Name>CrouchLeft</Name>
-      <Importer>TextureImporter</Importer>
-      <Processor>TextureProcessor</Processor>
-    </Compile>
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="Player4\CrouchRight.png">
-      <Name>CrouchRight</Name>
-      <Importer>TextureImporter</Importer>
-      <Processor>TextureProcessor</Processor>
-    </Compile>
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="Player4\Head.png">
-      <Name>Head</Name>
-      <Importer>TextureImporter</Importer>
-      <Processor>TextureProcessor</Processor>
-    </Compile>
-  </ItemGroup>
-  <ItemGroup>
     <Compile Include="Player4\Jumping\JumpLeft.png">
       <Name>JumpLeft</Name>
       <Importer>TextureImporter</Importer>
@@ -485,8 +535,22 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Player4\Jumping\JumpLeftDown.png">
+      <Name>JumpLeftDown</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
     <Compile Include="Player4\Jumping\JumpRight.png">
       <Name>JumpRight</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Player4\Jumping\JumpRightDown.png">
+      <Name>JumpRightDown</Name>
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
     </Compile>
@@ -520,6 +584,27 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Player4\CrouchLeft.png">
+      <Name>CrouchLeft</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Player4\CrouchRight.png">
+      <Name>CrouchRight</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Player4\Head.png">
+      <Name>Head</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
     <Compile Include="Player4\WallSlideLeft.png">
       <Name>WallSlideLeft</Name>
       <Importer>TextureImporter</Importer>
@@ -534,32 +619,46 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Metaball.png">
-      <Name>Metaball</Name>
+    <Compile Include="PaintStreak1.png">
+      <Name>PaintStreak1</Name>
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="MetaballSquashed.png">
-      <Name>MetaballSquashed</Name>
+    <Compile Include="Splatter1.png">
+      <Name>Splatter1</Name>
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Icons\SkullIcon.png">
-      <Name>SkullIcon</Name>
+    <Compile Include="GameOver.png">
+      <Name>GameOver</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="PaintStreak3.png">
+      <Name>PaintStreak3</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="PaintStreak2.png">
+      <Name>PaintStreak2</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Particles\ToonSmoke\ToonSmoke1.png">
+      <Name>ToonSmoke1</Name>
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
       <ProcessorParameters_GenerateMipmaps>True</ProcessorParameters_GenerateMipmaps>
-    </Compile>
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="SmallRoundedRect.png">
-      <Name>SmallRoundedRect</Name>
-      <Importer>TextureImporter</Importer>
-      <Processor>TextureProcessor</Processor>
     </Compile>
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Microsoft\XNA Game Studio\$(XnaFrameworkVersion)\Microsoft.Xna.GameStudio.ContentPipeline.targets" />
