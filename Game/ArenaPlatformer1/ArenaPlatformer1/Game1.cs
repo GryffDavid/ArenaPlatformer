@@ -20,7 +20,6 @@ namespace ArenaPlatformer1
     enum GameState
     {
         MainMenu,
-        ModeSelect,
         Playing,
         LevelSelect,
         Paused,
@@ -84,13 +83,6 @@ namespace ArenaPlatformer1
     {
         BlueTeam,
         RedTeam
-    };
-
-    public enum GameType
-    {
-        DeathMatch, //Play continuosly until a score limit or time limit is reached. The player with most kills wins
-        LastMan, //Play a series of matches that are won by the last person left alive
-        CTF //Play rounds of Capture the flag. Best of 5 wins the whole game
     };
 
    
@@ -183,7 +175,6 @@ namespace ArenaPlatformer1
         SpriteBatch spriteBatch; 
 
         GameState CurrentGameState;
-        GameType CurrentGameType;
 
         Player[] Players = new Player[4];
         PlayerJoin[] PlayerJoinButtons = new PlayerJoin[4];
@@ -671,20 +662,15 @@ namespace ArenaPlatformer1
                     break;
             }
 
-            if (CurrentGameType == GameType.DeathMatch)
+            //if (CurrentGameType == GameType.LastMan)
+            //{
+            //Only one player left. That player is the winner of this match
+            if (Players.Count(player => player != null && player.Active == true) == 1)
             {
-                e.Player.Respawn();
+                CurrentMatchNumber++;
+                CurrentGameState = GameState.EndRound;
             }
-
-            if (CurrentGameType == GameType.LastMan)
-            {
-                //Only one player left. That player is the winner of this match
-                if (Players.Count(player => player != null && player.Active == true) == 1)
-                {
-                    CurrentMatchNumber++;
-                    CurrentGameState = GameState.EndMatch;
-                }
-            }
+            //}
         }
 
         public void OnExplosionHappened(object source, ExplosionEventArgs e)
@@ -885,7 +871,8 @@ namespace ArenaPlatformer1
         
         protected override void Initialize()
         {
-            CurrentGameState = GameState.ModeSelect;
+            CurrentGameState = GameState.MainMenu;
+            //CurrentGameType = GameType.LastMan;
 
             ExplosionHappenedEvent += OnExplosionHappened;
 
@@ -1204,37 +1191,7 @@ namespace ArenaPlatformer1
             }
 
             switch (CurrentGameState)
-            {
-                #region ModeSelect
-                case GameState.ModeSelect:
-                    {
-                        for (int i = 0; i < 4; i++)
-                        {
-                            if (CurrentGamePadStates[i].IsButtonUp(Buttons.DPadDown) &&
-                                PreviousGamePadStates[i].IsButtonDown(Buttons.DPadDown))
-                            {
-                                SelectedModeMenu++;
-                                SelectedModeMenu = Wrap(SelectedModeMenu, 3);
-                            }
-
-                            if (CurrentGamePadStates[i].IsButtonUp(Buttons.DPadUp) &&
-                                PreviousGamePadStates[i].IsButtonDown(Buttons.DPadUp))
-                            {
-                                SelectedModeMenu--;
-                                SelectedModeMenu = Wrap(SelectedModeMenu, 3);
-                            }
-
-                            if (CurrentGamePadStates[i].IsButtonUp(Buttons.A) &&
-                                PreviousGamePadStates[i].IsButtonDown(Buttons.A))
-                            {
-                                CurrentGameType = (GameType)SelectedModeMenu;
-                                CurrentGameState = GameState.MainMenu;
-                            }
-                        }
-                    }
-                    break;
-                #endregion
-                
+            {                
                 #region MainMenu
                 case GameState.MainMenu:
                     {
@@ -1311,20 +1268,20 @@ namespace ArenaPlatformer1
                             if (CurrentGamePadStates[i].IsButtonUp(Buttons.B) &&
                                 PreviousGamePadStates[i].IsButtonDown(Buttons.B))
                             {
-                                if (PlayerJoinButtons[i].Occupied == false)
-                                {
-                                    CurrentGameState = GameState.ModeSelect;
-                                    for (int p = 0; p < 4; p++)
-                                    {
-                                        PlayerJoinButtons[p].Occupied = false;
-                                        Players[p] = null;
-                                    }
-                                }
-                                else
-                                {
+                                //if (PlayerJoinButtons[i].Occupied == false)
+                                //{
+                                //    CurrentGameState = GameState.ModeSelect;
+                                //    for (int p = 0; p < 4; p++)
+                                //    {
+                                //        PlayerJoinButtons[p].Occupied = false;
+                                //        Players[p] = null;
+                                //    }
+                                //}
+                                //else
+                                //{
                                     PlayerJoinButtons[i].Occupied = false;
                                     Players[i] = null;
-                                }                                
+                                //}                                
                             }
                             #endregion
                         }
@@ -1370,6 +1327,7 @@ namespace ArenaPlatformer1
                 #region Playing
                 case GameState.Playing:
                     {
+                        #region Let players pause game
                         for (int i = 0; i < 4; i++)
                         {
                             if (CurrentGamePadStates[i].IsButtonUp(Buttons.Start) &&
@@ -1377,7 +1335,8 @@ namespace ArenaPlatformer1
                             {
                                 CurrentGameState = GameState.Paused;
                             }
-                        }
+                        } 
+                        #endregion
 
                         foreach (Light light in CurrentMap.LightList)
                         {
@@ -1393,9 +1352,10 @@ namespace ArenaPlatformer1
 
                         ShockWaveList.RemoveAll(Shock => Shock.Active == false);
 
+                        #region Place Light with mouse
                         if (CurrentMouseState.LeftButton == ButtonState.Released &&
-                            PreviousMouseState.LeftButton == ButtonState.Pressed &&
-                            this.IsActive == true)
+                                            PreviousMouseState.LeftButton == ButtonState.Pressed &&
+                                            this.IsActive == true)
                         {
                             Light light = new Light()
                             {
@@ -1406,8 +1366,9 @@ namespace ArenaPlatformer1
                                 Size = 800
                             };
 
-                            CurrentMap.LightList.Add(light);                           
-                        }
+                            CurrentMap.LightList.Add(light);
+                        } 
+                        #endregion
 
                         //ShockWaveEffect.Parameters["CurrentTime"].SetValue(ShockWaveEffect.Parameters["CurrentTime"].GetValueSingle() + (float)(gameTime.ElapsedGameTime.TotalSeconds));
 
@@ -1522,32 +1483,6 @@ namespace ArenaPlatformer1
                             player.Update(gameTime);
                             CurrentMap.UpdateAreas(player);
                             player.CollisionDataList.Clear();
-
-                            //if (player.IsShooting == true && 
-                            //    player.WasShooting == false)
-                            //{
-                            //    switch (player.CurrentGun)
-                            //    {
-                            //        case GunType.Flamethrower:
-                            //            {
-                            //                if (player.flameEmitter == null)
-                            //                {
-                            //                    player.flameEmitter = new Emitter(ToonSmoke3,
-                            //                    new Vector2(player.Position.X, player.Position.Y), new Vector2(60, 120), new Vector2(6, 8),
-                            //                    new Vector2(650, 800), 1f, false, new Vector2(-10, 10), new Vector2(-1, 1), new Vector2(0.05f, 0.06f),
-                            //                    new Color(255, 128, 0, 6), Color.Black,
-                            //                    -0.005f, -0.4f, 16, 6, false, new Vector2(0, 720), true, 0.1f,
-                            //                    null, null, null, null, null, false, new Vector2(0.02f, 0.01f), null, null,
-                            //                    null, null, null, true, null);
-                            //                }
-                            //                else
-                            //                {
-                            //                    player.flameEmitter.AddMore = true;
-                            //                }
-                            //            }
-                            //            break;
-                            //    }
-                            //}
                         }
 
                         foreach (Projectile projectile in ProjectileList)
@@ -1592,9 +1527,6 @@ namespace ArenaPlatformer1
 
                         ProjectileList.RemoveAll(Projectile => Projectile.Active == false);
 
-                        //EmitterList[0].Position = new Vector2(EmitterList[0].Position.X + 3, 1080 / 2) + new Vector2(0, 7 * (float)Math.Sin((float)gameTime.TotalGameTime.TotalSeconds * 7));
-                        //EmitterList[1].Position = new Vector2(EmitterList[1].Position.X + 3, 1080 / 2) + new Vector2(0, -7 * (float)Math.Sin((float)gameTime.TotalGameTime.TotalSeconds * 7));
-
                         foreach (Emitter emitter in EmitterList)
                         {
                             emitter.Update(gameTime);
@@ -1610,12 +1542,15 @@ namespace ArenaPlatformer1
                     {
                         for (int i = 0; i < 4; i++)
                         {
+                            #region Start
                             if (CurrentGamePadStates[i].IsButtonUp(Buttons.Start) &&
-                                PreviousGamePadStates[i].IsButtonDown(Buttons.Start))
+                                                    PreviousGamePadStates[i].IsButtonDown(Buttons.Start))
                             {
                                 CurrentGameState = GameState.Playing;
-                            }
+                            } 
+                            #endregion
 
+                            #region A
                             if (CurrentGamePadStates[i].IsButtonUp(Buttons.A) &&
                                 PreviousGamePadStates[i].IsButtonDown(Buttons.A))
                             {
@@ -1635,7 +1570,7 @@ namespace ArenaPlatformer1
 
                                             //if (ProjectileList != null)
                                             //    ProjectileList.Clear();
-                                            
+
                                             //if (TrapList != null)
                                             //    TrapList.Clear();
 
@@ -1649,18 +1584,23 @@ namespace ArenaPlatformer1
                                         break;
                                 }
                             }
+                            #endregion
 
+                            #region D-Pad Down
                             if (CurrentGamePadStates[i].IsButtonUp(Buttons.DPadDown) &&
-                                PreviousGamePadStates[i].IsButtonDown(Buttons.DPadDown))
+                                                    PreviousGamePadStates[i].IsButtonDown(Buttons.DPadDown))
                             {
                                 SelectedPauseMenu++;
                             }
+                            #endregion
 
+                            #region D-Pad Up
                             if (CurrentGamePadStates[i].IsButtonUp(Buttons.DPadUp) &&
-                                PreviousGamePadStates[i].IsButtonDown(Buttons.DPadUp))
+                                                    PreviousGamePadStates[i].IsButtonDown(Buttons.DPadUp))
                             {
                                 SelectedPauseMenu--;
-                            }
+                            } 
+                            #endregion
                         }
                     }
                     break;
@@ -1699,34 +1639,11 @@ namespace ArenaPlatformer1
                     }
                     break;
                 #endregion
-
-                #region Mode Select
-                case GameState.ModeSelect:
-                    {
-                        GraphicsDevice.SetRenderTarget(MenuRenderTarget);
-                        GraphicsDevice.Clear(Color.Black);
-                        spriteBatch.Begin();
-                        spriteBatch.DrawString(Font1, "Mode Select", new Vector2(32, 32), Color.White);
-
-                        for (int i = 0; i < ModeSelectOptions.Count; i++)
-                        {
-                            Color col = Color.Gray;
-
-                            if (SelectedModeMenu == i)
-                                col = Color.White;
-
-                            spriteBatch.DrawString(Font1, ModeSelectOptions[i], new Vector2(32, 64 + (25 * i)), col);
-                        }
-
-                        spriteBatch.End();
-                    }
-                    break;
-                #endregion
-
+                    
                 #region Playing
                 case GameState.Playing:
                 case GameState.Paused:
-                case GameState.EndMatch:
+                case GameState.EndRound:
                     {
                         if (CurrentGameState == GameState.Playing)
                         {
@@ -1829,18 +1746,7 @@ namespace ArenaPlatformer1
 
                         foreach (Item item in ItemList)
                         {
-                            switch (item.ItemType)
-                            {
-                                case ItemType.RocketLauncher:
-                                case ItemType.Shotgun:
-                                case ItemType.MachineGun:
-                                case ItemType.RedFlag:
-                                case ItemType.BlueFlag:
-                                    {
-                                        item.Draw(spriteBatch);
-                                    }
-                                break;
-                            }                            
+                            item.Draw(spriteBatch);                       
                         }
 
                         foreach (Grenade grenade in GrenadeList)
@@ -1851,7 +1757,13 @@ namespace ArenaPlatformer1
                         spriteBatch.Draw(EmissiveMap, EmissiveMap.Bounds, Color.White);
 
                         RenderManager.DrawLit(spriteBatch);
-                        
+
+
+                        if (CurrentGameState == GameState.EndRound)
+                        {
+                            spriteBatch.Draw(Block, GameRenderTarget.Bounds, Color.Black * 0.5f);
+                        }
+
                         spriteBatch.End();
 
 
@@ -2013,7 +1925,7 @@ namespace ArenaPlatformer1
                     }
                     break;
                 #endregion
-
+                    
                 #region Level Select
                 case GameState.LevelSelect:
                     {

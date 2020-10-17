@@ -78,7 +78,6 @@
     <Compile Include="Metaball.cs" />
     <Compile Include="ParticleSystem\Gib.cs" />
     <Compile Include="Basics\Grenade.cs" />
-    <Compile Include="Basics\HealthBar.cs" />
     <Compile Include="BulletTrail.cs" />
     <Compile Include="Item.cs" />
     <Compile Include="ItemSpawn.cs" />

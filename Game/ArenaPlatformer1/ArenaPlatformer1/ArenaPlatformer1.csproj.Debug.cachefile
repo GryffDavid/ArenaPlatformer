@@ -27,6 +27,7 @@ Content\shieldcomb.xnb
 Content\ShotgunShell.xnb
 Content\Particles\PING.xnb
 Content\Particles\SNAP.xnb
+Content\Icons\GrenadeIcon.xnb
 Content\Player1\Standing\StandLeft.xnb
 Content\Player1\Standing\StandRight.xnb
 Content\Player1\Running\RunLeft.xnb
@@ -66,6 +67,9 @@ Content\Player4\Standing\StandLeft.xnb
 Content\Player4\Standing\StandRight.xnb
 Content\Player4\WallSlideLeft.xnb
 Content\Player4\WallSlideRight.xnb
+Content\Metaball.xnb
+Content\MetaballSquashed.xnb
+Content\Icons\SkullIcon.xnb
 Content\Font1.xnb
 Content\Shaders\Blur.xnb
 Content\Shaders\Crepuscular.xnb
@@ -73,7 +77,3 @@ Content\Shaders\Depth.xnb
 Content\Shaders\LightCombined.xnb
 Content\Shaders\LightEffect.xnb
 Content\Shaders\Shockwave.xnb
-Content\Metaball.xnb
-Content\MetaballSquashed.xnb
-Content\Icons\GrenadeIcon.xnb
-Content\Icons\SkullIcon.xnb
